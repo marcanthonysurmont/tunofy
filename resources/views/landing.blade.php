@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Tunofy - Create.Vote.Listen</title>
+    <title>Tunofy - The music platform you need</title>
     @vite(['resources/js/landingpage.js'])
     {{-- fonts for headers --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,7 +19,7 @@
 
     <header class="fixed top-0 left-1/2 px-4 pt-8 translate-x-[-50%] w-full flex justify-center z-50">
         <nav x-data="{ open: false }"
-            class="mx-auto px-4 py-4 w-full bg-navbar-background max-w-[1585px] border-navbar-stroke border-2 rounded-lg">
+            class="mx-auto px-4 py-4 w-full bg-navbar-background/30 backdrop-blur-lg max-w-[1585px] border-navbar-stroke border-2 rounded-lg">
             <div class="flex items-center justify-between">
                 <div class="flex flex-row items-center space-x-4">
                     <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Logo" class="w-10 h-10">
@@ -33,7 +33,7 @@
                     <li><a href="#faq" class="font-nohemi font-normal">FAQ</a></li>
                 </ul>
 
-                <div class="hidden lg:flex flex-row items-center gap-4">
+                <div class="hidden lg:flex flex-row items-center gap-4 text-xl">
                     <a href="/app" class="font-nohemi font-normal">Key features</a>
                     <a href="/app"
                         class="font-nohemi font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center">Get
@@ -80,9 +80,10 @@
                 music together.</p>
             <div class="flex flex-row gap-4 items-center justify-center mt-8">
                 <a href=""
-                    class="font-nohemi font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center text-lg md:text-2xl">Join
+                    class="hover:-translate-y-0.5 transition-transform duration-150 ease-in-out font-nohemi font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center text-lg md:text-2xl">Join
                     now</a>
-                <a href="" class="font-nohemi font-normal text-lg md:text-2xl flex items-center gap-2">View
+                <a href=""
+                    class="font-nohemi font-normal text-lg md:text-2xl flex items-center gap-2 hover:-translate-y-0.5 transition-transform duration-150 ease-in-out">View
                     features<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke-width="1.5" stroke="currentColor" class="size-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
