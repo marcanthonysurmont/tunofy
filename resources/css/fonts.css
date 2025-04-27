@@ -1,0 +1,13 @@
+@font-face {
+    font-family: 'Nohemi';
+    src: url('/fonts/Nohemi-Regular.ttf') format('ttf'), ;
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Nohemi';
+    src: url('/fonts/Nohemi-Bold') format('ttf');
+    font-weight: bold;
+    font-style: normal;
+}
