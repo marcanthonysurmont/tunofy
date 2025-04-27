@@ -1,6 +1,6 @@
-@import './fonts.css';
+@import "./fonts.css";
 
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -8,11 +8,56 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-
+    /* fonts */
+    /* --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji'; */
     --font-nunito: "Nunito", sans-serif;
     --font-nohemi: "Nohemi", sans-serif;
 
+    /* colors */
     --color-background-page: #121212;
+    --color-dark-white: #EDEDED;
+
+    --color-navbar-background: #1E1E1E;
+    --color-navbar-stroke: #2C2C2C;
+
+    --color-primary: #3361E3;
+
+    --container-width: 1204px;
+}
+
+@layer base {
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: var(--font-nohemi);
+    }
+
+    p,
+    a,
+    li {
+        font-family: var(--font-nunito);
+    }
+}
+
+.bg-hero {
+    background-image: url('/public/images/decorations/hero-bg.png');
+    background-size: auto 125%;
+    background-position: center top -20px;
+    background-repeat: no-repeat;
+}
+
+.custom-underline {
+    background-image: url("/public/svg/underline-hero.svg");
+    background-position: 50% 100%;
+    background-repeat: repeat-x;
+    background-size: contain;
+    background-attachment: scroll;
+    padding-top: 0;
+    padding-bottom: 18px;
+    display: inline-block;
 }
