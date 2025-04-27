@@ -16,7 +16,10 @@
 
     /* colors */
     --color-background-page: #121212;
-    --color-dark-white: #EDEDED;
+    --color-card-background: #1A1A1A;
+    --color-card-stroke: #2C2C2C;
+    --color-card-background-hover: #1E1E1E;
+    --color-dark-white: #E0E0E0;
 
     --color-navbar-background: #1E1E1E;
     --color-navbar-stroke: #2C2C2C;
@@ -41,6 +44,7 @@
     a,
     li {
         font-family: var(--font-nunito);
+        font-weight: 300;
     }
 }
 

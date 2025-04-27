@@ -99,6 +99,44 @@
             </div>
         </section>
     </section>
+    <section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-8">
+        <div class="flex flex-col gap-10 items-center justify-center mb-16 text-center">
+            <h2 class="font-medium text-5xl md:text-6xl">How it works.</h2>
+            <p class="md:text-3xl font-nohemi">Trust us, it's as simple as pretending to like your friend's
+                playlist.</p>
+        </div>
+        <div class="flex flex-col lg:grid lg:grid-cols-3 w-full gap-8">
+            <div class="bg-card-background p-4 rounded-lg border-2 border-card-stroke">
+                <div class="flex flex-row gap-4 items-center mb-6">
+                    <span
+                        class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-full w-16 h-16 flex items-center justify-center text-white">1</span>
+                    <h3 class="text-3xl xl:text-4xl">Create a jam</h3>
+                </div>
+                <p class="text-2xl font-normal">Easily create a new jam session with your Spotify Premium account.
+                    Share the unique
+                    session code and
+                    invite friends to join.</p>
+            </div>
+            <div class="bg-card-background p-4 rounded-lg border-2 border-card-stroke">
+                <div class="flex flex-row gap-4 items-center mb-6">
+                    <span
+                        class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-full w-16 h-16 flex items-center justify-center text-white">2</span>
+                    <h3 class="text-3xl xl:text-4xl">Add music & vote</h3>
+                </div>
+                <p class="text-2xl font-normal">Everyone can add songs via Spotify links and vote for their favorite
+                    tracks.</p>
+            </div>
+            <div class="bg-card-background p-4 rounded-lg border-2 border-card-stroke">
+                <div class="flex flex-row gap-4 items-center mb-6">
+                    <span
+                        class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-full w-16 h-16 flex items-center justify-center text-white">3</span>
+                    <h3 class="text-3xl xl:text-4xl">Listen & enjoy</h3>
+                </div>
+                <p class="text-2xl font-normal">The owner or appointed co-DJ plays the music live. Watch votes in
+                    real-time, chat with emojis, and discover the best vibes together.</p>
+            </div>
+        </div>
+    </section>
 
 </body>
 
