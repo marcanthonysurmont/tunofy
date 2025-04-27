@@ -99,10 +99,10 @@
             </div>
         </section>
     </section>
-    <section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-8">
+    <section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-4">
         <div class="flex flex-col gap-10 items-center justify-center mb-16 text-center">
-            <h2 class="font-medium text-5xl md:text-6xl">How it works.</h2>
-            <p class="md:text-3xl font-nohemi">Trust us, it's as simple as pretending to like your friend's
+            <h2 class="font-medium text-5xl md:text-6xl">How it works</h2>
+            <p class="text-2xl md:text-3xl font-nohemi">Trust us, it's as simple as pretending to like your friend's
                 playlist.</p>
         </div>
         <div class="flex flex-col lg:grid lg:grid-cols-3 w-full gap-8">
@@ -135,6 +135,13 @@
                 <p class="text-2xl font-normal">The owner or appointed co-DJ plays the music live. Watch votes in
                     real-time, chat with emojis, and discover the best vibes together.</p>
             </div>
+        </div>
+    </section>
+
+    <section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-8">
+        <div class="flex flex-col gap-10 items-center justify-center mb-16 text-center">
+            <h2 class="font-medium text-5xl md:text-6xl">Key Features</h2>
+            <p class="text-2xl md:text-3xl font-nohemi">A unique blend of creativity and innovation.</p>
         </div>
     </section>
 
