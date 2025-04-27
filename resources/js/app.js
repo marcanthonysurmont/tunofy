@@ -16,3 +16,5 @@ createInertiaApp({
       .mount(el)
   },
 })
+
+console.log('App script loaded');
