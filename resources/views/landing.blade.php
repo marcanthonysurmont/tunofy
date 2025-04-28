@@ -19,7 +19,7 @@
 
     <header class="fixed top-0 left-1/2 px-4 pt-8 translate-x-[-50%] w-full flex justify-center z-50">
         <nav x-data="{ open: false }"
-            class="mx-auto px-4 py-4 w-full bg-navbar-background/60 backdrop-blur-lg max-w-[1585px] border-navbar-stroke border-2 rounded-lg">
+            class="mx-auto px-4 py-4 w-full bg-navbar-background/60 backdrop-blur-lg max-w-[1585px] shadow-xl border-navbar-stroke border-2 rounded-lg">
             <div class="flex items-center justify-between">
                 <div class="flex flex-row items-center space-x-4">
                     <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Logo" class="w-10 h-10">
@@ -111,32 +111,32 @@
         </div>
         <div class="flex flex-col lg:grid lg:grid-cols-3 w-full gap-8">
             <div class="bg-card-background p-4 rounded-lg border-2 border-card-stroke">
-                <div class="flex flex-row gap-4 items-center mb-6">
+                <div class="flex flex-row gap-4 items-center mb-4">
                     <span
                         class="font-nohemi text-2xl md:text-3xl bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white">1</span>
                     <h3 class="text-2xl md:text-3xl">Create a jam</h3>
                 </div>
-                <p class="text-2xl font-normal">Easily create a new jam session with your Spotify Premium account.
+                <p class="text-xl font-normal">Easily create a new jam session with your Spotify Premium account.
                     Share the unique
                     session code and
                     invite friends to join.</p>
             </div>
             <div class="bg-card-background p-4 rounded-lg border-2 border-card-stroke">
-                <div class="flex flex-row gap-4 items-center mb-6">
+                <div class="flex flex-row gap-4 items-center mb-4">
                     <span
                         class="font-nohemi text-2xl md:text-3xl bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white">2</span>
                     <h3 class="text-2xl md:text-3xl">Add music & vote</h3>
                 </div>
-                <p class="text-2xl font-normal">Everyone can add songs via Spotify links and vote for their favorite
+                <p class="text-xl font-normal">Everyone can add songs via Spotify links and vote for their favorite
                     tracks.</p>
             </div>
             <div class="bg-card-background p-4 rounded-lg border-2 border-card-stroke">
-                <div class="flex flex-row gap-4 items-center mb-6">
+                <div class="flex flex-row gap-4 items-center mb-4">
                     <span
                         class="font-nohemi text-2xl md:text-3xl bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white">3</span>
                     <h3 class="text-2xl md:text-3xl">Listen & enjoy</h3>
                 </div>
-                <p class="text-2xl font-normal">The owner or appointed co-DJ plays the music live. Watch votes in
+                <p class="text-xl font-normal">The owner or appointed co-DJ plays the music live. Watch votes in
                     real-time, chat with emojis, and discover the best vibes together.</p>
             </div>
         </div>
