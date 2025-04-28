@@ -370,6 +370,27 @@
             @endforeach
         </div>
     </section>
+
+    <footer class="bg-footer-background w-full flex flex-col justify-between max-h-[277px] h-full p-8">
+        <div class="max-w-[380px]">
+            <div class="flex flex-row gap-4 items-center mb-4">
+                <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Logo" class="w-12 h-12">
+                <h1 class="text-5xl font-medium font-nohemi">Tunofy</h1>
+            </div>
+            <p class="font-light text-xl">Tunofy enhances your spotify experience by combining music and voting.</p>
+        </div>
+        <div class="flex flex-row justify-between mt-auto text-sm text-[#666666] items-center flex-wrap gap-2">
+            <div class="flex flex-row gap-4">
+                <a href="#">Terms of use</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">GDPR</a>
+            </div>
+            <div class="flex flex-row items-center">
+                <p class="text-sm font-light">© 2025 Tunofy - All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
 </body>
 
 </html>
