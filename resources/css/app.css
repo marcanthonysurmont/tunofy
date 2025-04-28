@@ -37,6 +37,10 @@
     --container-width: 1204px;
 }
 
+.custom-item-hover {
+    @apply hover:-translate-y-0.5 transition-transform duration-150 ease-in-out;
+}
+
 @layer base {
 
     h1,
