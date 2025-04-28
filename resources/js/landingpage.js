@@ -1,6 +1,8 @@
-import './swiper.js';
-import './bootstrap';
 import '../css/app.css';
+// import './bootstrap';
 
+const page = document.body.dataset.page;
 
-console.log('Landing page script loaded');
+if (page === 'home') {
+  import('./swiper.js');
+}

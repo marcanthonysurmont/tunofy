@@ -39,17 +39,17 @@
 
 </head>
 
-<body class="bg-background-page text-dark-white mx-auto">
+<body class="bg-background-page text-dark-white mx-auto" data-page="home">
 
     <header class="fixed top-0 left-1/2 px-4 pt-8 translate-x-[-50%] w-full flex justify-center z-50">
         <nav x-data="{ open: false }"
             class="mx-auto px-4 py-4 w-full bg-navbar-background/60 backdrop-blur-lg max-w-[1728px] shadow-xl border-navbar-stroke border-2 rounded-lg">
             <div class="flex items-center justify-between">
-                <div class="flex flex-row items-center space-x-4">
+                <a class="flex flex-row items-center space-x-4" href="/">
                     <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Tunofy Logo"
                         class="md:w-10 md:h-10 h-8 w-8">
-                    <a href="#" class="text-2xl md:text-3xl font-medium font-nohemi">Tunofy</a>
-                </div>
+                    <p class="text-2xl md:text-3xl font-medium font-nohemi">Tunofy</p>
+                </a>
 
                 <!-- Desktop menu -->
                 <ul class="hidden lg:flex pl-8 space-x-6 text-xl">
