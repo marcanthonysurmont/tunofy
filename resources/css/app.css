@@ -1,4 +1,5 @@
 @import "./fonts.css";
+@import "./swiper-custom.css";
 
 @import "tailwindcss";
 
@@ -20,6 +21,9 @@
     --color-card-stroke: #2C2C2C;
     --color-card-background-hover: #1E1E1E;
     --color-dark-white: #E0E0E0;
+
+    --color-label-background: #233985;
+    --color-label-text: #99C2EC;
 
     --color-navbar-background: #1E1E1E;
     --color-navbar-stroke: #2C2C2C;
@@ -46,6 +50,11 @@
         font-family: var(--font-nunito);
         font-weight: 300;
     }
+}
+
+html,
+body {
+    scroll-behavior: smooth;
 }
 
 .bg-hero {

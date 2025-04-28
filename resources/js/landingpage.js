@@ -1,3 +1,4 @@
+import './swiper.js';
 import './bootstrap';
 import '../css/app.css';
 

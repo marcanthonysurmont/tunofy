@@ -19,7 +19,7 @@
 
     <header class="fixed top-0 left-1/2 px-4 pt-8 translate-x-[-50%] w-full flex justify-center z-50">
         <nav x-data="{ open: false }"
-            class="mx-auto px-4 py-4 w-full bg-navbar-background/30 backdrop-blur-lg max-w-[1585px] border-navbar-stroke border-2 rounded-lg">
+            class="mx-auto px-4 py-4 w-full bg-navbar-background/60 backdrop-blur-lg max-w-[1585px] border-navbar-stroke border-2 rounded-lg">
             <div class="flex items-center justify-between">
                 <div class="flex flex-row items-center space-x-4">
                     <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Logo" class="w-10 h-10">
@@ -34,7 +34,7 @@
                 </ul>
 
                 <div class="hidden lg:flex flex-row items-center gap-4 text-xl">
-                    <a href="/app" class="font-nohemi font-normal">Key features</a>
+                    <a href="/app" class="font-nohemi font-normal">Sign in</a>
                     <a href="/app"
                         class="font-nohemi font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center">Get
                         Started</a>
@@ -63,9 +63,11 @@
                 x-transition:enter-start="max-h-0 opacity-0" x-transition:enter-end="max-h-[500px] opacity-100"
                 x-transition:leave="transition-all duration-300 ease-in-out"
                 x-transition:leave-start="max-h-[500px] opacity-100" x-transition:leave-end="max-h-0 opacity-0">
-                <a href="#how-it-works" class="font-nohemi font-normal">How it works</a>
-                <a href="#key-features" class="font-nohemi font-normal">Key features</a>
-                <a href="#faq" class="font-nohemi font-normal">FAQ</a>
+                <a href="#how-it-works" class="font-nohemi font-normal" @click="open = !open">How it works</a>
+                <a href="#key-features" class="font-nohemi font-normal" @click="open = !open">Key features</a>
+                <a href="#faq" class="font-nohemi font-normal" @click="open = !open">FAQ</a>
+                <hr class="border-t border-navbar-stroke">
+                <a href="#faq" class="font-nohemi font-normal">Sign in</a>
                 <a href=""
                     class="font-nohemi font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center">Get
                     Started</a>
@@ -99,7 +101,9 @@
             </div>
         </section>
     </section>
-    <section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-4">
+
+    <section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-4"
+        id="how-it-works">
         <div class="flex flex-col gap-10 items-center justify-center mb-16 text-center">
             <h2 class="font-medium text-5xl md:text-6xl">How it works</h2>
             <p class="text-2xl md:text-3xl font-nohemi">Trust us, it's as simple as pretending to like your friend's
@@ -143,8 +147,193 @@
             <h2 class="font-medium text-5xl md:text-6xl">Key Features</h2>
             <p class="text-2xl md:text-3xl font-nohemi">A unique blend of creativity and innovation.</p>
         </div>
-    </section>
+        <div class="swiper w-full swiper-no-gutters">
+            <!-- Additional required wrapper -->
+            <div class="swiper-wrapper">
+                <!-- Slides -->
+                <div class="swiper-slide">
+                    <div class="p-4">
+                        <div class="flex flex-row gap-4 items-center mb-6">
+                            <span
+                                class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-12">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
+                                </svg>
+                            </span>
+                            <h3 class="text-3xl xl:text-4xl">Advanced Playlists</h3>
+                        </div>
+                        <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                            sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="p-4">
+                        <div class="flex flex-row gap-4 items-center mb-6">
+                            <span
+                                class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-12">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
+                                </svg>
+                            </span>
+                            <h3 class="text-3xl xl:text-4xl">Advanced Playlists</h3>
+                        </div>
+                        <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                            sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="p-4">
+                        <div class="flex flex-row gap-4 items-center mb-6">
+                            <span
+                                class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-12">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
+                                </svg>
+                            </span>
+                            <h3 class="text-3xl xl:text-4xl">Advanced Playlists</h3>
+                        </div>
+                        <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                            sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="p-4">
+                        <div class="flex flex-row gap-4 items-center mb-6">
+                            <span
+                                class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-12">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
+                                </svg>
+                            </span>
+                            <h3 class="text-3xl xl:text-4xl">Advanced Playlists</h3>
+                        </div>
+                        <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                            sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="p-4">
+                        <div class="flex flex-row gap-4 items-stretch mb-6">
+                            <span
+                                class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-auto flex items-center justify-center text-white">
 
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-12">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                </svg>
+
+                            </span>
+                            <div class="flex flex-col gap-2 flex-grow">
+                                <h3 class="text-3xl xl:text-4xl">Earning money</h3>
+                                <span
+                                    class="bg-label-background text-label-text w-fit px-4 py-1 rounded-xl text-sm font-bold">Coming
+                                    soon</span>
+                            </div>
+                        </div>
+                        <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                            sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- <div class="swiper-button-prev z-50 transition-opacity ease-in-out"></div>
+            <div class="swiper-button-next z-50 transition-opacity ease-in-out"></div> --}}
+
+            <span class="custom-prev-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
+            </span>
+
+            <span class="custom-next-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                </svg>
+            </span>
+
+            <div class="swiper-pagination"></div>
+        </div>
+        <div class="lg:hidden flex flex-col gap-8">
+            <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
+                <div class="flex flex-row gap-4 items-center mb-6">
+                    <span
+                        class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-12">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
+                        </svg>
+                    </span>
+                    <h3 class="text-3xl xl:text-4xl">Advanced Playlists</h3>
+                </div>
+                <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                    sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+            </div>
+            <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
+                <div class="flex flex-row gap-4 items-center mb-6">
+                    <span
+                        class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-12">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
+                        </svg>
+                    </span>
+                    <h3 class="text-3xl xl:text-4xl">Advanced Playlists</h3>
+                </div>
+                <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                    sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+            </div>
+            <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
+                <div class="flex flex-row gap-4 items-center mb-6">
+                    <span
+                        class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-12">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
+                        </svg>
+                    </span>
+                    <h3 class="text-3xl xl:text-4xl">Advanced Playlists</h3>
+                </div>
+                <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                    sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+            </div>
+            <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
+                <div class="flex flex-row gap-4 items-stretch mb-6">
+                    <span
+                        class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-auto flex items-center justify-center text-white">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke-width="1.5" stroke="currentColor" class="size-12">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+
+                    </span>
+                    <div class="flex flex-col gap-2 flex-grow">
+                        <h3 class="text-3xl xl:text-4xl">Earning money</h3>
+                        <span
+                            class="bg-label-background text-label-text w-fit px-4 py-1 rounded-xl text-sm font-bold">Coming
+                            soon</span>
+                    </div>
+                </div>
+                <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                    sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+            </div>
+        </div>
+    </section>
 </body>
 
 </html>
