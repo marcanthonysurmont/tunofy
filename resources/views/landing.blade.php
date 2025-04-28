@@ -46,8 +46,9 @@
             class="mx-auto px-4 py-4 w-full bg-navbar-background/60 backdrop-blur-lg max-w-[1728px] shadow-xl border-navbar-stroke border-2 rounded-lg">
             <div class="flex items-center justify-between">
                 <div class="flex flex-row items-center space-x-4">
-                    <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Logo" class="w-10 h-10">
-                    <a href="#" class="text-3xl font-medium font-nohemi">Tunofy</a>
+                    <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Tunofy Logo"
+                        class="md:w-10 md:h-10 h-8 w-8">
+                    <a href="#" class="text-2xl md:text-3xl font-medium font-nohemi">Tunofy</a>
                 </div>
 
                 <!-- Desktop menu -->
@@ -66,8 +67,27 @@
                         Started</a>
                 </div>
 
+                <div class="flex flex-row items-center lg:hidden">
+                    <a href="/app"
+                        class="font-nohemi font-normal bg-primary rounded-md px-3 text-sm py-2 flex items-center justify-center custom-item-hover">Get
+                        Started</a>
+                    <button @click="open = !open"
+                        class="lg:hidden text-white m-2 relative flex items-center justify-center">
+                        <div class="relative w-6 h-6">
+                            <!-- Line 1 -->
+                            <span class="absolute h-0.5 w-6 bg-current rounded-full transition-all duration-300"
+                                :class="open ? 'rotate-45 top-3' : 'top-1'"></span>
+                            <!-- Line 2 -->
+                            <span class="absolute h-0.5 w-6 bg-current rounded-full top-3 transition-all duration-300"
+                                :class="open ? 'opacity-0' : 'opacity-100'"></span>
+                            <!-- Line 3 -->
+                            <span class="absolute h-0.5 w-6 bg-current rounded-full transition-all duration-300"
+                                :class="open ? '-rotate-45 top-3' : 'top-5'"></span>
+                        </div>
+                    </button>
+                </div>
                 <!-- Mobile hamburger button -->
-                <button @click="open = !open"
+                {{-- <button @click="open = !open"
                     class="lg:hidden text-white m-2 relative flex items-center justify-center">
                     <div class="relative w-6 h-6">
                         <!-- Line 1 -->
@@ -80,10 +100,11 @@
                         <span class="absolute h-0.5 w-6 bg-current rounded-full transition-all duration-300"
                             :class="open ? '-rotate-45 top-3' : 'top-5'"></span>
                     </div>
-                </button>
+                </button> --}}
             </div>
 
             <!-- Mobile menu -->
+
             <div x-show="open" class="lg:hidden mt-4 flex flex-col space-y-4"
                 x-transition:enter="transition-all duration-300 ease-in-out"
                 x-transition:enter-start="max-h-0 opacity-0" x-transition:enter-end="max-h-[500px] opacity-100"
@@ -94,9 +115,9 @@
                 <a href="#faq" class="font-nohemi font-normal" @click="open = !open">FAQ</a>
                 <hr class="border-t border-navbar-stroke">
                 <a href="#faq" class="font-nohemi font-normal">Sign in</a>
-                <a href=""
+                {{-- <a href=""
                     class="font-nohemi font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center">Get
-                    Started</a>
+                    Started</a> --}}
             </div>
         </nav>
 
@@ -410,7 +431,7 @@
     <footer class="bg-footer-background w-full flex flex-col justify-between max-h-[277px] h-full py-8 md:px-16 px-8">
         <div class="max-w-[380px]">
             <div class="flex flex-row gap-4 items-center mb-4">
-                <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Logo" class="w-12 h-12">
+                <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Tunofy Logo" class="w-12 h-12">
                 <h1 class="text-5xl font-medium font-nohemi">Tunofy</h1>
             </div>
             <p class="font-light text-xl">Tunofy enhances your spotify experience by combining music and voting.</p>
