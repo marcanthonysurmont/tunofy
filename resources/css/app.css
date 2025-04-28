@@ -54,6 +54,13 @@
         font-family: var(--font-nunito);
         font-weight: 300;
     }
+
+    .text-gradient {
+        background: radial-gradient(circle, var(--color-dark-white) 50%, #6e6c6c 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
 }
 
 html,

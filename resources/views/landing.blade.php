@@ -82,7 +82,8 @@
             <h1 class="text-6xl sm:text-7xl md:text-8xl font-nohemi text-center max-w-[875px]">The music platform you
                 <span class="text-primary custom-underline">need</span>
             </h1>
-            <p class="font-nohemi text-2xl sm:text-3xl md:text-4xl max-w-[953px] text-center">Join the ultimate music
+            <p class="font-nohemi text-2xl sm:tex   t-3xl md:text-4xl max-w-[953px] text-center text-gradient">
+                Join the ultimate music
                 experience —
                 create, vote
                 on tracks,
