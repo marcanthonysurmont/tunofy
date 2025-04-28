@@ -105,16 +105,16 @@
     <section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-4"
         id="how-it-works">
         <div class="flex flex-col gap-10 items-center justify-center mb-16 text-center">
-            <h2 class="font-medium text-5xl md:text-6xl">How it works</h2>
-            <p class="text-2xl md:text-3xl font-nohemi">Trust us, it's as simple as pretending to like your friend's
+            <h2 class="font-medium text-3xl md:text-4xl">How it works</h2>
+            <p class="text-xl md:text-2xl font-nohemi">Trust us, it's as simple as pretending to like your friend's
                 playlist.</p>
         </div>
         <div class="flex flex-col lg:grid lg:grid-cols-3 w-full gap-8">
             <div class="bg-card-background p-4 rounded-lg border-2 border-card-stroke">
                 <div class="flex flex-row gap-4 items-center mb-6">
                     <span
-                        class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-full w-16 h-16 flex items-center justify-center text-white">1</span>
-                    <h3 class="text-3xl xl:text-4xl">Create a jam</h3>
+                        class="font-nohemi text-2xl md:text-3xl bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white">1</span>
+                    <h3 class="text-2xl md:text-3xl">Create a jam</h3>
                 </div>
                 <p class="text-2xl font-normal">Easily create a new jam session with your Spotify Premium account.
                     Share the unique
@@ -124,8 +124,8 @@
             <div class="bg-card-background p-4 rounded-lg border-2 border-card-stroke">
                 <div class="flex flex-row gap-4 items-center mb-6">
                     <span
-                        class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-full w-16 h-16 flex items-center justify-center text-white">2</span>
-                    <h3 class="text-3xl xl:text-4xl">Add music & vote</h3>
+                        class="font-nohemi text-2xl md:text-3xl bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white">2</span>
+                    <h3 class="text-2xl md:text-3xl">Add music & vote</h3>
                 </div>
                 <p class="text-2xl font-normal">Everyone can add songs via Spotify links and vote for their favorite
                     tracks.</p>
@@ -133,8 +133,8 @@
             <div class="bg-card-background p-4 rounded-lg border-2 border-card-stroke">
                 <div class="flex flex-row gap-4 items-center mb-6">
                     <span
-                        class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-full w-16 h-16 flex items-center justify-center text-white">3</span>
-                    <h3 class="text-3xl xl:text-4xl">Listen & enjoy</h3>
+                        class="font-nohemi text-2xl md:text-3xl bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white">3</span>
+                    <h3 class="text-2xl md:text-3xl">Listen & enjoy</h3>
                 </div>
                 <p class="text-2xl font-normal">The owner or appointed co-DJ plays the music live. Watch votes in
                     real-time, chat with emojis, and discover the best vibes together.</p>
@@ -144,8 +144,8 @@
 
     <section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-8">
         <div class="flex flex-col gap-10 items-center justify-center mb-16 text-center">
-            <h2 class="font-medium text-5xl md:text-6xl">Key Features</h2>
-            <p class="text-2xl md:text-3xl font-nohemi">A unique blend of creativity and innovation.</p>
+            <h2 class="font-medium text-3xl md:text-4xl">Key Features</h2>
+            <p class="text-xl md:text-2xl font-nohemi">A unique blend of creativity and innovation.</p>
         </div>
         <div class="swiper w-full swiper-no-gutters">
             <!-- Additional required wrapper -->
@@ -155,16 +155,16 @@
                     <div class="p-4">
                         <div class="flex flex-row gap-4 items-center mb-6">
                             <span
-                                class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                                class="font-nohemi text-2xl md:text-3xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="size-12">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
                                 </svg>
                             </span>
-                            <h3 class="text-3xl xl:text-4xl">Advanced Playlists</h3>
+                            <h3 class="text-2xl md:text-3xl">Advanced Playlists</h3>
                         </div>
-                        <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                        <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
                             sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
                     </div>
                 </div>
@@ -172,16 +172,16 @@
                     <div class="p-4">
                         <div class="flex flex-row gap-4 items-center mb-6">
                             <span
-                                class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                                class="font-nohemi text-2xl md:text-3xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="size-12">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
                                 </svg>
                             </span>
-                            <h3 class="text-3xl xl:text-4xl">Advanced Playlists</h3>
+                            <h3 class="text-2xl md:text-3xl">Advanced Playlists</h3>
                         </div>
-                        <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                        <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
                             sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
                     </div>
                 </div>
@@ -189,33 +189,16 @@
                     <div class="p-4">
                         <div class="flex flex-row gap-4 items-center mb-6">
                             <span
-                                class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                                class="font-nohemi text-2xl md:text-3xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="size-12">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
                                 </svg>
                             </span>
-                            <h3 class="text-3xl xl:text-4xl">Advanced Playlists</h3>
+                            <h3 class="text-2xl md:text-3xl">Advanced Playlists</h3>
                         </div>
-                        <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
-                            sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
-                    </div>
-                </div>
-                <div class="swiper-slide">
-                    <div class="p-4">
-                        <div class="flex flex-row gap-4 items-center mb-6">
-                            <span
-                                class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="size-12">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
-                                </svg>
-                            </span>
-                            <h3 class="text-3xl xl:text-4xl">Advanced Playlists</h3>
-                        </div>
-                        <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                        <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
                             sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
                     </div>
                 </div>
@@ -233,13 +216,13 @@
 
                             </span>
                             <div class="flex flex-col gap-2 flex-grow">
-                                <h3 class="text-3xl xl:text-4xl">Earning money</h3>
+                                <h3 class="text-2xl md:text-3xl">Earning money</h3>
                                 <span
                                     class="bg-label-background text-label-text w-fit px-4 py-1 rounded-xl text-sm font-bold">Coming
                                     soon</span>
                             </div>
                         </div>
-                        <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                        <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
                             sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
                     </div>
                 </div>
@@ -333,6 +316,7 @@
                     sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
             </div>
         </div>
+
     </section>
 </body>
 

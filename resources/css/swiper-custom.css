@@ -45,8 +45,8 @@
 
 .swiper-slide {
     padding: 20px;
-    transform: scale(0.75) !important;
-    transition: transform 0.3s ease-in-out;
+    /* transform: scale(0.75) !important; */
+    transition: transform 0.5s ease;
 }
 
 .swiper-slide-active {
@@ -58,6 +58,17 @@
     opacity: 0 !important;
     visibility: hidden !important;
 }
+
+.swiper-slide-prev {
+    transform: perspective(1500px) rotateY(-30deg) scale(0.75) !important;
+    transition: transform 0.25s ease;
+}
+
+.swiper-slide-next {
+    transform: perspective(1500px) rotateY(30deg) scale(0.75) !important;
+    transition: transform 0.25s ease;
+}
+
 
 .swiper-button-prev:hover,
 .swiper-button-next:hover {
