@@ -326,7 +326,7 @@
     </section>
 
     <section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-4"
-        id="how-it-works">
+        id="faq">
         <div class="flex flex-col gap-10 items-center justify-center mb-16 text-center">
             <h2 class="font-medium text-3xl md:text-4xl">Frequently Asked Questions (FAQ)</h2>
             <p class="text-xl md:text-2xl font-nohemi">Got doubts and questions? Let’s break it down.</p>
