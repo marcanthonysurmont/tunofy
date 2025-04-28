@@ -9,7 +9,8 @@ const swiper = new Swiper('.swiper', {
     modules: [Navigation, Pagination],
     // Optional parameters
     direction: 'horizontal',
-    loop: false,
+    // loop: true,
+    rewind: true,
 
     // Responsive slides per view
     slidesPerView: 1,
@@ -25,10 +26,6 @@ const swiper = new Swiper('.swiper', {
             slidesPerView: 3,
             spaceBetween: 0,
         },
-        1500: {
-            slidesPerView: 3,
-            spaceBetween: 0,
-        }
     },
 
     centeredSlides: true,
