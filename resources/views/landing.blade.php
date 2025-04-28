@@ -417,9 +417,9 @@
         </div>
         <div class="flex flex-row justify-between mt-auto text-sm text-[#666666] items-center flex-wrap gap-4">
             <div class="flex flex-row gap-4 mr-8">
-                <a href="#">Terms of use</a>
-                <a href="#">Privacy Policy</a>
-                <a href="#">GDPR</a>
+                <a href="/terms">Terms of use</a>
+                <a href="/privacy">Privacy Policy</a>
+                <a href="/dpa">GDPR</a>
             </div>
             <div class="flex flex-row items-center">
                 <p class="text-sm font-light">© 2025 Tunofy - All rights reserved.</p>
