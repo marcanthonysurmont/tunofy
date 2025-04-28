@@ -1,20 +1,4 @@
-.swiper-slide:last-child {
-    margin-right: 0 !important;
-}
-
-/* .swiper-wrapper {
-    display: flex;
-    gap: 10px;
-} */
-
-
-/* @media(width >=1024px) {
-    .swiper {
-        mask-image: linear-gradient(to right, transparent 0%, black 20% 80%, transparent 100%);
-    }
-
-} */
-
+/* Custom navigation buttons */
 .custom-prev-btn,
 .custom-next-btn {
     position: absolute;
@@ -23,53 +7,47 @@
     color: white;
     padding: 10px;
     cursor: pointer;
-}
-
-.custom-prev-btn {
-    left: 10px;
     transform: translateY(-50%);
-}
-
-.custom-next-btn {
-    right: 10px;
-    transform: translateY(-50%);
-}
-
-.custom-prev-btn,
-.custom-next-btn {
     transition: opacity 0.3s ease, visibility 0.3s ease;
     opacity: 1 !important;
     visibility: visible !important;
 }
 
+.custom-prev-btn {
+    left: 10px;
+}
 
+.custom-next-btn {
+    right: 10px;
+}
+
+/* Default style for all slides */
 .swiper-slide {
-    padding: 20px;
-    /* transform: scale(0.75) !important; */
-    transition: transform 0.5s ease;
+    transform: scale(0.8) translateY(50px) !important;
+    z-index: 1;
+    opacity: 0.7;
+    transition: transform 0.3s ease, z-index 0.3s ease, opacity 0.3s ease;
+}
+
+.swiper-slide-prev,
+.swiper-slide-next {
+    z-index: 5;
 }
 
 .swiper-slide-active {
-    transform: scale(1.00) !important;
-    transition: transform 0.3s ease-in-out;
+    transform: scale(1) translateY(0) !important;
+    z-index: 10;
+    opacity: 1;
+    transition: transform 0.3s ease-in-out, z-index 0.3s ease-in-out, opacity 0.3s ease-in-out;
 }
 
+/* Disabled navigation buttons */
 .swiper-button-disabled {
     opacity: 0 !important;
     visibility: hidden !important;
 }
 
-.swiper-slide-prev {
-    transform: perspective(1500px) rotateY(-30deg) scale(0.75) !important;
-    transition: transform 0.25s ease;
-}
-
-.swiper-slide-next {
-    transform: perspective(1500px) rotateY(30deg) scale(0.75) !important;
-    transition: transform 0.25s ease;
-}
-
-
+/* Hover effect for navigation buttons */
 .swiper-button-prev:hover,
 .swiper-button-next:hover {
     background-color: rgba(0, 0, 0, 0.4);
@@ -77,6 +55,7 @@
     padding: 10px;
 }
 
+/* Pagination styles */
 .swiper-pagination {
     text-align: center;
     padding-top: 20px;
@@ -91,8 +70,14 @@
     opacity: 1;
 }
 
+/* Responsive styles */
 @media (max-width: 1024px) {
     .swiper {
         display: none;
     }
+}
+
+/* Last child adjustment */
+.swiper-slide:last-child {
+    margin-right: 0 !important;
 }
