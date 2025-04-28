@@ -358,7 +358,8 @@
         @endphp
         <div class="w-full">
             @foreach ($faqs as $faq)
-                <div x-data="{ open: false }" class="border-b rounded-lg border-card-stroke py-4">
+                <div x-data="{ open: false }"
+                    class="border-b rounded-lg border-card-stroke py-4 transition-all duration-500">
                     <button @click="open = !open"
                         class="flex items-center justify-between w-full p-4 text-left font-medium cursor-pointer">
                         <p class="font-nohemi text-xl font-light">{{ $faq['question'] }}</p>
@@ -368,8 +369,11 @@
                         </svg>
                     </button>
 
-                    <div x-show="open" x-transition class="px-4 pb-4">
-                        <p class="text-l font-normal">{{ $faq['answer'] }}</p>
+                    <div class="relative overflow-hidden transition-all max-h-0 duration-400" x-ref="container"
+                        x-bind:style="open ? 'max-height: ' + $refs.container.scrollHeight + 'px' : ''">
+                        <div class="px-4 pb-4">
+                            <p class="text-l font-normal">{{ $faq['answer'] }}</p>
+                        </div>
                     </div>
                 </div>
             @endforeach
