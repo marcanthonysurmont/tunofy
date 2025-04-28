@@ -23,7 +23,7 @@
 
     <header class="fixed top-0 left-1/2 px-4 pt-8 translate-x-[-50%] w-full flex justify-center z-50">
         <nav x-data="{ open: false }"
-            class="mx-auto px-4 py-4 w-full bg-navbar-background/60 backdrop-blur-lg max-w-[1585px] shadow-xl border-navbar-stroke border-2 rounded-lg">
+            class="mx-auto px-4 py-4 w-full bg-navbar-background/60 backdrop-blur-lg max-w-[1728px] shadow-xl border-navbar-stroke border-2 rounded-lg">
             <div class="flex items-center justify-between">
                 <div class="flex flex-row items-center space-x-4">
                     <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Logo" class="w-10 h-10">
