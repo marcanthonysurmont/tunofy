@@ -5,7 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Tunofy - The music platform you need</title>
+    <!-- SEO Meta -->
+    <meta name="description"
+        content="Tunofy lets you create collaborative Spotify jam sessions. Vote, add tracks, and party together in real-time. Music playback, voting, gamification, and more!">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Tunofy - Host the Ultimate Spotify Jam Session">
+    <meta property="og:description"
+        content="Start Spotify jam sessions with Tunofy. Invite friends, add tracks, vote in real-time, and control the music together. Premium users can even assign co-DJs!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourdomain.com/"> <!-- replace with your URL -->
+    {{-- <meta property="og:image" content="https://yourdomain.com/path-to-image.jpg"> --}}
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tunofy - Your Music, Your Party, Your Rules">
+    <meta name="twitter:description"
+        content="Collaborate on playlists, vote for tracks, and enjoy live music sessions with Tunofy.">
+    {{-- <meta name="twitter:image" content="https://yourdomain.com/path-to-image.jpg"> --}}
+
     @vite(['resources/js/landingpage.js'])
+
     {{-- fonts for headers --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -327,10 +347,14 @@
                     sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
             </div>
         </div>
+        <div class="carousel-progress hidden lg:block">
+            <div class="progress"></div>
+        </div>
 
     </section>
 
-    <section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-4"
+    <section
+        class="w-full max-w-[1728px] mt-32 md:mt-48 lg:mt-64 mx-auto flex-col flex items-center justify-center mb-32 px-4"
         id="faq">
         <div class="flex flex-col gap-10 items-center justify-center mb-16 text-center">
             <h2 class="font-medium text-3xl md:text-4xl">Frequently Asked Questions (FAQ)</h2>
@@ -363,7 +387,7 @@
                     <button @click="open = !open"
                         class="flex items-center justify-between w-full p-4 text-left font-medium cursor-pointer">
                         <p class="font-nohemi text-xl font-light">{{ $faq['question'] }}</p>
-                        <svg :class="{ 'rotate-180': open }" class="w-6 h-6 transition-transform duration-300"
+                        <svg :class="{ 'rotate-180': open }" class="w-6 h-6 transition-transform duration-300 ml-4"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path d="M19 9l-7 7-7-7" />
                         </svg>

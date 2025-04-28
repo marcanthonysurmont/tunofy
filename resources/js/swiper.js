@@ -7,16 +7,15 @@ import 'swiper/css/pagination';
 
 const swiper = new Swiper('.swiper', {
     modules: [Navigation, Pagination],
-    // Optional parameters
     direction: 'horizontal',
     // loop: true,
     rewind: true,
 
-    // Responsive slides per view
+    grabCursor: true,
+
     slidesPerView: 1,
     spaceBetween: 20,
 
-    // Responsive breakpoints
     breakpoints: {
         640: {
             slidesPerView: 1,
@@ -41,3 +40,41 @@ const swiper = new Swiper('.swiper', {
         prevEl: '.custom-prev-btn',
     },
 });
+
+const progressBar = document.querySelector(".progress");
+progressBar.addEventListener("animationend", myEndFunction);
+
+console.log(progressBar);
+
+// Retrigger Animation on Slide Change
+
+function myEndFunction() {
+  swiper.slideNext();
+  progressBar.style.animation = "none";
+  void progressBar.offsetWidth; // Triggers Reflow
+  progressBar.style.animation = null;
+}
+
+// Reset Progress Bar On Slide Change
+
+swiper.on("slideChange", function () {
+  progressBar.style.animation = "none";
+  void progressBar.offsetWidth; // Triggers Reflow
+  progressBar.style.animation = null;
+  progressBar.style.animationPlayState = "paused"; // Optional
+});
+
+// Pause Carousel/Progress Bar On Hover
+
+document.querySelectorAll(".swiper, .carousel-progress").forEach((item) => {
+  item.addEventListener("mouseenter", function () {
+    progressBar.style.animationPlayState = "paused";
+  });
+});
+
+document.querySelectorAll(".swiper, .carousel-progress").forEach((item) => {
+  item.addEventListener("mouseleave", function () {
+    progressBar.style.animationPlayState = "running";
+  });
+});
+
