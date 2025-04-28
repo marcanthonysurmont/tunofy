@@ -76,7 +76,8 @@
 
     </header>
 
-    <section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col bg-hero flex items-center justify-center">
+    <section
+        class="w-full max-w-[1728px] mt-24 md:xs-32 md:mt-48 mx-auto flex-col bg-hero flex items-center justify-center py-8">
         <section class="items-center flex flex-col gap-8 justify-center h-[600px] w-max-[875px] mx-8">
             <h1 class="text-6xl sm:text-7xl md:text-8xl font-nohemi text-center max-w-[875px]">The music platform you
                 <span class="text-primary custom-underline">need</span>
@@ -102,6 +103,28 @@
         </section>
     </section>
 
+    @php
+        $steps = [
+            [
+                'step' => '1',
+                'title' => 'Create a jam',
+                'description' =>
+                    'Easily create a new jam session with your Spotify Premium account. Share the unique session code and invite friends to join.',
+            ],
+            [
+                'step' => '2',
+                'title' => 'Add music & vote',
+                'description' => 'Everyone can add songs via Spotify links and vote for their favorite tracks.',
+            ],
+            [
+                'step' => '3',
+                'title' => 'Listen & enjoy',
+                'description' =>
+                    'The owner or appointed co-DJ plays the music live. Watch votes in real-time, chat with emojis, and discover the best vibes together.',
+            ],
+        ];
+    @endphp
+
     <section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-4"
         id="how-it-works">
         <div class="flex flex-col gap-10 items-center justify-center mb-16 text-center">
@@ -110,37 +133,19 @@
                 playlist.</p>
         </div>
         <div class="flex flex-col lg:grid lg:grid-cols-3 w-full gap-8">
-            <div class="bg-card-background p-4 rounded-lg border-2 border-card-stroke">
-                <div class="flex flex-row gap-4 items-center mb-4">
-                    <span
-                        class="font-nohemi text-2xl md:text-3xl bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white">1</span>
-                    <h3 class="text-2xl md:text-3xl">Create a jam</h3>
+            @foreach ($steps as $step)
+                <div class="bg-card-background p-4 rounded-lg border-2 border-card-stroke">
+                    <div class="flex flex-row gap-4 items-center mb-4">
+                        <span
+                            class="font-nohemi text-2xl md:text-3xl bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white">{{ $step['step'] }}</span>
+                        <h3 class="text-2xl md:text-3xl">{{ $step['title'] }}</h3>
+                    </div>
+                    <p class="text-xl font-normal">{{ $step['description'] }}</p>
                 </div>
-                <p class="text-xl font-normal">Easily create a new jam session with your Spotify Premium account.
-                    Share the unique
-                    session code and
-                    invite friends to join.</p>
-            </div>
-            <div class="bg-card-background p-4 rounded-lg border-2 border-card-stroke">
-                <div class="flex flex-row gap-4 items-center mb-4">
-                    <span
-                        class="font-nohemi text-2xl md:text-3xl bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white">2</span>
-                    <h3 class="text-2xl md:text-3xl">Add music & vote</h3>
-                </div>
-                <p class="text-xl font-normal">Everyone can add songs via Spotify links and vote for their favorite
-                    tracks.</p>
-            </div>
-            <div class="bg-card-background p-4 rounded-lg border-2 border-card-stroke">
-                <div class="flex flex-row gap-4 items-center mb-4">
-                    <span
-                        class="font-nohemi text-2xl md:text-3xl bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white">3</span>
-                    <h3 class="text-2xl md:text-3xl">Listen & enjoy</h3>
-                </div>
-                <p class="text-xl font-normal">The owner or appointed co-DJ plays the music live. Watch votes in
-                    real-time, chat with emojis, and discover the best vibes together.</p>
-            </div>
+            @endforeach
         </div>
     </section>
+
 
     <section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-8"
         id="key-features">
@@ -259,9 +264,9 @@
                                 d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
                         </svg>
                     </span>
-                    <h3 class="text-3xl xl:text-4xl">Advanced Playlists</h3>
+                    <h3 class="text-2xl md:text-3xl">Advanced Playlists</h3>
                 </div>
-                <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
                     sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
             </div>
             <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
@@ -274,9 +279,9 @@
                                 d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
                         </svg>
                     </span>
-                    <h3 class="text-3xl xl:text-4xl">Advanced Playlists</h3>
+                    <h3 class="text-2xl md:text-3xl">Advanced Playlists</h3>
                 </div>
-                <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
                     sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
             </div>
             <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
@@ -289,9 +294,9 @@
                                 d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
                         </svg>
                     </span>
-                    <h3 class="text-3xl xl:text-4xl">Advanced Playlists</h3>
+                    <h3 class="text-2xl md:text-3xl">Advanced Playlists</h3>
                 </div>
-                <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
                     sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
             </div>
             <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
@@ -307,17 +312,63 @@
 
                     </span>
                     <div class="flex flex-col gap-2 flex-grow">
-                        <h3 class="text-3xl xl:text-4xl">Earning money</h3>
+                        <h3 class="text-2xl md:text-3xl">Earning money</h3>
                         <span
                             class="bg-label-background text-label-text w-fit px-4 py-1 rounded-xl text-sm font-bold">Coming
                             soon</span>
                     </div>
                 </div>
-                <p class="text-2xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
+                <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
                     sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
             </div>
         </div>
 
+    </section>
+
+    <section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-4"
+        id="how-it-works">
+        <div class="flex flex-col gap-10 items-center justify-center mb-16 text-center">
+            <h2 class="font-medium text-3xl md:text-4xl">Frequently Asked Questions (FAQ)</h2>
+            <p class="text-xl md:text-2xl font-nohemi">Got doubts and questions? Let’s break it down.</p>
+        </div>
+        @php
+            $faqs = [
+                [
+                    'question' => 'Do I need Spotify premium to use this platform?',
+                    'answer' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit...',
+                ],
+                [
+                    'question' => 'How does voting work during a jam?',
+                    'answer' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit...',
+                ],
+                [
+                    'question' => 'Is this web application free?',
+                    'answer' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit...',
+                ],
+                [
+                    'question' => 'Can I customize the look and theme of my jam session?',
+                    'answer' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit...',
+                ],
+            ];
+        @endphp
+        <div class="w-full">
+            @foreach ($faqs as $faq)
+                <div x-data="{ open: false }" class="border-b rounded-lg border-card-stroke py-4">
+                    <button @click="open = !open"
+                        class="flex items-center justify-between w-full p-4 text-left font-medium cursor-pointer">
+                        <p class="font-nohemi text-xl font-light">{{ $faq['question'] }}</p>
+                        <svg :class="{ 'rotate-180': open }" class="w-6 h-6 transition-transform duration-300"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div x-show="open" x-transition class="px-4 pb-4">
+                        <p class="text-l font-normal">{{ $faq['answer'] }}</p>
+                    </div>
+                </div>
+            @endforeach
+        </div>
     </section>
 </body>
 
