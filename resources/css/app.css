@@ -137,3 +137,7 @@ body {
         width: 100%;
     }
 }
+
+.copy p {
+    margin-bottom: 1.5rem;
+}
