@@ -2,17 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
     <url>
-        <loc>https://yourdomain.com/</loc>
+        <loc>https://tunofy.com/</loc>
         <priority>1.0</priority>
     </url>
 
     <url>
-        <loc>https://yourdomain.com/gdpr</loc>
+        <loc>https://tunofy.com/dpa</loc>
         <priority>0.5</priority>
     </url>
 
     <url>
-        <loc>https://yourdomain.com/terms</loc>
+        <loc>https://tunofy.com/terms</loc>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://tunofy.com/privacy</loc>
         <priority>0.5</priority>
     </url>
 
