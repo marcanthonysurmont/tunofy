@@ -202,7 +202,7 @@
             <h2 class="font-medium text-3xl md:text-4xl">Key Features</h2>
             <p class="text-xl md:text-2xl font-nohemi">A unique blend of creativity and innovation.</p>
         </div>
-        <div class="swiper w-full swiper-no-gutters mb-16 !hidden lg:visible">
+        <div class="swiper w-full swiper-no-gutters mb-16 !hidden lg:!block">
             <!-- Additional required wrapper -->
             <div class="swiper-wrapper">
                 <!-- Slides -->

@@ -110,7 +110,7 @@ body {
 .carousel-progress {
     position: relative;
     max-width: 1000px;
-    top: 64px;
+    top: 0px;
     height: 8px;
     width: 80%;
     margin: -8px auto 0 auto;
