@@ -202,7 +202,7 @@
             <h2 class="font-medium text-3xl md:text-4xl">Key Features</h2>
             <p class="text-xl md:text-2xl font-nohemi">A unique blend of creativity and innovation.</p>
         </div>
-        <div class="swiper w-full swiper-no-gutters">
+        <div class="swiper w-full swiper-no-gutters mb-16 !hidden lg:visible">
             <!-- Additional required wrapper -->
             <div class="swiper-wrapper">
                 <!-- Slides -->
@@ -374,6 +374,15 @@
         <div class="carousel-progress hidden lg:block">
             <div class="progress"></div>
         </div>
+
+        <div
+            class="bg-card-background h-fit border border-card-stroke w-full lg:mt-32 mt-16 rounded-xl flex lg:items-center lg:justify-center lg:gap-12 relative md:p-9 lg:p-8 flex-col lg:flex-row p-6 gap-8">
+            <img src="{{ asset('images/demo/demo-image.png') }}" alt="Tunofy Demo Image"
+                class="lg:w-[45%] lg:h-[80%] w-full h-full object-contain rounded-xl custom-image-hover">
+            <img src="{{ asset('images/demo/demo-image2.png') }}" alt="Tunofy Demo Image"
+                class="lg:w-[30%] lg:h-[60%] w-full h-full object-contain rounded-xl custom-image-hover">
+        </div>
+
 
     </section>
 

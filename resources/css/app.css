@@ -41,6 +41,10 @@
     @apply hover:-translate-y-0.5 transition-transform duration-150 ease-in-out;
 }
 
+.custom-image-hover {
+    @apply hover:scale-105 transition-transform duration-150 ease-in-out;
+}
+
 @layer base {
 
     h1,
