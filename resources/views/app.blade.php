@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html class="h-full">
 
 <head>
     <meta charset="utf-8" />
@@ -8,7 +8,7 @@
     @inertiaHead
 </head>
 
-<body class="bg-background-page text-dark-white mx-auto">
+<body class="bg-background-page text-dark-white mx-auto h-full">
     @inertia
 </body>
 

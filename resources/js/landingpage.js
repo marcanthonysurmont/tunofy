@@ -1,4 +1,4 @@
-import '../css/app.css';
+import '../css/landing.css';
 // import './bootstrap';
 
 const page = document.body.dataset.page;
