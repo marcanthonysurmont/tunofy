@@ -21,18 +21,20 @@ Route::get('/terms', function () {
     return view('termsofuse');
 });
 
-//
-
-Route::get('/login', function () {
-    return Inertia::render('LoginPage');
+Route::middleware('auth')->group(function () {
+    Route::get('/app', function () {
+        return Inertia::render('TestPage');
+    });
 });
 
-
-//
-
-Route::get('/app', function () {
-    return Inertia::render('TestPage');
+Route::middleware('guest')->group(function () {
+    Route::get('/login', function () {
+        return Inertia::render('LoginPage');
+    })->name('login');
+    
+    Route::prefix('/auth')->name('auth.')->group(function () {
+        Route::get('/login/spotify', RedirectToSpotifyController::class)->name('login');
+        Route::get('/spotify/callback', SpotifyCallbackController::class)->name('callback');
+    });
 });
 
-Route::get('auth/login/spotify', RedirectToSpotifyController::class);
-Route::get('auth/spotify/callback', SpotifyCallbackController::class);
