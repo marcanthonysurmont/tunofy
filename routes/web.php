@@ -1,9 +1,11 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+
+use App\Http\Controllers\Auth\ShowLoginPageController;
 use App\Http\Controllers\Auth\RedirectToSpotifyController;
 use App\Http\Controllers\Auth\SpotifyCallbackController;
+
+use App\Http\Controllers\Application\ShowAppPageController;
 
 Route::get('/', function () {
     return view('landing');
@@ -22,15 +24,11 @@ Route::get('/terms', function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/app', function () {
-        return Inertia::render('TestPage');
-    });
+    Route::get('/app', ShowAppPageController::class);
 });
 
 Route::middleware('guest')->group(function () {
-    Route::get('/login', function () {
-        return Inertia::render('LoginPage');
-    })->name('login');
+    Route::get('/login', ShowLoginPageController::class)->name('login');
     
     Route::prefix('/auth')->name('auth.')->group(function () {
         Route::get('/login/spotify', RedirectToSpotifyController::class)->name('login');
