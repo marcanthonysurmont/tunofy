@@ -1,27 +1,21 @@
 <?php
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\General\ShowLandingPageController;
+use App\Http\Controllers\General\ShowDPAPageController;
+use App\Http\Controllers\General\ShowPrivacyPageController;
+use App\Http\Controllers\General\ShowTermsOfUsePageController;
+
 use App\Http\Controllers\Auth\ShowLoginPageController;
 use App\Http\Controllers\Auth\RedirectToSpotifyController;
 use App\Http\Controllers\Auth\SpotifyCallbackController;
 
 use App\Http\Controllers\Application\ShowAppPageController;
 
-Route::get('/', function () {
-    return view('landing');
-});
-
-Route::get('/dpa', function () {
-    return view('gdpr');
-});
-
-Route::get('/privacy', function () {
-    return view('privacy');
-});
-
-Route::get('/terms', function () {
-    return view('termsofuse');
-});
+Route::get('/', ShowLandingPageController::class);
+Route::get('/dpa', ShowDPAPageController::class);
+Route::get('/privacy', ShowPrivacyPageController::class);
+Route::get('/terms-of-use', ShowTermsOfUsePageController::class);
 
 Route::middleware('auth')->group(function () {
     Route::get('/app', ShowAppPageController::class);
