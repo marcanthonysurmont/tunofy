@@ -14,6 +14,12 @@ class SpotifyCallbackController extends Controller
     {
         $spotifyUser = Socialite::driver('spotify')->user();
 
+        $expiresAt = null;
+
+        if ($spotifyUser->expiresIn) {
+            $expiresAt = now()->addSeconds($spotifyUser->expiresIn);
+        }
+
         $user = User::updateOrCreate(
             ['spotify_id' => $spotifyUser->getId()],
             [
@@ -22,7 +28,7 @@ class SpotifyCallbackController extends Controller
                 'avatar' => $spotifyUser->getAvatar(),
                 'access_token' => $spotifyUser->token,
                 'refresh_token' => $spotifyUser->refreshToken,
-                'token_expires_in' => $spotifyUser->expiresIn,
+                'token_expires_at' => $expiresAt,
             ]
         );
 

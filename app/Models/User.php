@@ -18,7 +18,7 @@ class User extends Authenticatable
         'avatar',
         'access_token',
         'refresh_token',
-        'token_expires_in',
+        'token_expires_at',
     ];
 
     protected $hidden = [
