@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\Auth\RedirectToSpotifyController;
+use App\Http\Controllers\Auth\SpotifyCallbackController;
 
 Route::get('/', function () {
     return view('landing');
@@ -31,3 +33,6 @@ Route::get('/login', function () {
 Route::get('/app', function () {
     return Inertia::render('TestPage');
 });
+
+Route::get('auth/login/spotify', RedirectToSpotifyController::class);
+Route::get('auth/spotify/callback', SpotifyCallbackController::class);
