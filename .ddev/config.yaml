@@ -27,9 +27,9 @@ web_extra_daemons:
   - name: vite
     command: bash -c 'npm install && npm run dev -- --host'
     directory: /var/www/html
-  - name: reverb
-    command: bash -c 'php artisan reverb:start'
-    directory: /var/www/html
+  # - name: reverb
+  #   command: bash -c 'php artisan reverb:start'
+  #   directory: /var/www/html
 # Key features of DDEV's config.yaml:
 
 # name: <projectname> # Name of the project, automatically provides
