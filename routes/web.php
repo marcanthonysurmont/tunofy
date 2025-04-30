@@ -19,6 +19,15 @@ Route::get('/terms', function () {
     return view('termsofuse');
 });
 
+//
+
+Route::get('/login', function () {
+    return Inertia::render('LoginPage');
+});
+
+
+//
+
 Route::get('/app', function () {
     return Inertia::render('TestPage');
 });

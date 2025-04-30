@@ -96,6 +96,24 @@ body {
     }
 }
 
+.bg-login {
+    background-size: cover;
+    background-image:
+        linear-gradient(to top, #12121258, transparent),
+        linear-gradient(to bottom, #12121258, transparent),
+        url('/public/images/decorations/login-background.png');
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+@media(width >=802px) {
+    .bg-login {
+        background-size: 100% 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+}
+
 .custom-underline {
     background-image: url("/public/svg/underline-hero.svg");
     background-position: 50% 100%;
