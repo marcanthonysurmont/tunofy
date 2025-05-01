@@ -61,16 +61,13 @@
                 </ul>
 
                 <div class="hidden lg:flex flex-row items-center gap-4 text-xl">
-                    <a href="/auth/login/spotify" class="font-headings font-normal custom-item-hover">Sign in</a>
                     <a href="/auth/login/spotify"
-                        class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">Get
-                        Started</a>
+                        class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">
+                        <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">Sign
+                        In</a>
                 </div>
 
                 <div class="flex flex-row items-center lg:hidden">
-                    <a href="/auth/login/spotify"
-                        class="font-headings font-normal bg-primary rounded-md px-3 text-sm py-2 flex items-center justify-center custom-item-hover">Get
-                        Started</a>
                     <button @click="open = !open"
                         class="lg:hidden text-white m-2 relative flex items-center justify-center">
                         <div class="relative w-6 h-6">
@@ -86,21 +83,6 @@
                         </div>
                     </button>
                 </div>
-                <!-- Mobile hamburger button -->
-                {{-- <button @click="open = !open"
-                    class="lg:hidden text-white m-2 relative flex items-center justify-center">
-                    <div class="relative w-6 h-6">
-                        <!-- Line 1 -->
-                        <span class="absolute h-0.5 w-6 bg-current rounded-full transition-all duration-300"
-                            :class="open ? 'rotate-45 top-3' : 'top-1'"></span>
-                        <!-- Line 2 -->
-                        <span class="absolute h-0.5 w-6 bg-current rounded-full top-3 transition-all duration-300"
-                            :class="open ? 'opacity-0' : 'opacity-100'"></span>
-                        <!-- Line 3 -->
-                        <span class="absolute h-0.5 w-6 bg-current rounded-full transition-all duration-300"
-                            :class="open ? '-rotate-45 top-3' : 'top-5'"></span>
-                    </div>
-                </button> --}}
             </div>
 
             <!-- Mobile menu -->
@@ -114,8 +96,10 @@
                 <a href="#key-features" class="font-headings font-normal" @click="open = !open">Key features</a>
                 <a href="#faq" class="font-headings font-normal" @click="open = !open">FAQ</a>
                 <hr class="border-t border-navbar-stroke">
-                <a href="/auth/login/spotify" class="font-headings font-normal">Sign in</a>
-                {{-- <a href=""
+                <a href="/auth/login/spotify"
+                    class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">
+                    <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">Sign
+                    In</a> {{-- <a href=""
                     class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center">Get
                     Started</a> --}}
             </div>
@@ -447,7 +431,7 @@
         </div>
         <div class="flex flex-row justify-between mt-auto text-sm text-[#666666] items-center flex-wrap gap-4">
             <div class="flex flex-row gap-4 mr-8">
-                <a href="/terms">Terms of use</a>
+                <a href="/terms-of-use">Terms of use</a>
                 <a href="/privacy">Privacy Policy</a>
                 <a href="/dpa">GDPR</a>
             </div>
