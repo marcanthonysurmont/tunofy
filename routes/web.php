@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\General\ShowLandingPageController;
@@ -27,11 +28,8 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('guest')->group(function () {
-    Route::get('/login', ShowLoginPageController::class)->name('login');
-    
     Route::prefix('/auth')->name('auth.')->group(function () {
         Route::get('/login/spotify', RedirectToSpotifyController::class)->name('login');
         Route::get('/spotify/callback', SpotifyCallbackController::class)->name('callback');
     });
 });
-

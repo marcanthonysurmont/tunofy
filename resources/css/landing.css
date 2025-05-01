@@ -12,8 +12,8 @@
     /* fonts */
     /* --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji'; */
-    --font-nunito: "Nunito", sans-serif;
-    --font-nohemi: "Nohemi", sans-serif;
+    --font-body: "Nunito", sans-serif;
+    --font-headings: "Nohemi", sans-serif;
 
     /* colors */
     --color-background-page: #121212;
@@ -53,13 +53,13 @@
     h4,
     h5,
     h6 {
-        font-family: var(--font-nohemi);
+        font-family: var(--font-headings);
     }
 
     p,
     a,
     li {
-        font-family: var(--font-nunito);
+        font-family: var(--font-body);
         font-weight: 300;
     }
 
