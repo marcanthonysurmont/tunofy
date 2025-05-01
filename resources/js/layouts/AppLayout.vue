@@ -57,7 +57,7 @@
                     <li>
                     <li class="min-h-[200px]">
                       <div class="flex flex-row justify-between items-center">
-                        <h1 class="text-2xl">Your Jams</h1>
+                        <h1 class="text-2xl">Your Mixes</h1>
                         <PlusIcon class="size-8 text-white bg-primary p-2 cursor-pointer rounded-lg" />
                       </div>
                       <ul role="list" class="-mx-2 space-y-1">
@@ -65,7 +65,7 @@
                     </li>
                     <li class="min-h-[200px]">
                       <div class="flex flex-row justify-between items-center">
-                        <h1 class="text-2xl">Joined Jams</h1>
+                        <h1 class="text-2xl">Joined Mixes</h1>
                         <PlusIcon class="size-8 text-white bg-primary p-2 cursor-pointer rounded-lg" />
                       </div>
                     </li>
@@ -90,7 +90,7 @@
           <ul role="list" class="flex flex-1 flex-col gap-y-7">
             <li class="min-h-[200px]">
               <div class="flex flex-row justify-between items-center">
-                <h1 class="text-2xl">Your Jams</h1>
+                <h1 class="text-2xl">Your Mixes</h1>
                 <PlusIcon class="size-8 text-white bg-primary p-2 cursor-pointer rounded-lg" />
               </div>
               <ul role="list" class="-mx-2 space-y-1">
@@ -98,7 +98,7 @@
             </li>
             <li class="min-h-[200px]">
               <div class="flex flex-row justify-between items-center">
-                <h1 class="text-2xl">Joined Jams</h1>
+                <h1 class="text-2xl">Joined Mixes</h1>
                 <PlusIcon class="size-8 text-white bg-primary p-2 cursor-pointer rounded-lg" />
               </div>
             </li>
