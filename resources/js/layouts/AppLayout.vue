@@ -39,7 +39,7 @@
                 </div>
                 <nav class="flex flex-1 flex-col">
                   <ul role="list" class="flex flex-1 flex-col gap-y-7">
-                    <li>
+                    <!-- <li>
                       <ul role="list" class="-mx-2 space-y-1">
                         <li v-for="item in navigation" :key="item.name">
                           <a :href="item.href" :class="[
@@ -53,8 +53,7 @@
                           </a>
                         </li>
                       </ul>
-                    </li>
-                    <li>
+                    </li> -->
                     <li class="min-h-[200px]">
                       <div class="flex flex-row justify-between items-center">
                         <h1 class="text-2xl">Your Jams</h1>
@@ -68,7 +67,6 @@
                         <h1 class="text-2xl">Joined Jams</h1>
                         <PlusIcon class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg" />
                       </div>
-                    </li>
                     </li>
                   </ul>
                 </nav>

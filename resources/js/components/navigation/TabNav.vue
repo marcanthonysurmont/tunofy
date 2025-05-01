@@ -1,6 +1,6 @@
 <template>
     <div class="mb-6">
-        <div class="grid grid-cols-1 sm:hidden">
+        <!-- <div class="grid grid-cols-1 sm:hidden">
             <select aria-label="Select a tab"
                 class="col-start-1 row-start-1 w-full appearance-none rounded-lg bg-white py-2 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600"
                 @change="changeTab($event)">
@@ -9,12 +9,14 @@
             <ChevronDownIcon
                 class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end fill-gray-500"
                 aria-hidden="true" />
-        </div>
-        <div class="hidden sm:block">
+        </div> -->
+        <div class="block">
             <nav class="flex space-x-4" aria-label="Tabs">
-                <a v-for="tab in tabs" :key="tab.name" :href="tab.href" :class="[tab.active ? 'bg-primary text-white' : 'text-white hover:text-neutral-200 bg-tab-background-inactive border-2 border-tab-stroke-inactive',
-                    'rounded-lg flex items-center px-3 py-2 text-3xl font-medium font-headers cursor-pointer']"
-                    :aria-current="tab.active ? 'page' : undefined" @click.prevent="changeTab(tab.name)">
+                <a v-for="tab in tabs" :key="tab.name" :href="tab.href" :class="[
+                    'border-2',
+                    tab.active ? 'bg-primary border-primary' : 'bg-tab-background-inactive border-tab-stroke-inactive',
+                    'rounded-lg flex items-center px-3 py-2 sm:text-2xl md:text-3xl font-medium font-headers cursor-pointer hover:text-neutral-200 text-white'
+                ]" :aria-current="tab.active ? 'page' : undefined" @click.prevent="changeTab(tab.name)">
                     {{ tab.name }}
                 </a>
             </nav>
