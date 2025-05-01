@@ -19,7 +19,7 @@ Route::get('/privacy', ShowPrivacyPageController::class);
 Route::get('/terms-of-use', ShowTermsOfUsePageController::class);
 
 Route::middleware('auth')->group(function () {
-    Route::get('/app', ShowAppPageController::class);
+    Route::get('/app', ShowAppPageController::class)->name('app');
 
     Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
         Route::post('/search', SearchSongController::class)->name('search');

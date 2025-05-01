@@ -9,11 +9,15 @@
 
 @theme {
     /* fonts */
-    --font-nunito: "Nunito", sans-serif;
-    --font-nohemi: "Nohemi", sans-serif;
+    --font-body: "Nunito", sans-serif;
+    --font-headers: "Nohemi", sans-serif;
 
     /* colors */
     --color-background-page: #121212;
+    --color-card-background: #1A1A1A;
+    --color-card-stroke: #2C2C2C;
+    --color-card-background-hover: #1E1E1E;
+    --color-dark-white: #E0E0E0;
 
     --color-primary: #3361E3;
 
@@ -24,6 +28,9 @@
 
     --color-audio-player-background: #101010;
     --color-audio-player-stroke: #2C2C2C;
+
+    --color-tab-background-inactive: #1A1A1A;
+    --color-tab-stroke-inactive: #2C2C2C;
 
     /* text colors */
     --color-dark-white: #F4F4F4;
@@ -38,13 +45,13 @@
     h4,
     h5,
     h6 {
-        font-family: var(--font-nohemi);
+        font-family: var(--font-headers);
     }
 
     p,
     a,
     li {
-        font-family: var(--font-nunito);
+        font-family: var(--font-body);
         font-weight: 300;
     }
 }

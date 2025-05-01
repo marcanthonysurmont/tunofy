@@ -10,12 +10,12 @@
     <meta name="description"
         content="Tunofy lets you create collaborative Spotify jam sessions. Vote, add tracks, and party together in real-time. Music playback, voting, gamification, and more!">
 
-    <link rel="canonical" href="https://tunofy.com/terms">
+    <link rel="canonical" href="https://tunofy.com/terms-of-use">
 
     <meta property="og:title" content="Terms of Use | Tunofy">
     <meta property="og:description"
         content="Learn about Tunofy's terms of use and how we make your Spotify jam sessions better.">
-    <meta property="og:url" content="https://tunofy.com/terms">
+    <meta property="og:url" content="https://tunofy.com/terms-of-use">
     <!-- Optional: <meta property="og:image" content="https://tunofy.com/path-to-legal-image.png"> -->
 
     <meta name="twitter:card" content="summary">
@@ -52,16 +52,19 @@
                 </a>
 
                 <div class="hidden lg:flex flex-row items-center gap-4 text-xl">
-                    <a href="/app" class="font-nohemi font-normal custom-item-hover">Sign in</a>
-                    <a href="/app"
-                        class="font-nohemi font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">Get
-                        Started</a>
+                    @auth
+                        <a href="{{ route('app') }}"
+                            class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">Go
+                            to App</a>
+                    @else
+                        <a href="{{ route('login') }}"
+                            class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">
+                            <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">Sign
+                            In</a>
+                    @endauth
                 </div>
 
                 <div class="flex flex-row items-center lg:hidden">
-                    <a href="/app"
-                        class="font-nohemi font-normal bg-primary rounded-md px-3 text-sm py-2 flex items-center justify-center custom-item-hover">Get
-                        Started</a>
                     <button @click="open = !open"
                         class="lg:hidden text-white m-2 relative flex items-center justify-center">
                         <div class="relative w-6 h-6">
@@ -86,7 +89,10 @@
                 x-transition:leave="transition-all duration-300 ease-in-out"
                 x-transition:leave-start="max-h-[500px] opacity-100" x-transition:leave-end="max-h-0 opacity-0">
                 <hr class="border-t border-navbar-stroke">
-                <a href="#faq" class="font-nohemi font-normal">Sign in</a>
+                <a href="/auth/login/spotify"
+                    class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">
+                    <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">Sign
+                    In</a>
             </div>
         </nav>
 
@@ -174,7 +180,7 @@
         </div>
         <div class="flex flex-row justify-between mt-auto text-sm text-[#666666] items-center flex-wrap gap-4">
             <div class="flex flex-row gap-4 mr-8">
-                <a href="/terms">Terms of use</a>
+                <a href="/terms-of-use">Terms of use</a>
                 <a href="/privacy">Privacy Policy</a>
                 <a href="/dpa">GDPR</a>
             </div>
