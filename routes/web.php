@@ -7,7 +7,6 @@ use App\Http\Controllers\General\ShowDPAPageController;
 use App\Http\Controllers\General\ShowPrivacyPageController;
 use App\Http\Controllers\General\ShowTermsOfUsePageController;
 
-use App\Http\Controllers\Auth\ShowLoginPageController;
 use App\Http\Controllers\Auth\RedirectToSpotifyController;
 use App\Http\Controllers\Auth\SpotifyCallbackController;
 
@@ -23,7 +22,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('guest')->group(function () {
-    Route::prefix('/auth')->name('auth.')->group(function () {
+    Route::prefix('/auth')->group(function () {
         Route::get('/login/spotify', RedirectToSpotifyController::class)->name('login');
         Route::get('/spotify/callback', SpotifyCallbackController::class)->name('callback');
     });
