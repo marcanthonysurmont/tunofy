@@ -13,6 +13,7 @@ class ShowMixController extends Controller
     {
         return Inertia::render('TestPage', [
             'mix' => $mix,
+            'songs' => $mix->songs(),
         ]);
 
     }
