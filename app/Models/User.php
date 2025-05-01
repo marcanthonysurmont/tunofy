@@ -48,6 +48,13 @@ class User extends Authenticatable
         return $this->hasMany(Mix::class);
     }
 
+    public function accessibleMixes()
+    {
+        return $this->belongsToMany(Mix::class, 'mix_accesses')
+            ->withPivot('permission')
+            ->withTimestamps();
+    }
+
     /**************************************/
     /*       Accessors / Mutators         */
     /**************************************/

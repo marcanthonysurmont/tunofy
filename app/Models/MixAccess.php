@@ -3,48 +3,31 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Sluggable\HasSlug;
-use Spatie\Sluggable\SlugOptions;
 
-class Mix extends Model
+class MixAccess extends Model
 {
-    use HasSlug;
-
     /**************************************/
     /*             Attributes             */
     /**************************************/
 
     protected $fillable = [
+        'mix_id',
         'user_id',
-        'name',
-        'session_code',
-        'is_public',
-        'is_active',
-        'co_dj_id',
-        'playback_device_id',
-        'preset_id',
-        'avatar',
+        'permission',
     ];
 
     /**************************************/
     /*           Relationships            */
     /**************************************/
 
+    public function mix()
+    {
+        return $this->belongsTo(Mix::class);
+    }
+    
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function songs()
-    {
-        return $this->belongsToMany(Song::class);
-    }
-
-    public function collaborators()
-    {
-        return $this->belongsToMany(User::class, 'mix_accesses')
-            ->withPivot('permission')
-            ->withTimestamps();
     }
 
     /**************************************/
@@ -58,11 +41,4 @@ class Mix extends Model
     /**************************************/
     /*              Helpers               */
     /**************************************/
-
-    public function getSlugOptions() : SlugOptions
-    {
-        return SlugOptions::create()
-            ->generateSlugsFrom('name')
-            ->saveSlugsTo('slug');
-    }
 }
