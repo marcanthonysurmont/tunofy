@@ -16,6 +16,7 @@ use App\Http\Controllers\Application\Mixes\StoreMixController;
 use App\Http\Controllers\Application\Mixes\ShowMixController;
 use App\Http\Controllers\Application\Mixes\UpdateMixController;
 use App\Http\Controllers\Application\Mixes\DestroyMixController;
+use App\Http\Controllers\Application\Mixes\AddSongToMixController;
 
 use App\Http\Controllers\Application\Spotify\SearchSongController;
 
@@ -27,12 +28,13 @@ Route::get('/terms-of-use', ShowTermsOfUsePageController::class);
 Route::middleware('auth')->group(function () {
     Route::prefix('/app')->group(function () {
         Route::get('/', ShowAppPageController::class)->name('app');
-        Route::get('/{mix:slug}', ShowMixController::class)->name('show');
+        Route::get('/{mix:slug}', ShowMixController::class)->name('mix.show');
 
         Route::prefix('/mix')->name('mix.')->group(function () {
             Route::post('/store', StoreMixController::class)->name('store');
             Route::put('/update/{mix}', UpdateMixController::class)->name('update');
             Route::delete('/destroy/{mix}', DestroyMixController::class)->name('destroy');
+            Route::post('/add-song/{mix}', AddSongToMixController::class)->name('add-song');
         });
     });
 

@@ -32,6 +32,16 @@ class Mix extends Model
     /*           Relationships            */
     /**************************************/
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function songs()
+    {
+        return $this->belongsToMany(Song::class);
+    }
+
     /**************************************/
     /*       Accessors / Mutators         */
     /**************************************/
