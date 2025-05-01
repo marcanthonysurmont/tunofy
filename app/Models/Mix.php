@@ -62,6 +62,7 @@ class Mix extends Model
         return new Attribute(fn() => [
             'canView' => $user->can('view', $this),
             'canAddSong' => $user->can('addSongs', $this),
+            'canRemoveSong' => $user->can('removeSongs', $this),
             'canUpdate' => $user->can('update', $this),
             'canDelete' => $user->can('delete', $this),
             'canManageCollaborators' => $user->can('manageCollaborators', $this),

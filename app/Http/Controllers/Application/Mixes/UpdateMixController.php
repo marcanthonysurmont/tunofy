@@ -5,10 +5,11 @@ namespace App\Http\Controllers\Application\Mixes;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateMixRequest;
 use App\Models\Mix;
+use Illuminate\Http\RedirectResponse;
 
 class UpdateMixController extends Controller
 {
-    public function __invoke(UpdateMixRequest $request, Mix $mix)
+    public function __invoke(UpdateMixRequest $request, Mix $mix): RedirectResponse
     {
         $this->authorize('update', $mix);
         

@@ -49,6 +49,20 @@ class MixPolicy
             ->exists();
     }
 
+    public function removeSongs(User $user, Mix $mix): bool
+    {
+        // Owner can always remove songs
+        if ($user->id === $mix->user_id) {
+            return true;
+        }
+
+        // Check if user has edit permission
+        return $user->accessibleMixes()
+            ->where('mix_id', $mix->id)
+            ->where('permission', Permission::EDIT->value)
+            ->exists();
+    }
+
     /**
      * Determine whether the user can update the mix.
      */

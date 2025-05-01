@@ -7,10 +7,11 @@ use App\Http\Requests\AddSongToMixRequest;
 use App\Models\Mix;
 use App\Models\Song;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
 
 class AddSongToMixController extends Controller
 {
-    public function __invoke(AddSongToMixRequest $request, Mix $mix)
+    public function __invoke(AddSongToMixRequest $request, Mix $mix): RedirectResponse
     {
         $this->authorize('addSong', $mix);
         
