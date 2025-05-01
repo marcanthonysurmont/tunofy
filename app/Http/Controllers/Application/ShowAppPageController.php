@@ -10,6 +10,6 @@ class ShowAppPageController extends Controller
 {
     public function __invoke(): Response
     {
-        return Inertia::render('TestPage');
+        return Inertia::render('MainAppPage');
     }
 }

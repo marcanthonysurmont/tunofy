@@ -1,4 +1,6 @@
 <template>
+
+    <Head title="xd" />
     <AppLayout>
         <TabNav :tabs="tabs" @tab-changed="setActiveTab" />
         <Transition name="fade-with-slide" appear mode="out-in">
@@ -19,6 +21,7 @@ import TabNav from '@/components/navigation/TabNav.vue'
 import OverviewComponent from '@/components/subpages/OverviewComponent.vue'
 import VotingComponent from '@/components/subpages/VotingComponent.vue'
 import StatsComponent from '@/components/subpages/StatsComponent.vue'
+import { Head } from '@inertiajs/vue3'
 
 const tabs = ref([
     { name: 'Overview', active: true },
