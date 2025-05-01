@@ -24,6 +24,7 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('/mix')->name('mix.')->group(function () {
         Route::post('/store', StoreMixController::class)->name('store');
+        // Route::get('/mix:slug', ShowMixController::class)->name('show');
     });
 
     Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
