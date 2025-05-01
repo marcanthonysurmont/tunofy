@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\RedirectToSpotifyController;
 use App\Http\Controllers\Auth\SpotifyCallbackController;
 
 use App\Http\Controllers\Application\ShowAppPageController;
+use App\Http\Controllers\Application\Spotify\SearchSongController;
 
 Route::get('/', ShowLandingPageController::class);
 Route::get('/dpa', ShowDPAPageController::class);
@@ -19,6 +20,10 @@ Route::get('/terms-of-use', ShowTermsOfUsePageController::class);
 
 Route::middleware('auth')->group(function () {
     Route::get('/app', ShowAppPageController::class);
+
+    Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
+        Route::post('/search', SearchSongController::class)->name('search');
+    });
 });
 
 Route::middleware('guest')->group(function () {
