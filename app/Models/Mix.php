@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
 
 class Mix extends Model
 {
+    use HasSlug;
+
     /**************************************/
     /*             Attributes             */
     /**************************************/
@@ -39,4 +43,11 @@ class Mix extends Model
     /**************************************/
     /*              Helpers               */
     /**************************************/
+
+    public function getSlugOptions() : SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('name')
+            ->saveSlugsTo('slug');
+    }
 }

@@ -14,6 +14,7 @@ return new class () extends Migration {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('name');
+            $table->string('slug');
             $table->string('session_code')->nullable();
             $table->boolean('is_public');
             $table->boolean('is_active')->default(false);
