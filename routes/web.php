@@ -15,6 +15,7 @@ use App\Http\Controllers\Application\ShowAppPageController;
 use App\Http\Controllers\Application\Mixes\StoreMixController;
 use App\Http\Controllers\Application\Mixes\ShowMixController;
 use App\Http\Controllers\Application\Mixes\UpdateMixController;
+use App\Http\Controllers\Application\Mixes\DestroyMixController;
 
 use App\Http\Controllers\Application\Spotify\SearchSongController;
 
@@ -31,6 +32,7 @@ Route::middleware('auth')->group(function () {
         Route::prefix('/mix')->name('mix.')->group(function () {
             Route::post('/store', StoreMixController::class)->name('store');
             Route::put('/update/{mix}', UpdateMixController::class)->name('update');
+            Route::delete('/destroy/{mix}', DestroyMixController::class)->name('destroy');
         });
     });
 
