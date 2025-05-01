@@ -19,6 +19,7 @@ use App\Http\Controllers\Application\Mixes\DestroyMixController;
 use App\Http\Controllers\Application\Mixes\AddSongToMixController;
 use App\Http\Controllers\Application\Mixes\RemoveSongFromMixController;
 use App\Http\Controllers\Application\Mixes\GenerateMixCodeController;
+use App\Http\Controllers\Application\Mixes\JoinMixController;
 
 use App\Http\Controllers\Application\Spotify\SearchSongController;
 
@@ -39,6 +40,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/add-song/{mix}', AddSongToMixController::class)->name('add-song');
             Route::delete('/remove-song/{song}', RemoveSongFromMixController::class)->name('remove-song');
             Route::post('/generate-code/{mix}', GenerateMixCodeController::class)->name('generate-code');
+            Route::post('/join/{session_code}', JoinMixController::class)->name('join');
         });
     });
 
