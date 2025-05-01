@@ -61,14 +61,14 @@
                 </ul>
 
                 <div class="hidden lg:flex flex-row items-center gap-4 text-xl">
-                    <a href="/app" class="font-nohemi font-normal custom-item-hover">Sign in</a>
-                    <a href="/app"
+                    <a href="/auth/login/spotify" class="font-nohemi font-normal custom-item-hover">Sign in</a>
+                    <a href="/auth/login/spotify"
                         class="font-nohemi font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">Get
                         Started</a>
                 </div>
 
                 <div class="flex flex-row items-center lg:hidden">
-                    <a href="/app"
+                    <a href="/auth/login/spotify"
                         class="font-nohemi font-normal bg-primary rounded-md px-3 text-sm py-2 flex items-center justify-center custom-item-hover">Get
                         Started</a>
                     <button @click="open = !open"
@@ -114,7 +114,7 @@
                 <a href="#key-features" class="font-nohemi font-normal" @click="open = !open">Key features</a>
                 <a href="#faq" class="font-nohemi font-normal" @click="open = !open">FAQ</a>
                 <hr class="border-t border-navbar-stroke">
-                <a href="#faq" class="font-nohemi font-normal">Sign in</a>
+                <a href="/auth/login/spotify" class="font-nohemi font-normal">Sign in</a>
                 {{-- <a href=""
                     class="font-nohemi font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center">Get
                     Started</a> --}}
