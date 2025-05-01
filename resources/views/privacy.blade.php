@@ -83,10 +83,16 @@
                 x-transition:leave="transition-all duration-300 ease-in-out"
                 x-transition:leave-start="max-h-[500px] opacity-100" x-transition:leave-end="max-h-0 opacity-0">
                 <hr class="border-t border-navbar-stroke">
-                <a href="/auth/login/spotify"
-                    class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">
-                    <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">Sign
-                    In</a>
+                @auth
+                    <a href="{{ route('app') }}"
+                        class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">Go
+                        to App</a>
+                @else
+                    <a href="{{ route('login') }}"
+                        class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">
+                        <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">Sign
+                        In</a>
+                @endauth
             </div>
         </nav>
 

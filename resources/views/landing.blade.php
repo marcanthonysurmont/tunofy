@@ -61,10 +61,16 @@
                 </ul>
 
                 <div class="hidden lg:flex flex-row items-center gap-4 text-xl">
-                    <a href="/auth/login/spotify"
-                        class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">
-                        <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">Sign
-                        In</a>
+                    @auth
+                        <a href="{{ route('app') }}"
+                            class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">Go
+                            to App</a>
+                    @else
+                        <a href="{{ route('login') }}"
+                            class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">
+                            <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">Sign
+                            In</a>
+                    @endauth
                 </div>
 
                 <div class="flex flex-row items-center lg:hidden">
@@ -96,12 +102,16 @@
                 <a href="#key-features" class="font-headings font-normal" @click="open = !open">Key features</a>
                 <a href="#faq" class="font-headings font-normal" @click="open = !open">FAQ</a>
                 <hr class="border-t border-navbar-stroke">
-                <a href="/auth/login/spotify"
-                    class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">
-                    <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">Sign
-                    In</a> {{-- <a href=""
-                    class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center">Get
-                    Started</a> --}}
+                @auth
+                    <a href="{{ route('app') }}"
+                        class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">Go
+                        to App</a>
+                @else
+                    <a href="{{ route('login') }}"
+                        class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">
+                        <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">Sign
+                        In</a>
+                @endauth
             </div>
         </nav>
 
