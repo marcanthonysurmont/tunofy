@@ -58,7 +58,7 @@
                     <li class="min-h-[200px]">
                       <div class="flex flex-row justify-between items-center">
                         <h1 class="text-2xl">Your Jams</h1>
-                        <PlusIcon class="size-8 text-white bg-primary p-2 cursor-pointer rounded-lg" />
+                        <PlusIcon class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg" />
                       </div>
                       <ul role="list" class="-mx-2 space-y-1">
                       </ul>
@@ -66,7 +66,7 @@
                     <li class="min-h-[200px]">
                       <div class="flex flex-row justify-between items-center">
                         <h1 class="text-2xl">Joined Jams</h1>
-                        <PlusIcon class="size-8 text-white bg-primary p-2 cursor-pointer rounded-lg" />
+                        <PlusIcon class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg" />
                       </div>
                     </li>
                     </li>
@@ -91,7 +91,7 @@
             <li class="min-h-[200px]">
               <div class="flex flex-row justify-between items-center">
                 <h1 class="text-2xl">Your Jams</h1>
-                <PlusIcon class="size-8 text-white bg-primary p-2 cursor-pointer rounded-lg" />
+                <PlusIcon class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg" />
               </div>
               <ul role="list" class="-mx-2 space-y-1">
               </ul>
@@ -99,7 +99,7 @@
             <li class="min-h-[200px]">
               <div class="flex flex-row justify-between items-center">
                 <h1 class="text-2xl">Joined Jams</h1>
-                <PlusIcon class="size-8 text-white bg-primary p-2 cursor-pointer rounded-lg" />
+                <PlusIcon class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg" />
               </div>
             </li>
             <li
