@@ -1,0 +1,38 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('mixes', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('name');
+            $table->string('session_code')->nullable();
+            $table->boolean('is_public')->default(false);
+            $table->boolean('is_active')->default(false);
+            $table->foreignId('co_dj_id')->nullable()->constrained('users')->onDelete('cascade')->nullable();
+            $table->string('playback_device_id')->nullable();
+            $table->integer('batch_size')->default(10);
+            $table->integer('max_songs')->nullable();
+            $table->foreignId('preset_id')->nullable()->onDelete('cascade')->nullable();
+            $table->string('avatar')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('mixes');
+    }
+};
