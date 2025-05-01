@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\RedirectToSpotifyController;
 use App\Http\Controllers\Auth\SpotifyCallbackController;
 
 use App\Http\Controllers\Application\ShowAppPageController;
+use App\Http\Controllers\Application\Mixes\StoreMixController;
 use App\Http\Controllers\Application\Spotify\SearchSongController;
 
 Route::get('/', ShowLandingPageController::class);
@@ -20,6 +21,10 @@ Route::get('/terms-of-use', ShowTermsOfUsePageController::class);
 
 Route::middleware('auth')->group(function () {
     Route::get('/app', ShowAppPageController::class)->name('app');
+
+    Route::prefix('/mix')->name('mix.')->group(function () {
+        Route::post('/store', StoreMixController::class)->name('store');
+    });
 
     Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
         Route::post('/search', SearchSongController::class)->name('search');
