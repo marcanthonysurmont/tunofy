@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Application\Mixes;
 
 use App\Models\Mix;
 use App\Http\Controllers\Controller;

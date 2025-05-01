@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->integer('batch_size')->default(10);
+            $table->integer('max_songs')->nullable();
             $table->integer('num_rounds')->nullable();
             $table->boolean('requires_approval')->default(false);
             $table->boolean('voting_enabled')->default(true);

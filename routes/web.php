@@ -11,7 +11,11 @@ use App\Http\Controllers\Auth\RedirectToSpotifyController;
 use App\Http\Controllers\Auth\SpotifyCallbackController;
 
 use App\Http\Controllers\Application\ShowAppPageController;
+
 use App\Http\Controllers\Application\Mixes\StoreMixController;
+use App\Http\Controllers\Application\Mixes\ShowMixController;
+use App\Http\Controllers\Application\Mixes\UpdateMixController;
+
 use App\Http\Controllers\Application\Spotify\SearchSongController;
 
 Route::get('/', ShowLandingPageController::class);
@@ -20,11 +24,14 @@ Route::get('/privacy', ShowPrivacyPageController::class);
 Route::get('/terms-of-use', ShowTermsOfUsePageController::class);
 
 Route::middleware('auth')->group(function () {
-    Route::get('/app', ShowAppPageController::class)->name('app');
+    Route::prefix('/app')->group(function () {
+        Route::get('/', ShowAppPageController::class)->name('app');
+        Route::get('/{mix:slug}', ShowMixController::class)->name('show');
 
-    Route::prefix('/mix')->name('mix.')->group(function () {
-        Route::post('/store', StoreMixController::class)->name('store');
-        // Route::get('/mix:slug', ShowMixController::class)->name('show');
+        Route::prefix('/mix')->name('mix.')->group(function () {
+            Route::post('/store', StoreMixController::class)->name('store');
+            Route::put('/update/{mix}', UpdateMixController::class)->name('update');
+        });
     });
 
     Route::prefix('api/spotify')->name('api.spotify.')->group(function () {

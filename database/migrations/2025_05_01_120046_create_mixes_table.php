@@ -20,8 +20,6 @@ return new class () extends Migration {
             $table->boolean('is_active')->default(false);
             $table->foreignId('co_dj_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('playback_device_id')->nullable();
-            $table->integer('batch_size')->default(10);
-            $table->integer('max_songs')->nullable();
             $table->foreignId('preset_id')->nullable()->default(1)->constrained()->onDelete('set null');
             $table->string('avatar')->nullable();
             $table->timestamps();
