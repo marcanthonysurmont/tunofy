@@ -48,28 +48,28 @@
                 <a class="flex flex-row items-center space-x-4" href="/">
                     <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Tunofy Logo"
                         class="md:w-10 md:h-10 h-8 w-8">
-                    <p class="text-2xl md:text-3xl font-medium font-nohemi">Tunofy</p>
+                    <p class="text-2xl md:text-3xl font-medium font-headings">Tunofy</p>
                 </a>
 
                 <!-- Desktop menu -->
                 <ul class="hidden lg:flex pl-8 space-x-6 text-xl">
-                    <li class="custom-item-hover"><a href="#how-it-works" class="font-nohemi font-normal">How it
+                    <li class="custom-item-hover"><a href="#how-it-works" class="font-headings font-normal">How it
                             works</a></li>
-                    <li class="custom-item-hover"><a href="#key-features" class="font-nohemi font-normal">Key
+                    <li class="custom-item-hover"><a href="#key-features" class="font-headings font-normal">Key
                             features</a></li>
-                    <li class="custom-item-hover"><a href="#faq" class="font-nohemi font-normal">FAQ</a></li>
+                    <li class="custom-item-hover"><a href="#faq" class="font-headings font-normal">FAQ</a></li>
                 </ul>
 
                 <div class="hidden lg:flex flex-row items-center gap-4 text-xl">
-                    <a href="/auth/login/spotify" class="font-nohemi font-normal custom-item-hover">Sign in</a>
+                    <a href="/auth/login/spotify" class="font-headings font-normal custom-item-hover">Sign in</a>
                     <a href="/auth/login/spotify"
-                        class="font-nohemi font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">Get
+                        class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">Get
                         Started</a>
                 </div>
 
                 <div class="flex flex-row items-center lg:hidden">
                     <a href="/auth/login/spotify"
-                        class="font-nohemi font-normal bg-primary rounded-md px-3 text-sm py-2 flex items-center justify-center custom-item-hover">Get
+                        class="font-headings font-normal bg-primary rounded-md px-3 text-sm py-2 flex items-center justify-center custom-item-hover">Get
                         Started</a>
                     <button @click="open = !open"
                         class="lg:hidden text-white m-2 relative flex items-center justify-center">
@@ -110,13 +110,13 @@
                 x-transition:enter-start="max-h-0 opacity-0" x-transition:enter-end="max-h-[500px] opacity-100"
                 x-transition:leave="transition-all duration-300 ease-in-out"
                 x-transition:leave-start="max-h-[500px] opacity-100" x-transition:leave-end="max-h-0 opacity-0">
-                <a href="#how-it-works" class="font-nohemi font-normal" @click="open = !open">How it works</a>
-                <a href="#key-features" class="font-nohemi font-normal" @click="open = !open">Key features</a>
-                <a href="#faq" class="font-nohemi font-normal" @click="open = !open">FAQ</a>
+                <a href="#how-it-works" class="font-headings font-normal" @click="open = !open">How it works</a>
+                <a href="#key-features" class="font-headings font-normal" @click="open = !open">Key features</a>
+                <a href="#faq" class="font-headings font-normal" @click="open = !open">FAQ</a>
                 <hr class="border-t border-navbar-stroke">
-                <a href="/auth/login/spotify" class="font-nohemi font-normal">Sign in</a>
+                <a href="/auth/login/spotify" class="font-headings font-normal">Sign in</a>
                 {{-- <a href=""
-                    class="font-nohemi font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center">Get
+                    class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center">Get
                     Started</a> --}}
             </div>
         </nav>
@@ -127,10 +127,10 @@
         :class="show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'"
         class="transition-all duration-1000 ease-out w-full max-w-[1728px] mt-24 md:xs-32 md:mt-48 mx-auto flex-col bg-hero flex items-center justify-center py-8">
         <section class="items-center flex flex-col gap-8 justify-center h-[600px] w-max-[875px] mx-8">
-            <h1 class="text-6xl sm:text-7xl md:text-8xl font-nohemi text-center max-w-[875px]">The music platform you
+            <h1 class="text-6xl sm:text-7xl md:text-8xl font-headings text-center max-w-[875px]">The music platform you
                 <span class="text-primary custom-underline">need</span>
             </h1>
-            <p class="font-nohemi text-2xl sm:tex   t-3xl md:text-4xl max-w-[953px] text-center text-gradient">
+            <p class="font-headings text-2xl sm:tex   t-3xl md:text-4xl max-w-[953px] text-center text-gradient">
                 Join the ultimate music
                 experience —
                 create, vote
@@ -139,10 +139,10 @@
                 music together.</p>
             <div class="flex flex-row gap-4 items-center justify-center mt-8">
                 <a href=""
-                    class="custom-item-hover font-nohemi font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center text-lg md:text-2xl">Join
+                    class="custom-item-hover font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center text-lg md:text-2xl">Join
                     now</a>
                 <a href="#key-features"
-                    class="font-nohemi font-normal text-lg md:text-2xl flex items-center gap-2 custom-item-hover">View
+                    class="font-headings font-normal text-lg md:text-2xl flex items-center gap-2 custom-item-hover">View
                     features<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke-width="1.5" stroke="currentColor" class="size-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -178,7 +178,7 @@
         id="how-it-works">
         <div class="flex flex-col gap-10 items-center justify-center mb-16 text-center">
             <h2 class="font-medium text-3xl md:text-4xl">How it works</h2>
-            <p class="text-xl md:text-2xl font-nohemi">Trust us, it's as simple as pretending to like your friend's
+            <p class="text-xl md:text-2xl font-headings">Trust us, it's as simple as pretending to like your friend's
                 playlist.</p>
         </div>
         <div class="flex flex-col lg:grid lg:grid-cols-3 w-full gap-8">
@@ -186,7 +186,7 @@
                 <div class="bg-card-background p-4 rounded-lg border-2 border-card-stroke">
                     <div class="flex flex-row gap-4 items-center mb-4">
                         <span
-                            class="font-nohemi text-2xl md:text-3xl bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white">{{ $step['step'] }}</span>
+                            class="font-headings text-2xl md:text-3xl bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white">{{ $step['step'] }}</span>
                         <h3 class="text-2xl md:text-3xl">{{ $step['title'] }}</h3>
                     </div>
                     <p class="text-xl font-normal">{{ $step['description'] }}</p>
@@ -200,7 +200,7 @@
         id="key-features">
         <div class="flex flex-col gap-10 items-center justify-center mb-16 text-center">
             <h2 class="font-medium text-3xl md:text-4xl">Key Features</h2>
-            <p class="text-xl md:text-2xl font-nohemi">A unique blend of creativity and innovation.</p>
+            <p class="text-xl md:text-2xl font-headings">A unique blend of creativity and innovation.</p>
         </div>
         <div class="swiper w-full swiper-no-gutters mb-16 !hidden lg:!block">
             <!-- Additional required wrapper -->
@@ -210,7 +210,7 @@
                     <div class="p-4">
                         <div class="flex flex-row gap-4 items-center mb-6">
                             <span
-                                class="font-nohemi text-2xl md:text-3xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                                class="font-headings text-2xl md:text-3xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="size-12">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -227,7 +227,7 @@
                     <div class="p-4">
                         <div class="flex flex-row gap-4 items-stretch mb-6">
                             <span
-                                class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-auto flex items-center justify-center text-white">
+                                class="font-headings text-3xl xl:text-4xl bg-primary rounded-md w-16 h-auto flex items-center justify-center text-white">
 
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="size-12">
@@ -251,7 +251,7 @@
                     <div class="p-4 ">
                         <div class="flex flex-row gap-4 items-center mb-6">
                             <span
-                                class="font-nohemi text-2xl md:text-3xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                                class="font-headings text-2xl md:text-3xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="size-12">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -268,7 +268,7 @@
                     <div class="p-4 ">
                         <div class="flex flex-row gap-4 items-center mb-6">
                             <span
-                                class="font-nohemi text-2xl md:text-3xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                                class="font-headings text-2xl md:text-3xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="size-12">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -306,7 +306,7 @@
             <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
                 <div class="flex flex-row gap-4 items-center mb-6">
                     <span
-                        class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                        class="font-headings text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-12">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -321,7 +321,7 @@
             <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
                 <div class="flex flex-row gap-4 items-center mb-6">
                     <span
-                        class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                        class="font-headings text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-12">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -336,7 +336,7 @@
             <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
                 <div class="flex flex-row gap-4 items-center mb-6">
                     <span
-                        class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
+                        class="font-headings text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-12">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -351,7 +351,7 @@
             <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
                 <div class="flex flex-row gap-4 items-stretch mb-6">
                     <span
-                        class="font-nohemi text-3xl xl:text-4xl bg-primary rounded-md w-16 h-auto flex items-center justify-center text-white">
+                        class="font-headings text-3xl xl:text-4xl bg-primary rounded-md w-16 h-auto flex items-center justify-center text-white">
 
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="size-12">
@@ -391,7 +391,7 @@
         id="faq">
         <div class="flex flex-col gap-10 items-center justify-center mb-16 text-center">
             <h2 class="font-medium text-3xl md:text-4xl">Frequently Asked Questions (FAQ)</h2>
-            <p class="text-xl md:text-2xl font-nohemi">Got doubts and questions? Let’s break it down.</p>
+            <p class="text-xl md:text-2xl font-headings">Got doubts and questions? Let’s break it down.</p>
         </div>
         @php
             $faqs = [
@@ -419,7 +419,7 @@
                     class="border-b rounded-lg border-card-stroke py-4 transition-all duration-500">
                     <button @click="open = !open"
                         class="flex items-center justify-between w-full p-4 text-left font-medium cursor-pointer">
-                        <p class="font-nohemi text-xl font-light">{{ $faq['question'] }}</p>
+                        <p class="font-headings text-xl font-light">{{ $faq['question'] }}</p>
                         <svg :class="{ 'rotate-180': open }" class="w-6 h-6 transition-transform duration-300 ml-4"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path d="M19 9l-7 7-7-7" />
@@ -441,7 +441,7 @@
         <div class="max-w-[380px]">
             <div class="flex flex-row gap-4 items-center mb-4">
                 <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Tunofy Logo" class="w-12 h-12">
-                <h1 class="text-5xl font-medium font-nohemi">Tunofy</h1>
+                <h1 class="text-5xl font-medium font-headings">Tunofy</h1>
             </div>
             <p class="font-light text-xl">Tunofy enhances your spotify experience by combining music and voting.</p>
         </div>
