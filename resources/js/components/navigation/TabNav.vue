@@ -15,7 +15,7 @@
                 <a v-for="tab in tabs" :key="tab.name" :href="tab.href" :class="[
                     'border-2',
                     tab.active ? 'bg-primary border-primary' : 'bg-tab-background-inactive border-tab-stroke-inactive',
-                    'rounded-lg flex items-center px-3 py-2 sm:text-2xl md:text-3xl font-medium font-headers cursor-pointer hover:text-neutral-200 text-white'
+                    'rounded-lg flex items-center px-3 py-2 sm:text-2xl md:text-3xl font-medium font-headers cursor-pointer hover:text-neutral-300 text-white custom-item-hover'
                 ]" :aria-current="tab.active ? 'page' : undefined" @click.prevent="changeTab(tab.name)">
                     {{ tab.name }}
                 </a>

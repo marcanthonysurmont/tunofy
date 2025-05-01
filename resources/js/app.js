@@ -1,6 +1,7 @@
 import './bootstrap';
 import '../css/app.css';
 import '../css/vue-animations.css';
+import '../css/hovers.css';
 
 
 import { createApp, h } from 'vue'

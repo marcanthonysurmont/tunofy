@@ -57,7 +57,8 @@
                     <li class="min-h-[200px]">
                       <div class="flex flex-row justify-between items-center">
                         <h1 class="text-2xl">Your Jams</h1>
-                        <PlusIcon class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg" />
+                        <PlusIcon
+                          class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover" />
                       </div>
                       <ul role="list" class="-mx-2 space-y-1">
                       </ul>
@@ -65,7 +66,8 @@
                     <li class="min-h-[200px]">
                       <div class="flex flex-row justify-between items-center">
                         <h1 class="text-2xl">Joined Jams</h1>
-                        <PlusIcon class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg" />
+                        <PlusIcon
+                          class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover" />
                       </div>
                     </li>
                   </ul>
@@ -89,7 +91,7 @@
             <li class="min-h-[200px]">
               <div class="flex flex-row justify-between items-center">
                 <h1 class="text-2xl">Your Jams</h1>
-                <PlusIcon class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg" />
+                <PlusIcon class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover" />
               </div>
               <ul role="list" class="-mx-2 space-y-1">
               </ul>
@@ -97,7 +99,7 @@
             <li class="min-h-[200px]">
               <div class="flex flex-row justify-between items-center">
                 <h1 class="text-2xl">Joined Jams</h1>
-                <PlusIcon class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg" />
+                <PlusIcon class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover" />
               </div>
             </li>
             <li
@@ -111,10 +113,11 @@
               </a>
               <div class="flex items-center gap-x-2">
                 <Link href="settings" method="post">
-                <Cog8ToothIcon class="size-6 text-white stroke-2 cursor-pointer" />
+                <Cog8ToothIcon class="size-6 text-white stroke-2 cursor-pointer custom-item-hover" />
                 </Link>
                 <Link href="logout" method="post">
-                <ArrowLeftEndOnRectangleIcon class="size-6 stroke-2 text-white font-bold cursor-pointer" />
+                <ArrowLeftEndOnRectangleIcon
+                  class="size-6 stroke-2 text-white font-bold cursor-pointer custom-item-hover" />
                 </Link>
               </div>
             </li>
