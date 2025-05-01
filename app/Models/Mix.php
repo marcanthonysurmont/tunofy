@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
+use Illuminate\Support\Facades\Auth;
 
 class Mix extends Model
 {
@@ -25,6 +27,8 @@ class Mix extends Model
         'preset_id',
         'avatar',
     ];
+
+    protected $appends = ['authorized'];
 
     /**************************************/
     /*           Relationships            */
@@ -50,6 +54,21 @@ class Mix extends Model
     /**************************************/
     /*       Accessors / Mutators         */
     /**************************************/
+
+    protected function authorized(): Attribute
+    {
+        $user = Auth::user();
+
+        return new Attribute(fn() => [
+            'canView' => $user->can('view', $this),
+            'canAddSong' => $user->can('addSongs', $this),
+            'canUpdate' => $user->can('update', $this),
+            'canDelete' => $user->can('delete', $this),
+            'canManageCollaborators' => $user->can('manageCollaborators', $this),
+            'canJoin' => $user->can('join', $this),
+            'canGenerateSessionCode' => $user->can('generateSessionCode', $this),
+        ]);
+    }
 
     /**************************************/
     /*              Scopes                */

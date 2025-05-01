@@ -11,6 +11,8 @@ class ShowMixController extends Controller
 {
     public function __invoke(Mix $mix): Response
     {
+        $this->authorize('view', $mix);
+        
         return Inertia::render('TestPage', [
             'mix' => $mix,
             'songs' => $mix->songs(),

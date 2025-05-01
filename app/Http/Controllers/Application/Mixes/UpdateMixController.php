@@ -10,6 +10,8 @@ class UpdateMixController extends Controller
 {
     public function __invoke(UpdateMixRequest $request, Mix $mix)
     {
+        $this->authorize('update', $mix);
+        
         $validated = $request->validated();
 
         $avatarPath = null;

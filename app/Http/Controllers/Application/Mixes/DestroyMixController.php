@@ -10,6 +10,8 @@ class DestroyMixController extends Controller
 {
     public function __invoke(Mix $mix): RedirectResponse
     {
+        $this->authorize('delete', $mix);
+        
         $mix->delete();
 
         return redirect()->back()

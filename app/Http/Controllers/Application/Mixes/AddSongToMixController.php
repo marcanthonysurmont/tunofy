@@ -12,6 +12,8 @@ class AddSongToMixController extends Controller
 {
     public function __invoke(AddSongToMixRequest $request, Mix $mix)
     {
+        $this->authorize('addSong', $mix);
+        
         $validated = $request->validated();
 
         Song::create([
