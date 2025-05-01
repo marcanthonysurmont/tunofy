@@ -1,6 +1,6 @@
 <template>
 
-    <Head title="xd" />
+    <Head title="Tunofy | App" />
     <AppLayout>
         <TabNav :tabs="tabs" @tab-changed="setActiveTab" />
         <Transition name="fade-with-slide" appear mode="out-in">
