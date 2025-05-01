@@ -22,6 +22,9 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
+            // 'ziggy-js': path.resolve('vendor/tightenco/ziggy/dist/index.esm.js'),
+            // 'ziggy-js': path.resolve('vendor/tightenco/ziggy'),
+            'ziggy-js': fileURLToPath(new URL ('vendor/tightenco/ziggy'), import.meta.url),
             // '@css': fileURLToPath(new URL('./resources/css', import.meta.url)),
             // '@scss': fileURLToPath(new URL('./resources/scss', import.meta.url)),
             // '@store': fileURLToPath(new URL('./resources/js/Stores', import.meta.url)),

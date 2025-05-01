@@ -1,9 +1,12 @@
 import './bootstrap';
 import '../css/app.css';
+import '../css/vue-animations.css';
 
 
 import { createApp, h } from 'vue'
 import { createInertiaApp, router } from '@inertiajs/vue3'
+import { ZiggyVue } from '../../vendor/tightenco/ziggy';
+
 
 createInertiaApp({
   resolve: name => {
@@ -71,6 +74,8 @@ createInertiaApp({
         },
         render: () => h(App, props)
     });
+
+    app.use(ZiggyVue);
 
     app.mount(el);
 
