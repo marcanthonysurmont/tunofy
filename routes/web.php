@@ -20,6 +20,9 @@ use App\Http\Controllers\Application\Mixes\AddSongToMixController;
 use App\Http\Controllers\Application\Mixes\RemoveSongFromMixController;
 use App\Http\Controllers\Application\Mixes\GenerateMixCodeController;
 use App\Http\Controllers\Application\Mixes\JoinMixController;
+use App\Http\Controllers\Application\Mixes\StorePresetController;
+use App\Http\Controllers\Application\Mixes\UpdatePresetController;
+use App\Http\Controllers\Application\Mixes\DestroyPresetController;
 
 use App\Http\Controllers\Application\Spotify\SearchSongController;
 
@@ -41,6 +44,13 @@ Route::middleware('auth')->group(function () {
             Route::delete('/remove-song/{song}', RemoveSongFromMixController::class)->name('remove-song');
             Route::post('/generate-code/{mix}', GenerateMixCodeController::class)->name('generate-code');
             Route::post('/join/{session_code}', JoinMixController::class)->name('join');
+
+            // app/mix/presets (mix.presets)
+            Route::prefix('/presets')->name('presets.')->group(function () {
+                Route::post('/store', StorePresetController::class)->name('store');
+                Route::post('/update/{preset}', UpdatePresetController::class)->name('update');
+                Route::delete('/destroy/{preset}', DestroyPresetController::class)->name('destroy');
+            });
         });
     });
 

@@ -6,6 +6,7 @@ use App\Http\Requests\StorePresetRequest;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Controllers\Controller;
 use App\Models\Preset;
+use Illuminate\Support\Facades\Auth;
 
 class StorePresetController extends Controller
 {
@@ -16,7 +17,7 @@ class StorePresetController extends Controller
         try {
             Preset::create([
                 'name' => $validated['name'],
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'batch_size' => $validated['batch_size'],
                 'max_songs' => $validated['max_songs'],
                 'num_rounds' => $validated['num_rounds'],
