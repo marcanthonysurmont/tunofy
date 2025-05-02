@@ -145,7 +145,10 @@
                                     class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
                                 />
                             </div>
-                            <ul role="list" class="flex flex-col gap-y-4">
+                            <ul
+                                role="list"
+                                class="flex flex-col max-h-[400px] overflow-y-auto custom-scrollbar gap-y-4"
+                            >
                                 <YourMixesList />
                             </ul>
                         </li>

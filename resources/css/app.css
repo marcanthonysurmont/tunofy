@@ -75,3 +75,33 @@
         font-weight: 300;
     }
 }
+
+/* Custom scrollbar class for dark mode */
+.custom-scrollbar {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-card-stroke) var(--color-navbar-background);
+    /* Firefox */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--color-navbar-background);
+    /* dark bg */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--color-card-stroke);
+    /* subtle thumb */
+    border-radius: 4px;
+    border: 2px solid var(--color-navbar-background);
+    /* inset look */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-card-background-lighter);
+    /* thumb on hover */
+}
