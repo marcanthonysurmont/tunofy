@@ -78,6 +78,24 @@
                         >
                     </button>
                 </MenuItem>
+                <MenuItem v-slot="{ active }">
+                    <button
+                        @click="deleteMix"
+                        :class="[
+                            active
+                                ? 'bg-card-background-lighter text-dark-white cursor-pointer'
+                                : 'text-white',
+                            'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                        ]"
+                    >
+                        <TrashIcon
+                            :active="active"
+                            class="mr-2 h-5 w-5 text-white"
+                            aria-hidden="true"
+                        />
+                        <span class="font-medium align-middle">Delete mix</span>
+                    </button>
+                </MenuItem>
             </MenuDropdown>
         </div>
     </div>
@@ -95,16 +113,29 @@ import {
 } from "@heroicons/vue/24/outline";
 
 import MenuDropdown from "@/components/menus/MenuDropdown.vue";
-import { usePage } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 
 const page = usePage();
 const props = page.props;
 const mix = props.mix;
-console.log(props);
 
 function getImageUrl(song) {
     return song.avatar === null
         ? "/images/default-avatar.jpg"
         : "/storage/" + song.avatar;
+}
+
+function deleteMix() {
+    router.delete(route("mix.destroy", mix.id), {
+        onError: (error) => {
+            console.error("Error deleting mix:", error);
+        },
+        onFinish: () => {
+            router.visit(route("app"), {
+                preserveState: true,
+                preserveScroll: true,
+            });
+        },
+    });
 }
 </script>

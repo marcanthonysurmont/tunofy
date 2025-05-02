@@ -8,6 +8,8 @@ import { createApp, h } from 'vue'
 import { createInertiaApp, router } from '@inertiajs/vue3'
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { createPinia } from 'pinia';
+import { autoAnimatePlugin } from '@formkit/auto-animate/vue'
+import toast from '@/stores/StoreToast.js';
 const pinia = createPinia();
 
 createInertiaApp({
@@ -67,7 +69,7 @@ createInertiaApp({
         render: () => h(App, props)
     });
 
-    app.use(ZiggyVue).use(plugin).use(pinia);
+    app.use(ZiggyVue).use(plugin).use(pinia).use(autoAnimatePlugin);
     app.mount(el);
 
     return app;
