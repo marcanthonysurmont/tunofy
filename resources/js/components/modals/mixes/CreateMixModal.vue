@@ -29,10 +29,10 @@
             </div>
             <div class="mb-6">
                 <ImageUpload
-                    v-model="form.cover"
+                    v-model="form.image"
                     label="Cover Photo"
                     id="cover-photo"
-                    :error="form.errors.cover"
+                    :error="form.errors.image"
                     helperText="PNG, JPG up to 5MB"
                     :maxSizeInMB="5"
                 />
@@ -65,8 +65,8 @@ defineProps({
 
 const form = useForm({
     name: null,
-    is_public: null,
-    cover: null,
+    is_public: false,
+    image: null,
 });
 
 //emit to close modal
@@ -81,9 +81,16 @@ function storeMix() {
     }
 
     isLoading.value = true;
-
-    setTimeout(() => {
-        isLoading.value = false;
-    }, 2000);
+    form.post(route("mix.store"), {
+        onFinish: () => {
+            isLoading.value = false;
+        },
+        onSuccess: () => {
+            emits("closeModal");
+        },
+        onError: (errors) => {
+            console.log(errors);
+        },
+    });
 }
 </script>

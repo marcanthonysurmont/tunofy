@@ -9,8 +9,8 @@
                     :id="id"
                     type="checkbox"
                     v-model="proxyChecked"
-                    :true-value="'1'"
-                    :false-value="'0'"
+                    :true-value="false"
+                    :false-value="true"
                     @change="onChange"
                     :aria-invalid="hasError ? 'true' : undefined"
                     :aria-describedby="hasError ? `${id}-error` : undefined"
@@ -55,7 +55,10 @@ import { computed } from "vue";
 import { ExclamationCircleIcon } from "@heroicons/vue/16/solid";
 
 const props = defineProps({
-    modelValue: Boolean,
+    modelValue: {
+        type: Boolean,
+        default: false,
+    },
     label: String,
     id: String,
     error: {
