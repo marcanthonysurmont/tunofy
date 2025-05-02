@@ -73,11 +73,13 @@
                                         role="list"
                                         class="flex flex-1 flex-col gap-y-7"
                                     >
-                                        <li class="min-h-[200px]">
+                                        <li class="min-h-[200px] mb-8">
                                             <div
-                                                class="flex flex-row justify-between items-center"
+                                                class="flex flex-row justify-between items-center mb-6"
                                             >
-                                                <h1 class="text-2xl">
+                                                <h1
+                                                    class="text-2xl font-medium"
+                                                >
                                                     Your Mixes
                                                 </h1>
                                                 <PlusIcon
@@ -89,14 +91,18 @@
                                             </div>
                                             <ul
                                                 role="list"
-                                                class="-mx-2 space-y-1"
-                                            ></ul>
+                                                class="flex flex-col gap-y-4"
+                                            >
+                                                <YourMixesList />
+                                            </ul>
                                         </li>
-                                        <li class="min-h-[200px]">
+                                        <li class="min-h-[200px] mb-8">
                                             <div
                                                 class="flex flex-row justify-between items-center"
                                             >
-                                                <h1 class="text-2xl">
+                                                <h1
+                                                    class="text-2xl font-medium"
+                                                >
                                                     Joined Mixes
                                                 </h1>
                                                 <PlusIcon
@@ -129,25 +135,27 @@
                 </div>
                 <nav class="flex flex-1 flex-col">
                     <ul role="list" class="flex flex-1 flex-col gap-y-7">
-                        <li class="min-h-[200px]">
+                        <li class="min-h-[200px] mb-8">
                             <div
-                                class="flex flex-row justify-between items-center mb-4"
+                                class="flex flex-row justify-between items-center mb-6"
                             >
-                                <h1 class="text-2xl">Your Mixes</h1>
+                                <h1 class="text-2xl font-medium">Your Mixes</h1>
                                 <PlusIcon
                                     @click="isAddMixModalVisible = true"
                                     class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
                                 />
                             </div>
-                            <ul role="list" class="flex flex-col gap-y-2">
+                            <ul role="list" class="flex flex-col gap-y-4">
                                 <YourMixesList />
                             </ul>
                         </li>
-                        <li class="min-h-[200px]">
+                        <li class="min-h-[200px] mb-8">
                             <div
                                 class="flex flex-row justify-between items-center"
                             >
-                                <h1 class="text-2xl">Joined Mixes</h1>
+                                <h1 class="text-2xl font-medium">
+                                    Joined Mixes
+                                </h1>
                                 <PlusIcon
                                     class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
                                 />
@@ -158,7 +166,7 @@
                         >
                             <a
                                 href="#"
-                                class="flex items-center gap-x-2 text-sm/6 font-bold text-white"
+                                class="flex items-center gap-x-2 text-md/6 font-bold text-white"
                             >
                                 <img
                                     class="size-10 border-regular-stroke border-2 rounded-full bg-zinc-700"
@@ -166,7 +174,9 @@
                                     alt="User avatar of logged in user"
                                 />
                                 <span class="sr-only">Your profile</span>
-                                <span aria-hidden="true">{{ user.name }}</span>
+                                <span aria-hidden="true" class="font-medium">{{
+                                    user.name
+                                }}</span>
                             </a>
                             <div class="flex items-center gap-x-2">
                                 <Link :href="route('logout')" method="GET">
