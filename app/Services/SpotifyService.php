@@ -24,6 +24,12 @@ class SpotifyService
 
     private function spotifyRequest($user, $method, $url, $query = [])
     {
+        // Check if token is expired or about to expire (within 5 minutes)
+        if ($user->token_expires_at && $user->token_expires_at->subMinutes(5)->isPast()) {
+            // Refresh token before making the request
+            $this->refreshAccessToken($user);
+        }
+
         $response = Http::withToken($user->access_token)->$method($url, $query);
 
         if ($response->status() === 401) {

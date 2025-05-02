@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\LogoutController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\General\ShowLandingPageController;
@@ -57,6 +58,8 @@ Route::middleware('auth')->group(function () {
     Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
         Route::post('/search', SearchSongController::class)->name('search');
     });
+
+    Route::get('/logout', LogoutController::class)->name('logout');
 });
 
 Route::middleware('guest')->group(function () {
