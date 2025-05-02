@@ -23,7 +23,7 @@
         rel="stylesheet">
 </head>
 
-<body class="bg-background-page text-dark-white mx-auto h-full">
+<body class="bg-background-page text-dark-white mx-auto h-full" id="body">
     @inertia
 </body>
 

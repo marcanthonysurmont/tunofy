@@ -225,6 +225,7 @@
         :is-visible="isAddMixModalVisible"
         @close-modal="closeModal"
     />
+    <ToastList />
 </template>
 
 <script setup>
@@ -246,7 +247,7 @@ import { ref } from "vue";
 import { Link } from "@inertiajs/vue3";
 import CreateMixModal from "@/components/modals/mixes/CreateMixModal.vue";
 import YourMixesList from "@/components/mixes/YourMixesList.vue";
-
+import ToastList from "@/components/toasts/ToastList.vue";
 import { usePage } from "@inertiajs/vue3";
 
 const page = usePage();

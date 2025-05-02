@@ -7,7 +7,8 @@ import '../css/hovers.css';
 import { createApp, h } from 'vue'
 import { createInertiaApp, router } from '@inertiajs/vue3'
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
-
+import { createPinia } from 'pinia';
+const pinia = createPinia();
 
 createInertiaApp({
   resolve: name => {
@@ -18,65 +19,55 @@ createInertiaApp({
     const app = createApp({
         created() {
             router.on('invalid', (event) => {
-                // Do not prevent the default behavior while developing -- meaning: show the white modal when developing
-                // if (import.meta.env.DEV) {
-                //     console.log('lol');
-                //     return;
-                // }
 
-                // Do not prevent the handler for server errors or validation checks
-                // if (event.detail.response.status === 500 || event.detail.response.status === 403) {
-                //     return;
-                // }
-
-                // Prevent a white modal
+                //prevent a white modal from inertia
                 event.preventDefault();
 
                 // Show a toast message to the user to inform them about the error.
-                // switch (event.detail.response.status) {
-                //     case 422:
-                //         toast.add({
-                //             message: '422: Validation error.',
-                //             type: 'danger'
-                //         });
-                //         break;
-                //     case 500:
-                //         toast.add({
-                //             message: '500: Server error.',
-                //             type: 'danger'
-                //         });
-                //         break;
-                //     case 403:
-                //         toast.add({
-                //             message: '403: Not authorized.',
-                //             type: 'danger'
-                //         });
-                //         break;
-                //     case 404:
-                //         toast.add({
-                //             message: '404: Not found.',
-                //             type: 'danger'
-                //         });
-                //         break;
-                //     case 429:
-                //         toast.add({
-                //             message: '429: Too many requests.',
-                //             type: 'danger'
-                //         });
-                //         break;
-                //     default:
-                //         toast.add({
-                //             message: `${event.detail.response.status}: Whoops, something went wrong.`,
-                //             type: 'danger'
-                //         });
-                //         break;
-                // }
+                switch (event.detail.response.status) {
+                    case 422:
+                        toast.add({
+                            message: '422: Validation error.',
+                            type: 'danger'
+                        });
+                        break;
+                    case 500:
+                        toast.add({
+                            message: '500: Server error.',
+                            type: 'danger'
+                        });
+                        break;
+                    case 403:
+                        toast.add({
+                            message: '403: Not authorized.',
+                            type: 'danger'
+                        });
+                        break;
+                    case 404:
+                        toast.add({
+                            message: '404: Not found.',
+                            type: 'danger'
+                        });
+                        break;
+                    case 429:
+                        toast.add({
+                            message: '429: Too many requests.',
+                            type: 'danger'
+                        });
+                        break;
+                    default:
+                        toast.add({
+                            message: `${event.detail.response.status}: Whoops, something went wrong.`,
+                            type: 'danger'
+                        });
+                        break;
+                }
             });
         },
         render: () => h(App, props)
     });
 
-    app.use(ZiggyVue).use(plugin);
+    app.use(ZiggyVue).use(plugin).use(pinia);
     app.mount(el);
 
     return app;
