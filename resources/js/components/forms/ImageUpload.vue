@@ -4,7 +4,6 @@
             {{ label }}
         </label>
         <div class="mt-2">
-            <!-- Profile photo upload with preview -->
             <div v-if="type === 'profile'" class="sm:flex items-center gap-x-3">
                 <div class="flex justify-center mb-3 sm:mb-0">
                     <div
@@ -52,7 +51,6 @@
                 />
             </div>
 
-            <!-- Cover photo / drag and drop -->
             <div
                 v-else
                 :class="[
@@ -77,7 +75,7 @@
                         <button
                             type="button"
                             @click="removeImage"
-                            class="absolute top-2 right-2 rounded-full bg-black/70 p-1 text-white hover:bg-black"
+                            class="absolute top-2 right-2 rounded-full bg-black/70 p-1 text-white hover:bg-black cursor-pointer"
                         >
                             <XMarkIcon class="size-5" aria-hidden="true" />
                         </button>

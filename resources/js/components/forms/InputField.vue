@@ -1,8 +1,16 @@
 <template>
     <div>
-        <label :for="id" class="block text-sm/6 font-medium text-white">
-            {{ label }}
-        </label>
+        <div class="flex justify-between">
+            <label :for="id" class="block text-sm/6 font-medium text-white">
+                {{ label }}
+            </label>
+            <span
+                v-if="optional"
+                class="text-sm/6 text-gray-500"
+                :id="`${id}-optional`"
+                >Optional</span
+            >
+        </div>
         <div :class="['mt-2 grid grid-cols-1', hasError ? 'relative' : '']">
             <input
                 :id="id"
@@ -12,7 +20,7 @@
                 :value="modelValue"
                 @input="$emit('update:modelValue', $event.target.value)"
                 :aria-invalid="hasError ? 'true' : undefined"
-                :aria-describedby="hasError ? `${id}-error` : undefined"
+                :aria-describedby="getAriaDescribedBy"
                 :class="[
                     'col-start-1 row-start-1 block w-full rounded-md py-1.5 pr-10 pl-3 text-base outline-2 -outline-offset-1 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6',
                     hasError
@@ -38,6 +46,7 @@
 
 <script setup>
 import { ExclamationCircleIcon } from "@heroicons/vue/16/solid";
+import { computed } from "vue";
 
 const props = defineProps({
     modelValue: String,
@@ -53,8 +62,18 @@ const props = defineProps({
         type: String,
         default: "",
     },
+    optional: {
+        type: Boolean,
+        default: false,
+    },
 });
 
-const hasError = !!props.error;
+const hasError = computed(() => !!props.error);
+const getAriaDescribedBy = computed(() => {
+    if (hasError.value) return `${props.id}-error`;
+    if (props.optional) return `${props.id}-optional`;
+    return undefined;
+});
+
 defineEmits(["update:modelValue"]);
 </script>
