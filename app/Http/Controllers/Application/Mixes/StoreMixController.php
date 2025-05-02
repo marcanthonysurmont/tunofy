@@ -17,16 +17,16 @@ class StoreMixController extends Controller
         try {
             $avatarPath = null;
             if ($request->hasFile('image')) {
-                $avatarPath = $request->file('image')->store('', 'mix_avatars');
+                $avatarPath = $request->file('image')->store('mix_avatars', 'public');
             }
-    
+
             Mix::create([
                 'user_id' => Auth::id(),
                 'name' => $validated['name'],
                 'is_public' => $validated['is_public'],
                 'avatar' => $avatarPath,
             ]);
-    
+
             return redirect()->back()
                 ->with('success', 'Mix created successfully!');
         } catch (\Exception $e) {
