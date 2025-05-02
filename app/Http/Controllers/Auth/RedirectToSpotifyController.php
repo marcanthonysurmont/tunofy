@@ -14,6 +14,10 @@ class RedirectToSpotifyController extends Controller
             ->scopes([
                 'user-read-email',
                 'user-read-recently-played',
+                'user-read-private',
+                'user-read-playback-state',
+                'user-modify-playback-state',
+                'user-read-currently-playing',
             ])
             ->with(['show_dialog' => 'true'])
             ->redirect();
