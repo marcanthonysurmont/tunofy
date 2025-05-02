@@ -13,8 +13,8 @@ class ShowMixController extends Controller
     public function __invoke(Mix $mix): Response
     {
         $this->authorize('view', $mix);
-                
-        return Inertia::render('TestPage', [
+
+        return Inertia::render('MainAppPage', [
             'mix' => $mix,
             'songs' => $mix->songs,
             'presets' => Auth::user()->presets,
