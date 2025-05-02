@@ -93,7 +93,7 @@
                                                 class="flex flex-row justify-between items-center"
                                             >
                                                 <h1 class="text-2xl">
-                                                    Your Jams
+                                                    Your Mixes
                                                 </h1>
                                                 <PlusIcon
                                                     @click="
@@ -112,7 +112,7 @@
                                                 class="flex flex-row justify-between items-center"
                                             >
                                                 <h1 class="text-2xl">
-                                                    Joined Jams
+                                                    Joined Mixes
                                                 </h1>
                                                 <PlusIcon
                                                     class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
