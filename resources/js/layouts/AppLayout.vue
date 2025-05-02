@@ -115,7 +115,7 @@
 
         <!-- Static sidebar for DESKTOP -->
         <div
-            class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col"
+            class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-80 lg:flex-col"
         >
             <div
                 class="flex grow flex-col gap-y-5 overflow-y-auto bg-navbar-background border-r-2 border-regular-stroke px-6"
@@ -131,7 +131,7 @@
                     <ul role="list" class="flex flex-1 flex-col gap-y-7">
                         <li class="min-h-[200px]">
                             <div
-                                class="flex flex-row justify-between items-center"
+                                class="flex flex-row justify-between items-center mb-4"
                             >
                                 <h1 class="text-2xl">Your Mixes</h1>
                                 <PlusIcon
@@ -139,7 +139,9 @@
                                     class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
                                 />
                             </div>
-                            <ul role="list" class="-mx-2 space-y-1"></ul>
+                            <ul role="list" class="flex flex-col gap-y-2">
+                                <YourMixesList />
+                            </ul>
                         </li>
                         <li class="min-h-[200px]">
                             <div
@@ -160,11 +162,11 @@
                             >
                                 <img
                                     class="size-10 border-regular-stroke border-2 rounded-full bg-zinc-700"
-                                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                                    :src="user.avatar"
                                     alt="User avatar of logged in user"
                                 />
                                 <span class="sr-only">Your profile</span>
-                                <span aria-hidden="true">Gilles Serrien</span>
+                                <span aria-hidden="true">{{ user.name }}</span>
                             </a>
                             <div class="flex items-center gap-x-2">
                                 <Link :href="route('logout')" method="GET">
@@ -203,7 +205,7 @@
             </a>
         </div>
 
-        <main class="py-10 lg:pl-72">
+        <main class="py-10 lg:pl-80">
             <div class="px-4 sm:px-6 lg:px-8">
                 <slot />
             </div>
@@ -232,7 +234,13 @@ import {
 
 import { ref } from "vue";
 import { Link } from "@inertiajs/vue3";
-import CreateMixModal from "../components/modals/mixes/CreateMixModal.vue";
+import CreateMixModal from "@/components/modals/mixes/CreateMixModal.vue";
+import YourMixesList from "@/components/mixes/YourMixesList.vue";
+
+import { usePage } from "@inertiajs/vue3";
+
+const page = usePage();
+const user = page.props.user;
 
 const sidebarOpen = ref(false);
 
