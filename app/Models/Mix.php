@@ -50,6 +50,11 @@ class Mix extends Model
             ->withPivot('permission')
             ->withTimestamps();
     }
+    
+    public function mixAcceses()
+    {
+        return $this->hasMany(MixAccess::class);
+    }
 
     /**************************************/
     /*       Accessors / Mutators         */
@@ -75,9 +80,22 @@ class Mix extends Model
     /*              Scopes                */
     /**************************************/
 
+    public function scopeValidSessionCode($query, $sessionCode)
+    {
+        return $query->where('session_code', $sessionCode)
+            ->where('session_code_expires_at', '>', now());
+    }
+
     /**************************************/
     /*              Helpers               */
     /**************************************/
+
+    public function hasUserJoined($userId)
+    {
+        return $this->mixAcceses()
+            ->where('user_id', $userId)
+            ->exists();
+    }
 
     public function getSlugOptions() : SlugOptions
     {
