@@ -1,9 +1,14 @@
 <template>
     <Head title="Tunofy | App" />
     <AppLayout>
-        <div class="w-full h-full flex justify-center items-center">
-            <h1 class="text-5xl">Empty for now.</h1>
-        </div>
+        <TabNav :tabs="tabs" @tab-changed="setActiveTab" />
+        <Transition name="fade-with-slide" appear mode="out-in">
+            <div :key="activeTab">
+                <OverviewSubPage v-if="activeTab === 'Overview'" />
+                <VotingComponent v-else-if="activeTab === 'Voting'" />
+                <StatsComponent v-else-if="activeTab === 'Stats'" />
+            </div>
+        </Transition>
     </AppLayout>
 </template>
 

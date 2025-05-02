@@ -3,17 +3,32 @@
         <div class="block">
             <nav class="flex space-x-4 relative" aria-label="Tabs">
                 <!-- The sliding background indicator -->
-                <div ref="activeTabIndicator"
+                <div
+                    ref="activeTabIndicator"
                     class="absolute bg-primary rounded-lg transition-all duration-300 ease-in-out"
-                    style="height: 100%; z-index: 0;"></div>
+                    style="height: 100%; z-index: 0"
+                ></div>
 
                 <!-- The tabs -->
-                <a v-for="(tab, index) in tabs" :key="tab.name" :href="tab.href"
-                    :ref="el => { if (el) tabElements[index] = el }" :class="[
+                <a
+                    v-for="(tab, index) in tabs"
+                    :key="tab.name"
+                    :href="tab.href"
+                    :ref="
+                        (el) => {
+                            if (el) tabElements[index] = el;
+                        }
+                    "
+                    :class="[
                         'border-2',
-                        tab.active ? 'border-primary text-white' : 'border-tab-stroke-inactive text-white',
-                        'rounded-lg flex items-center px-3 py-2 sm:text-xl md:text-2xl font-medium font-headers cursor-pointer hover:text-neutral-300 z-10 transition-colors duration-300 ease-in-out relative'
-                    ]" :aria-current="tab.active ? 'page' : undefined" @click.prevent="changeTab(tab.name)">
+                        tab.active
+                            ? 'border-primary text-white'
+                            : 'border-tab-stroke-inactive text-white',
+                        'rounded-lg flex items-center justify-center px-3 py-2 sm:text-xl md:text-2xl font-medium font-headers cursor-pointer hover:text-neutral-300 z-10 transition-colors duration-300 ease-in-out relative',
+                    ]"
+                    :aria-current="tab.active ? 'page' : undefined"
+                    @click.prevent="changeTab(tab.name)"
+                >
                     {{ tab.name }}
                 </a>
             </nav>
@@ -22,8 +37,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed, nextTick } from 'vue';
-import { ChevronDownIcon } from '@heroicons/vue/16/solid';
+import { ref, onMounted, watch, computed, nextTick } from "vue";
+import { ChevronDownIcon } from "@heroicons/vue/16/solid";
 
 const props = defineProps({
     tabs: {
@@ -35,17 +50,17 @@ const props = defineProps({
 const activeTabIndicator = ref(null);
 const tabElements = ref([]);
 
-const emit = defineEmits(['tab-changed']);
+const emit = defineEmits(["tab-changed"]);
 
 //find the currently active tab index
 const activeTabIndex = computed(() => {
-    return props.tabs.findIndex(tab => tab.active);
+    return props.tabs.findIndex((tab) => tab.active);
 });
 
-//notify the parent about the tab change 
+//notify the parent about the tab change
 const changeTab = (tabName) => {
-    console.log('Tab changed to:', tabName);
-    emit('tab-changed', tabName);
+    console.log("Tab changed to:", tabName);
+    emit("tab-changed", tabName);
 };
 
 //function to position the active tab indicator
@@ -67,11 +82,15 @@ const positionIndicator = () => {
 };
 
 //watch for changes in the active tab
-watch(() => [...props.tabs], () => {
-    nextTick(() => {
-        positionIndicator();
-    });
-}, { deep: true });
+watch(
+    () => [...props.tabs],
+    () => {
+        nextTick(() => {
+            positionIndicator();
+        });
+    },
+    { deep: true }
+);
 
 onMounted(() => {
     //initialize tabElements array with the correct length
@@ -88,7 +107,7 @@ onMounted(() => {
 });
 
 //also reposition on window resize to handle any layout changes
-window.addEventListener('resize', () => {
+window.addEventListener("resize", () => {
     positionIndicator();
 });
 </script>

@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { Link, router } from "@inertiajs/vue3";
+import { router } from "@inertiajs/vue3";
 import { computed } from "vue";
 
 const props = defineProps({
@@ -41,12 +41,10 @@ const props = defineProps({
     },
 });
 
-console.log(props.mix);
-
 const imageUrl = computed(() =>
     props.mix.avatar === null
-        ? "images/default-avatar.jpg"
-        : "storage/" + props.mix.avatar
+        ? "/images/default-avatar.jpg"
+        : "/storage/" + props.mix.avatar
 );
 
 function routeUser() {
