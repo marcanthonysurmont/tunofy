@@ -12,6 +12,7 @@ class DefaultPresetSeeder extends Seeder
         DB::table('presets')->insert([
             'name' => 'Default',
             'user_id' => null,
+            'is_system' => true,
             'batch_size' => 10,
             'num_rounds' => null,
             'requires_approval' => false,

@@ -48,6 +48,11 @@ class User extends Authenticatable
         return $this->hasMany(Mix::class);
     }
 
+    public function presets()
+    {
+        return $this->hasMany(Preset::class);
+    }
+
     public function accessibleMixes()
     {
         return $this->belongsToMany(Mix::class, 'mix_accesses')

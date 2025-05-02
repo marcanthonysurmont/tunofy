@@ -6,6 +6,7 @@ use App\Models\Mix;
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Auth;
 
 class ShowMixController extends Controller
 {
@@ -15,8 +16,8 @@ class ShowMixController extends Controller
                 
         return Inertia::render('TestPage', [
             'mix' => $mix,
-            'songs' => $mix->songs(),
+            'songs' => $mix->songs,
+            'presets' => Auth::user()->presets,
         ]);
-
     }
 }

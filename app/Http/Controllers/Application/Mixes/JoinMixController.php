@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Application\Mixes;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use App\Models\MixAccess;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 
 class JoinMixController extends Controller
 {
-    public function __invoke(string $sessionCode)
+    public function __invoke(string $sessionCode): RedirectResponse
     {
         $mix = Mix::validSessionCode($sessionCode)->first();
 

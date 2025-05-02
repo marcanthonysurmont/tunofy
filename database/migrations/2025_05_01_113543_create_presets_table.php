@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
+            $table->boolean('is_system')->default(false);
             $table->integer('batch_size')->default(10);
             $table->integer('max_songs')->nullable();
             $table->integer('num_rounds')->nullable();
@@ -25,6 +26,8 @@ return new class extends Migration
             $table->boolean('auto_remove_negative')->default(true);
             $table->boolean('emoji_chat_enabled')->default(true);
             $table->timestamps();
+
+            $table->index('is_system');
         });
     }
 
