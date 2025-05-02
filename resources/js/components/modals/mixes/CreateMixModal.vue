@@ -1,7 +1,11 @@
 <template>
     <CreateModalDefault
         :is-visible="isVisible"
-        @close-modal="emits('closeModal')"
+        @close-modal="
+            emits('closeModal');
+            form.reset();
+            form.clearErrors();
+        "
         @submit-from-enter="storeMix"
     >
         <template #title>
@@ -87,6 +91,8 @@ function storeMix() {
         },
         onSuccess: () => {
             emits("closeModal");
+            form.reset();
+            form.clearErrors();
         },
         onError: (errors) => {
             console.log(errors);
