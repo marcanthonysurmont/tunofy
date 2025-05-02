@@ -39,6 +39,7 @@
             <Cog8ToothIcon
                 class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
             />
+            <SearchBarSong />
             <MenuDropdown>
                 <MenuItem v-slot="{ active }">
                     <button
@@ -113,6 +114,7 @@ import {
 } from "@heroicons/vue/24/outline";
 
 import MenuDropdown from "@/components/menus/MenuDropdown.vue";
+import SearchBarSong from "@/components/SearchBarSong.vue";
 import { router, usePage } from "@inertiajs/vue3";
 
 const page = usePage();

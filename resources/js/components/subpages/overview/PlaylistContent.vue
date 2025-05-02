@@ -90,8 +90,8 @@ import { usePage } from "@inertiajs/vue3";
 import { TrashIcon } from "@heroicons/vue/24/outline";
 
 const page = usePage();
-const props = page.props;
-const songs = props.mix.songs;
+const props = computed(() => page.props);
+const songs = computed(() => props.value.mix.songs);
 
 function getImageUrl(song) {
     return song.avatar === null
