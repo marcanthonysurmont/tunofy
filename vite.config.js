@@ -3,6 +3,8 @@ import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import { fileURLToPath } from 'url';
+import path from 'path';
+
 
 export default defineConfig({
     plugins: [
@@ -24,7 +26,11 @@ export default defineConfig({
         alias: {
             // 'ziggy-js': path.resolve('vendor/tightenco/ziggy/dist/index.esm.js'),
             // 'ziggy-js': path.resolve('vendor/tightenco/ziggy'),
-            'ziggy-js': fileURLToPath(new URL('./vendor/tightenco/ziggy', import.meta.url)),
+
+            // 'ziggy-js': fileURLToPath(new URL ('vendor/tightenco/ziggy'), import.meta.url),
+
+            'ziggy-js': path.resolve(__dirname, 'vendor/tightenco/ziggy'),
+
             // '@css': fileURLToPath(new URL('./resources/css', import.meta.url)),
             // '@scss': fileURLToPath(new URL('./resources/scss', import.meta.url)),
             // '@store': fileURLToPath(new URL('./resources/js/Stores', import.meta.url)),

@@ -1,20 +1,19 @@
 <template>
     <div class="mb-6">
-        <div class="grid grid-cols-1 sm:hidden">
-            <select aria-label="Select a tab"
-                class="col-start-1 row-start-1 w-full appearance-none rounded-lg bg-white py-2 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600"
-                @change="changeTab($event)">
-                <option v-for="tab in tabs" :key="tab.name" :selected="tab.active">{{ tab.name }}</option>
-            </select>
-            <ChevronDownIcon
-                class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end fill-gray-500"
-                aria-hidden="true" />
-        </div>
-        <div class="hidden sm:block">
-            <nav class="flex space-x-4" aria-label="Tabs">
-                <a v-for="tab in tabs" :key="tab.name" :href="tab.href" :class="[tab.active ? 'bg-primary text-white' : 'text-white hover:text-neutral-200 bg-tab-background-inactive border-2 border-tab-stroke-inactive',
-                    'rounded-lg flex items-center px-3 py-2 text-3xl font-medium font-headers cursor-pointer']"
-                    :aria-current="tab.active ? 'page' : undefined" @click.prevent="changeTab(tab.name)">
+        <div class="block">
+            <nav class="flex space-x-4 relative" aria-label="Tabs">
+                <!-- The sliding background indicator -->
+                <div ref="activeTabIndicator"
+                    class="absolute bg-primary rounded-lg transition-all duration-300 ease-in-out"
+                    style="height: 100%; z-index: 0;"></div>
+
+                <!-- The tabs -->
+                <a v-for="(tab, index) in tabs" :key="tab.name" :href="tab.href"
+                    :ref="el => { if (el) tabElements[index] = el }" :class="[
+                        'border-2',
+                        tab.active ? 'border-primary text-white' : 'border-tab-stroke-inactive text-white',
+                        'rounded-lg flex items-center px-3 py-2 sm:text-xl md:text-2xl font-medium font-headers cursor-pointer hover:text-neutral-300 z-10 transition-colors duration-300 ease-in-out relative'
+                    ]" :aria-current="tab.active ? 'page' : undefined" @click.prevent="changeTab(tab.name)">
                     {{ tab.name }}
                 </a>
             </nav>
@@ -22,22 +21,78 @@
     </div>
 </template>
 
-
 <script setup>
+import { ref, onMounted, watch, computed, nextTick } from 'vue';
 import { ChevronDownIcon } from '@heroicons/vue/16/solid';
 
-defineProps({
+const props = defineProps({
     tabs: {
         type: Array,
         required: true,
     },
-})
+});
 
-const emit = defineEmits(['tab-changed'])
+const activeTabIndicator = ref(null);
+const tabElements = ref([]);
 
-// Method to notify the parent about the tab change
+const emit = defineEmits(['tab-changed']);
+
+//find the currently active tab index
+const activeTabIndex = computed(() => {
+    return props.tabs.findIndex(tab => tab.active);
+});
+
+//notify the parent about the tab change 
 const changeTab = (tabName) => {
-    console.log('Tab changed to:', tabName)
-    emit('tab-changed', tabName)
-}
+    console.log('Tab changed to:', tabName);
+    emit('tab-changed', tabName);
+};
+
+//function to position the active tab indicator
+const positionIndicator = () => {
+    if (!activeTabIndicator.value || activeTabIndex.value === -1) return;
+
+    //wait until the tab element is available
+    if (!tabElements.value[activeTabIndex.value]) {
+        //try again in a short moment if tab elements aren't ready yet
+        setTimeout(positionIndicator, 10);
+        return;
+    }
+
+    const activeTab = tabElements.value[activeTabIndex.value];
+
+    //set the indicator position and width to match the active tab
+    activeTabIndicator.value.style.left = `${activeTab.offsetLeft}px`;
+    activeTabIndicator.value.style.width = `${activeTab.offsetWidth}px`;
+};
+
+//watch for changes in the active tab
+watch(() => [...props.tabs], () => {
+    nextTick(() => {
+        positionIndicator();
+    });
+}, { deep: true });
+
+onMounted(() => {
+    //initialize tabElements array with the correct length
+    tabElements.value = Array(props.tabs.length).fill(null);
+
+    //position the indicator after DOM is ready
+    //using setTimeout to ensure all styles and layout calculations are complete
+    nextTick(() => {
+        //short delay to ensure complete rendering
+        setTimeout(() => {
+            positionIndicator();
+        }, 50);
+    });
+});
+
+//also reposition on window resize to handle any layout changes
+window.addEventListener('resize', () => {
+    positionIndicator();
+});
 </script>
+
+<style scoped>
+/* Add any additional custom styles here if needed */
+</style>
