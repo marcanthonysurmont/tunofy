@@ -10,6 +10,12 @@ class RedirectToSpotifyController extends Controller
 {
     public function __invoke(): RedirectResponse
     {
-        return Socialite::driver('spotify')->scopes(['user-read-email'])->redirect();
+        return Socialite::driver('spotify')
+            ->scopes([
+                'user-read-email',
+                'user-read-recently-played',
+            ])
+            ->with(['show_dialog' => 'true'])
+            ->redirect();
     }
 }

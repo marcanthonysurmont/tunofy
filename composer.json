@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "laravel/laravel",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Tunofy - Mixes made fun",
     "keywords": [
         "laravel",
         "framework"
@@ -15,9 +15,11 @@
         "laravel/socialite": "^5.20",
         "laravel/tinker": "^2.10.1",
         "socialiteproviders/spotify": "^4.1",
+        "spatie/laravel-sluggable": "^3.7",
         "tightenco/ziggy": "^2.5"
     },
     "require-dev": {
+        "barryvdh/laravel-debugbar": "^3.15",
         "fakerphp/faker": "^1.23",
         "laradumps/laradumps": "^4.2",
         "laravel/pail": "^1.2.2",

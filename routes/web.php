@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\LogoutController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\General\ShowLandingPageController;
@@ -11,6 +12,19 @@ use App\Http\Controllers\Auth\RedirectToSpotifyController;
 use App\Http\Controllers\Auth\SpotifyCallbackController;
 
 use App\Http\Controllers\Application\ShowAppPageController;
+
+use App\Http\Controllers\Application\Mixes\StoreMixController;
+use App\Http\Controllers\Application\Mixes\ShowMixController;
+use App\Http\Controllers\Application\Mixes\UpdateMixController;
+use App\Http\Controllers\Application\Mixes\DestroyMixController;
+use App\Http\Controllers\Application\Mixes\AddSongToMixController;
+use App\Http\Controllers\Application\Mixes\RemoveSongFromMixController;
+use App\Http\Controllers\Application\Mixes\GenerateMixCodeController;
+use App\Http\Controllers\Application\Mixes\JoinMixController;
+use App\Http\Controllers\Application\Mixes\StorePresetController;
+use App\Http\Controllers\Application\Mixes\UpdatePresetController;
+use App\Http\Controllers\Application\Mixes\DestroyPresetController;
+
 use App\Http\Controllers\Application\Spotify\SearchSongController;
 
 Route::get('/', ShowLandingPageController::class);
@@ -19,11 +33,33 @@ Route::get('/privacy', ShowPrivacyPageController::class);
 Route::get('/terms-of-use', ShowTermsOfUsePageController::class);
 
 Route::middleware('auth')->group(function () {
-    Route::get('/app', ShowAppPageController::class)->name('app');
+    Route::prefix('/app')->group(function () {
+        Route::get('/', ShowAppPageController::class)->name('app');
+        Route::get('/{mix:slug}', ShowMixController::class)->name('mix.show');
+
+        Route::prefix('/mix')->name('mix.')->group(function () {
+            Route::post('/store', StoreMixController::class)->name('store');
+            Route::put('/update/{mix}', UpdateMixController::class)->name('update');
+            Route::delete('/destroy/{mix}', DestroyMixController::class)->name('destroy');
+            Route::post('/add-song/{mix}', AddSongToMixController::class)->name('add-song');
+            Route::delete('/remove-song/{song}', RemoveSongFromMixController::class)->name('remove-song');
+            Route::post('/generate-code/{mix}', GenerateMixCodeController::class)->name('generate-code');
+            Route::post('/join/{session_code}', JoinMixController::class)->name('join');
+
+            // app/mix/presets (mix.presets)
+            Route::prefix('/presets')->name('presets.')->group(function () {
+                Route::post('/store', StorePresetController::class)->name('store');
+                Route::post('/update/{preset}', UpdatePresetController::class)->name('update');
+                Route::delete('/destroy/{preset}', DestroyPresetController::class)->name('destroy');
+            });
+        });
+    });
 
     Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
         Route::post('/search', SearchSongController::class)->name('search');
     });
+
+    Route::get('/logout', LogoutController::class)->name('logout');
 });
 
 Route::middleware('guest')->group(function () {

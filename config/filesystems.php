@@ -47,6 +47,11 @@ return [
             'report' => false,
         ],
 
+        'mix_avatars' => [
+            'driver' => 'local',
+            'root' => storage_path('app/mix_avatars'),
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

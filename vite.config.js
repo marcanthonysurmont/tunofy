@@ -26,11 +26,11 @@ export default defineConfig({
         alias: {
             // 'ziggy-js': path.resolve('vendor/tightenco/ziggy/dist/index.esm.js'),
             // 'ziggy-js': path.resolve('vendor/tightenco/ziggy'),
+
             // 'ziggy-js': fileURLToPath(new URL ('vendor/tightenco/ziggy'), import.meta.url),
 
             'ziggy-js': path.resolve(__dirname, 'vendor/tightenco/ziggy'),
 
-            
             // '@css': fileURLToPath(new URL('./resources/css', import.meta.url)),
             // '@scss': fileURLToPath(new URL('./resources/scss', import.meta.url)),
             // '@store': fileURLToPath(new URL('./resources/js/Stores', import.meta.url)),
@@ -47,9 +47,15 @@ export default defineConfig({
         strictPort: true,
         origin: 'https://tunofy.ddev.site:5173',
         cors: {
-            origin: 'https://tunofy.ddev.site',
-            methods: ['GET', 'POST'],
-            allowedHeaders: ['Content-Type']
+            origin: ['https://tunofy.ddev.site', 'http://tunofy.ddev.site'],
+            methods: ['GET', 'POST', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Connection', 'Upgrade-Insecure-Requests']
+        },
+        hmr: {
+            protocol: 'wss',
+            host: 'tunofy.ddev.site',
+            port: 5173,
+            clientPort: 5173
         }
     }
 });
