@@ -12,9 +12,14 @@ class RemoveSongFromMixController extends Controller
     {
         $this->authorize('removeSongs', $song->mix);
 
-        $song->delete();
-
-        return redirect()->back()
-            ->with('success', 'Song removed from mix successfully.');
+        try {
+            $song->delete();
+    
+            return redirect()->back()
+                ->with('success', 'Song removed from mix successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('danger', 'Failed to remove song from mix');
+        }
     }
 }

@@ -24,17 +24,22 @@ class JoinMixController extends Controller
                 ->with('danger', 'You have already joined this mix.');
         }
 
-        MixAccess::updateOrCreate(
-            [
-                'user_id' => Auth::id(),
-                'mix_id' => $mix->id,
-            ],
-            [
-                'permission' => $mix->session_code_permission,
-            ]
-        );
-
-        return redirect()->route('mix.show', $mix->slug)
-            ->with('success', 'You have joined the mix successfully.');
+        try {
+            MixAccess::updateOrCreate(
+                [
+                    'user_id' => Auth::id(),
+                    'mix_id' => $mix->id,
+                ],
+                [
+                    'permission' => $mix->session_code_permission,
+                ]
+            );
+    
+            return redirect()->route('mix.show', $mix->slug)
+                ->with('success', 'You have joined the mix successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('danger', 'Failed to join the mix');
+        }
     }
 }

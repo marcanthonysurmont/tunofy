@@ -12,9 +12,15 @@ class DestroyMixController extends Controller
     {
         $this->authorize('delete', $mix);
         
-        $mix->delete();
+        try {
+            $mix->delete();
 
-        return redirect()->back()
-            ->with('success', 'Mix deleted successfully.');
+            return redirect()->back()
+                ->with('success', 'Mix deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('danger', 'Failed to delete mix. Please try again later.');
+        }
+
     }
 }
