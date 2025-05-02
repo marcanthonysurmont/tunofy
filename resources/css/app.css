@@ -18,6 +18,8 @@
     --color-card-stroke: #2C2C2C;
     --color-card-background-hover: #1E1E1E;
     --color-dark-white: #E0E0E0;
+    --color-modal-background: #1A1A1A;
+    --color-modal-stroke: #2C2C2C;
 
     --color-primary: #3361E3;
 
@@ -35,6 +37,16 @@
     /* text colors */
     --color-dark-white: #F4F4F4;
     --color-grey: #AEAEAE;
+
+    /* form elements */
+    --color-checkbox-background: #121212;
+    --color-checkbox-stroke: #2C2C2C;
+
+    --color-inputfield-background: #121212;
+    --color-inputfield-stroke: #2C2C2C;
+
+    --color-image-upload-button-background: #121212;
+    --color-image-upload-button-stroke: #2C2C2C;
 }
 
 @layer base {
@@ -50,7 +62,13 @@
 
     p,
     a,
-    li {
+    li,
+    label,
+    input,
+    textarea,
+    select,
+    button,
+    span {
         font-family: var(--font-body);
         font-weight: 300;
     }
