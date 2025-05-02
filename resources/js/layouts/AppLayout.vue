@@ -73,21 +73,6 @@
                                         role="list"
                                         class="flex flex-1 flex-col gap-y-7"
                                     >
-                                        <!-- <li>
-                      <ul role="list" class="-mx-2 space-y-1">
-                        <li v-for="item in navigation" :key="item.name">
-                          <a :href="item.href" :class="[
-                            item.current
-                              ? 'bg-zinc-700 text-white'
-                              : 'text-gray-400 hover:bg-zinc-800 hover:text-white',
-                            'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold',
-                          ]">
-                            <component :is="item.icon" class="size-6 shrink-0" aria-hidden="true" />
-                            {{ item.name }}
-                          </a>
-                        </li>
-                      </ul>
-                    </li> -->
                                         <li class="min-h-[200px]">
                                             <div
                                                 class="flex flex-row justify-between items-center"
@@ -182,16 +167,11 @@
                                 <span aria-hidden="true">Gilles Serrien</span>
                             </a>
                             <div class="flex items-center gap-x-2">
-                                <!-- <Link href="settings" method="post">
-                                    <Cog8ToothIcon
-                                        class="size-6 text-white stroke-2 cursor-pointer custom-item-hover"
-                                    />
-                                </Link> -->
-                                <!-- <Link :href="route('logout')" method="post">
+                                <Link :href="route('logout')" method="GET">
                                     <ArrowLeftEndOnRectangleIcon
                                         class="size-6 stroke-2 text-white font-bold cursor-pointer custom-item-hover"
                                     />
-                                </Link> -->
+                                </Link>
                             </div>
                         </li>
                     </ul>
