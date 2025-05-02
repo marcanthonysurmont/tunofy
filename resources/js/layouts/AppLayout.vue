@@ -147,7 +147,7 @@
                             </div>
                             <ul
                                 role="list"
-                                class="flex flex-col max-h-[400px] overflow-y-auto custom-scrollbar gap-y-4"
+                                class="flex flex-col max-h-[800px] overflow-y-auto custom-scrollbar gap-y-4"
                             >
                                 <YourMixesList />
                             </ul>

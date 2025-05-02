@@ -8,10 +8,11 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import YourMixesListItem from "./YourMixesListItem.vue";
 
 const page = usePage();
-const props = page.props;
-const mixes = props.your_mixes;
+const props = computed(() => page.props);
+const mixes = computed(() => props.value.your_mixes);
 </script>
