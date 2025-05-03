@@ -20,7 +20,7 @@
                     <span
                         class="text-dark-white text-base sm:text-lg mt-0 mb-0 leading-none"
                     >
-                        <span class="font-bold">Gilles Serrien</span> •
+                        <span class="font-bold">{{ owner.name }}</span> •
                         {{ mix.songs.length }}
                         {{ mix.songs.length === 1 ? "song" : "songs" }}, approx.
                         {{ readableTime }}
@@ -177,6 +177,8 @@ import toast from "@/stores/StoreToast.js";
 const page = usePage();
 const props = computed(() => page.props);
 const mix = computed(() => props.value.mix);
+const owner = computed(() => props.value.owner);
+
 const showCreateSessionModal = ref(false);
 
 const readableTime = computed(() => {

@@ -20,7 +20,8 @@ class ShowMixController extends Controller
             'songs' => $mix->songs,
             'presets' => Auth::user()->presets,
             'your_mixes' => $user->mixes,
-            'joined_mixes' => $user->accessibleMixes
+            'joined_mixes' => $user->accessibleMixes,
+            'owner' => $mix->user
         ]);
     }
 }
