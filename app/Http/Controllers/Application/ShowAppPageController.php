@@ -13,9 +13,9 @@ class ShowAppPageController extends Controller
     {
         $user = Auth::user();
 
-        return Inertia::render('TestPage', [
-            'your_mixes' => $user->mixes(),
-            'joined_mixes' => $user->accessibleMixes()
+        return Inertia::render('MainAppPage', [
+            'your_mixes' => $user->mixes,
+            'joined_mixes' => $user->accessibleMixes
         ]);
     }
 }

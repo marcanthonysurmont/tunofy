@@ -7,6 +7,7 @@ use App\Models\Mix;
 use App\Models\MixAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class JoinMixController extends Controller
 {
@@ -15,13 +16,15 @@ class JoinMixController extends Controller
         $mix = Mix::validSessionCode($sessionCode)->first();
 
         if (!$mix) {
-            return redirect()->back()
-                ->with('danger', 'Invalid or expired mix code.');
+            throw ValidationException::withMessages([
+                'code' => 'Invalid or expired mix code.',
+            ]);
         }
 
         if ($mix->hasUserJoined(Auth::id())) {
-            return redirect()->back()
-                ->with('danger', 'You have already joined this mix.');
+            throw ValidationException::withMessages([
+                'code' => 'You have already joined this mix.',
+            ]);
         }
 
         try {
@@ -34,7 +37,7 @@ class JoinMixController extends Controller
                     'permission' => $mix->session_code_permission,
                 ]
             );
-    
+
             return redirect()->route('mix.show', $mix->slug)
                 ->with('success', 'You have joined the mix successfully.');
         } catch (\Exception $e) {

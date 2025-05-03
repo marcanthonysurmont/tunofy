@@ -13,8 +13,8 @@ class AddSongToMixController extends Controller
 {
     public function __invoke(AddSongToMixRequest $request, Mix $mix): RedirectResponse
     {
-        $this->authorize('addSong', $mix);
-        
+        $this->authorize('addSongs', $mix);
+
         $validated = $request->validated();
 
         try {
@@ -28,10 +28,11 @@ class AddSongToMixController extends Controller
                 'artist' => $validated['artist'],
                 'image_url' => $validated['image_url'],
             ]);
-    
+
             return redirect()->back()
                 ->with('success', 'Song added to mix successfully.');
         } catch (\Exception $e) {
+            ds($e);
             return redirect()->back()
                 ->with('danger', 'Failed to add song to mix');
         }

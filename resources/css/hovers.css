@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+.custom-item-hover {
+    @apply hover:-translate-y-0.5 transition-transform duration-150 ease-in-out;
+}

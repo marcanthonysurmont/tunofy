@@ -9,33 +9,48 @@
 
 @theme {
     /* fonts */
-    --font-body: "Nunito", sans-serif;
+    --font-body: "Inter", sans-serif;
     --font-headers: "Nohemi", sans-serif;
 
     /* colors */
-    --color-background-page: #121212;
+    --color-background-page: #101010;
     --color-card-background: #1A1A1A;
-    --color-card-stroke: #2C2C2C;
+    --color-card-stroke: #1F1F1F;
     --color-card-background-hover: #1E1E1E;
     --color-dark-white: #E0E0E0;
+    --color-modal-background: #1A1A1A;
+    --color-modal-stroke: #1F1F1F;
 
-    --color-primary: #3361E3;
+    --color-card-background-lighter: #1F1F1F;
 
-    --color-navbar-background: #1A1A1A;
-    --color-navbar-stroke: #2C2C2C;
+    --color-primary: #2B55CC;
 
-    --color-regular-stroke: #2C2C2C;
+    --color-navbar-background: #141414;
+    --color-navbar-stroke: #1F1F1F;
+
+    --color-regular-stroke: #1F1F1F;
 
     --color-audio-player-background: #101010;
-    --color-audio-player-stroke: #2C2C2C;
+    --color-audio-player-stroke: #1F1F1F;
 
     --color-tab-background-inactive: #1A1A1A;
-    --color-tab-stroke-inactive: #2C2C2C;
+    --color-tab-stroke-inactive: #1F1F1F;
 
     /* text colors */
     --color-dark-white: #F4F4F4;
     --color-grey: #AEAEAE;
+
+    /* form elements */
+    --color-checkbox-background: #141414;
+    --color-checkbox-stroke: #2C2C2C;
+
+    --color-inputfield-background: #141414;
+    --color-inputfield-stroke: #2C2C2C;
+
+    --color-image-upload-button-background: #141414;
+    --color-image-upload-button-stroke: #2C2C2C;
 }
+
 
 @layer base {
 
@@ -46,12 +61,76 @@
     h5,
     h6 {
         font-family: var(--font-headers);
+        line-height: 1;
+        padding-top: 0.5rem;
+        padding-bottom: 0.3rem;
+        margin: 0;
     }
 
     p,
     a,
-    li {
+    li,
+    label,
+    input,
+    textarea,
+    select,
+    button,
+    span,
+    fieldset,
+    legend,
+    option {
         font-family: var(--font-body);
         font-weight: 300;
     }
+
+    input::placeholder,
+    textarea::placeholder {
+        font-family: var(--font-body);
+    }
+
+    button {
+        font-family: var(--font-body);
+        font-weight: 300;
+    }
+
+    .heading-center {
+        line-height: 1;
+        padding-top: 0.6rem;
+        padding-bottom: 0.4rem;
+        margin: 0;
+    }
+
+    .tab-nav-item-center {
+        vertical-align: middle;
+    }
+}
+
+/* Custom scrollbar class for dark mode */
+.custom-scrollbar {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-card-stroke) var(--color-navbar-background);
+    /* Firefox */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--color-navbar-background);
+    /* dark bg */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--color-card-stroke);
+    /* subtle thumb */
+    border-radius: 4px;
+    border: 2px solid var(--color-navbar-background);
+    /* inset look */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-card-background-lighter);
+    /* thumb on hover */
 }

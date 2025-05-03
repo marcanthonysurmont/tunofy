@@ -19,7 +19,10 @@ class Mix extends Model
     protected $fillable = [
         'user_id',
         'name',
+        'slug',
         'session_code',
+        'session_code_expires_at',
+        'session_code_permission',
         'is_public',
         'is_active',
         'co_dj_id',
@@ -49,7 +52,7 @@ class Mix extends Model
             ->withPivot('permission')
             ->withTimestamps();
     }
-    
+
     public function mixAcceses()
     {
         return $this->hasMany(MixAccess::class);
@@ -97,7 +100,7 @@ class Mix extends Model
             ->exists();
     }
 
-    public function getSlugOptions() : SlugOptions
+    public function getSlugOptions(): SlugOptions
     {
         return SlugOptions::create()
             ->generateSlugsFrom('name')
