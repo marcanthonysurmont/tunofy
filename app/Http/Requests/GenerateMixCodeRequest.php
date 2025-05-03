@@ -9,7 +9,7 @@ class GenerateMixCodeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'session_code_permission' => ['required', 'string','in:view,contribute, edit',],
+            'session_code_permission' => ['required', 'string', 'in:view,contribute,edit',],
         ];
     }
 }
