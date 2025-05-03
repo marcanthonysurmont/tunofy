@@ -109,14 +109,18 @@ function msToMinutes(ms) {
 }
 
 function deleteSong(id) {
-    router.delete(route("mix.remove-song", id), {
-        onSuccess: () => {
-            // Optionally, you can show a success message or perform any other action
-        },
-        onError: (error) => {
-            // Handle error if needed
-            console.error("Error deleting song:", error);
-        },
-    });
+    router.delete(
+        route("mix.remove-song", id),
+        { preserveScroll: true },
+        {
+            onSuccess: () => {
+                // Optionally, you can show a success message or perform any other action
+            },
+            onError: (error) => {
+                // Handle error if needed
+                console.error("Error deleting song:", error);
+            },
+        }
+    );
 }
 </script>
