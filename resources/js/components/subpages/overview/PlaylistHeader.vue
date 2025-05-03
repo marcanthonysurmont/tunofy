@@ -120,7 +120,7 @@
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
                         <button
-                            @click="isCodeModalOpen = true"
+                            @click="copyCodeToClipboard"
                             :class="[
                                 active
                                     ? 'bg-card-background-lighter text-dark-white cursor-pointer'
@@ -169,11 +169,12 @@ import MenuDropdown from "@/components/menus/MenuDropdown.vue";
 import SearchBarSong from "@/components/SearchBarSong.vue";
 import CreateSessionModal from "@/components/modals/sessions/CreateSessionModal.vue";
 import { router, usePage } from "@inertiajs/vue3";
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import toast from "@/stores/StoreToast.js";
 
 const page = usePage();
-const props = page.props;
-const mix = props.mix;
+const props = computed(() => page.props);
+const mix = computed(() => props.value.mix);
 const showCreateSessionModal = ref(false);
 
 const isCodeModalOpen = ref(false);
@@ -185,7 +186,7 @@ function getImageUrl(song) {
 }
 
 function deleteMix() {
-    router.delete(route("mix.destroy", mix.id), {
+    router.delete(route("mix.destroy", mix.value.id), {
         onError: (error) => {
             console.error("Error deleting mix:", error);
         },
@@ -195,6 +196,14 @@ function deleteMix() {
                 preserveScroll: true,
             });
         },
+    });
+}
+function copyCodeToClipboard() {
+    navigator.clipboard.writeText(mix.value.session_code).then(() => {
+        toast.add({
+            message: `Copied to clipboard!`,
+            type: "success",
+        });
     });
 }
 </script>
