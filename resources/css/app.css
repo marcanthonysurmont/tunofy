@@ -60,6 +60,10 @@
     h5,
     h6 {
         font-family: var(--font-headers);
+        line-height: 1;
+        padding-top: 0.5rem;
+        padding-bottom: 0.3rem;
+        margin: 0;
     }
 
     p,
@@ -86,6 +90,17 @@
     button {
         font-family: var(--font-body);
         font-weight: 300;
+    }
+
+    .heading-center {
+        line-height: 1;
+        padding-top: 0.6rem;
+        padding-bottom: 0.4rem;
+        margin: 0;
+    }
+
+    .tab-nav-item-center {
+        vertical-align: middle;
     }
 }
 

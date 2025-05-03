@@ -78,7 +78,7 @@
                                                 class="flex flex-row justify-between items-center mb-6"
                                             >
                                                 <h1
-                                                    class="text-2xl font-medium"
+                                                    class="text-2xl font-medium heading-center"
                                                 >
                                                     Your Mixes
                                                 </h1>
@@ -101,7 +101,7 @@
                                                 class="flex flex-row justify-between items-center"
                                             >
                                                 <h1
-                                                    class="text-2xl font-medium"
+                                                    class="text-2xl font-medium heading-center"
                                                 >
                                                     Joined Mixes
                                                 </h1>
@@ -139,7 +139,9 @@
                             <div
                                 class="flex flex-row justify-between items-center mb-6"
                             >
-                                <h1 class="text-2xl font-medium">Your Mixes</h1>
+                                <h1 class="text-2xl font-medium heading-center">
+                                    Your Mixes
+                                </h1>
                                 <PlusIcon
                                     @click="isAddMixModalVisible = true"
                                     class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
@@ -156,7 +158,7 @@
                             <div
                                 class="flex flex-row justify-between items-center"
                             >
-                                <h1 class="text-2xl font-medium">
+                                <h1 class="text-2xl font-medium heading-center">
                                     Joined Mixes
                                 </h1>
                                 <PlusIcon
