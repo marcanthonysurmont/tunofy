@@ -8,18 +8,18 @@
             >
                 <div
                     :class="[
-                        'flex items-center w-full bg-inputfield-background border border-dark-white rounded-full transition-all duration-300 overflow-hidden relative',
+                        'flex items-center w-full bg-card-background border border-card-stroke rounded-xl transition-all duration-300 overflow-hidden relative',
                         isFocused ? 'shadow-md ring-1 ring-zinc-400' : '',
                     ]"
-                    class="h-7 sm:h-9"
+                    class=""
                 >
                     <MagnifyingGlassIcon
-                        class="w-5 h-5 ml-4"
+                        class="size-6 ml-4 transition-all duration-300"
                         :class="isFocused ? 'text-dark-white' : 'text-zinc-400'"
                         aria-hidden="true"
                     />
                     <ComboboxInput
-                        class="w-full bg-transparent border-none text-dark-white placeholder-zinc-400 pl-4 pr-12 py-0.5 focus:outline-none"
+                        class="w-full bg-transparent border-none text-dark-white placeholder-zinc-400 pl-4 pr-12 py-2 focus:outline-none"
                         :displayValue="(song) => song?.name"
                         @input="handleSearch"
                         placeholder="Search songs..."
@@ -51,7 +51,7 @@
                         </svg>
                     </div>
                 </div>
-
+                <!-- Search results -->
                 <TransitionRoot
                     enter="transition ease-out duration-100"
                     enterFrom="opacity-0 translate-y-1"
@@ -63,7 +63,7 @@
                     <ComboboxOptions
                         v-if="filteredSongs.length > 0"
                         @click.stop
-                        class="absolute z-50 mt-2 w-full bg-card-background rounded-md border border-card-stroke max-h-82 min-w-82 overflow-y-auto shadow-lg pb-2 custom-scrollbar"
+                        class="absolute z-50 mt-2 w-full bg-card-background rounded-md border border-card-stroke max-h-82 min-w-64 overflow-y-auto overflow-x-hidden shadow-lg pb-2 custom-scrollbar"
                     >
                         <ComboboxOption
                             v-for="song in filteredSongs"
@@ -74,24 +74,34 @@
                             :disabled="false"
                         >
                             <li
-                                class="group select-none px-4 py-2 flex items-center justify-between hover:bg-card-background-hover transition duration-200"
+                                class="group select-none px-4 py-2 flex items-center justify-between hover:bg-card-background-hover transition duration-200 overflow-hidden"
                                 :class="{ 'bg-card-background-hover': active }"
                             >
                                 <div
-                                    class="flex items-center space-x-3 flex-1"
+                                    class="flex items-center space-x-3 flex-1 min-w-0 overflow-hidden"
                                     @click="selectedSong = song"
                                 >
                                     <img
                                         :src="song.album.images[0].url"
-                                        class="w-10 h-10 rounded-md object-cover"
+                                        class="w-10 h-10 rounded-md object-cover flex-shrink-0"
                                     />
-                                    <div>
+                                    <div class="min-w-0 flex-1 overflow-hidden">
                                         <div
-                                            class="text-dark-white text-sm font-medium"
+                                            class="text-dark-white text-sm font-medium truncate"
+                                            :title="song.name"
                                         >
                                             {{ song.name }}
                                         </div>
-                                        <div class="text-zinc-400 text-xs">
+                                        <div
+                                            class="text-zinc-400 text-xs truncate"
+                                            :title="
+                                                song.artists
+                                                    .map(
+                                                        (artist) => artist.name
+                                                    )
+                                                    .join(', ')
+                                            "
+                                        >
                                             {{
                                                 song.artists
                                                     .map(
@@ -102,9 +112,13 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div @mousedown.stop @click.stop>
+                                <div
+                                    @mousedown.stop
+                                    @click.stop
+                                    class="ml-2 flex-shrink-0"
+                                >
                                     <button
-                                        class="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full transition-all duration-200"
+                                        class="md:opacity-0 md:group-hover:opacity-100 opacity-100 transition-opacity p-1 rounded-full transition-all duration-200"
                                         :class="
                                             isSongAdded(song)
                                                 ? 'text-green-500 hover:text-green-400 hover:bg-zinc-700/30'

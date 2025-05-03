@@ -17,7 +17,7 @@
             leave-to-class="transform scale-95 opacity-0"
         >
             <MenuItems
-                class="absolute md:left-0 right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-card-background border-2 border-card-stroke shadow-lg ring-1 ring-black/5 focus:outline-none"
+                class="shadow-2xl absolute md:left-0 right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-card-background border-2 border-card-stroke ring-1 ring-black/5 focus:outline-none"
             >
                 <div class="px-1.5 py-1.5">
                     <slot></slot>

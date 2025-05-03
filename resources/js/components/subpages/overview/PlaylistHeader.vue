@@ -30,7 +30,9 @@
         </div>
 
         <div class="flex flex-col sm:flex-row gap-3 mt-2 sm:mt-0">
-            <div class="flex flex-row gap-3 justify-center sm:justify-start">
+            <div
+                class="flex flex-row gap-3 justify-center items-center sm:justify-start"
+            >
                 <UserPlusIcon
                     class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
                 />
@@ -141,9 +143,6 @@
                     </MenuItem>
                 </MenuDropdown>
             </div>
-            <div class="w-full sm:max-w-xs mt-3 sm:mt-0">
-                <SearchBarSong />
-            </div>
         </div>
     </div>
     <teleport to="body">
@@ -168,7 +167,6 @@ import {
 } from "@heroicons/vue/24/outline";
 
 import MenuDropdown from "@/components/menus/MenuDropdown.vue";
-import SearchBarSong from "@/components/SearchBarSong.vue";
 import CreateSessionModal from "@/components/modals/sessions/CreateSessionModal.vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { ref, computed } from "vue";
@@ -178,7 +176,6 @@ const page = usePage();
 const props = computed(() => page.props);
 const mix = computed(() => props.value.mix);
 const owner = computed(() => props.value.owner);
-
 const showCreateSessionModal = ref(false);
 
 const readableTime = computed(() => {

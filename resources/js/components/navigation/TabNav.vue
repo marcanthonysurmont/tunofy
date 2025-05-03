@@ -1,6 +1,8 @@
 <template>
     <div class="mb-6">
-        <div class="block">
+        <div
+            class="flex md:items-center justify-between md:flex-row flex-col gap-6"
+        >
             <nav class="flex space-x-4 relative" aria-label="Tabs">
                 <!-- The sliding background indicator -->
                 <div
@@ -24,7 +26,7 @@
                         tab.active
                             ? 'border-primary text-white'
                             : 'border-tab-stroke-inactive text-white',
-                        'rounded-lg flex items-center justify-center px-3 py-2 sm:text-xl md:text-2xl font-medium font-headers cursor-pointer hover:text-neutral-300 z-10 transition-colors duration-300 ease-in-out relative',
+                        'rounded-lg flex items-center justify-center px-3 pb-1.5 pt-2.5 tab-nav-item-center sm:text-xl md:text-2xl font-medium font-headers cursor-pointer hover:text-neutral-300 z-10 transition-colors duration-300 ease-in-out relative',
                     ]"
                     :aria-current="tab.active ? 'page' : undefined"
                     @click.prevent="changeTab(tab.name)"
@@ -32,6 +34,7 @@
                     {{ tab.name }}
                 </a>
             </nav>
+            <SearchBarSong v-if="activeTabIndex === 0" />
         </div>
     </div>
 </template>
@@ -39,6 +42,7 @@
 <script setup>
 import { ref, onMounted, watch, computed, nextTick } from "vue";
 import { ChevronDownIcon } from "@heroicons/vue/16/solid";
+import SearchBarSong from "@/components/SearchBarSong.vue";
 
 const props = defineProps({
     tabs: {
