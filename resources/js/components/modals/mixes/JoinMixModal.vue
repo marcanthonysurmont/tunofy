@@ -11,10 +11,10 @@
             <div class="mb-6">
                 <InputField
                     v-model="inputCode"
-                    label="Code"
+                    label="Code of mix"
                     id="code"
                     name="code"
-                    type="code"
+                    type="text"
                     :error="errorMessage"
                     placeholder="XXXXX"
                 />
@@ -51,7 +51,7 @@ const props = computed(() => page.props);
 
 const isLoading = ref(false);
 const inputCode = ref("");
-const errorMessage = ref(null);
+const errorMessage = ref("");
 watch(
     () => props.value.non_toast_danger,
     (newVal) => {
@@ -71,7 +71,6 @@ function joinMix() {
         errorMessage.value = "Please enter a code";
         return;
     }
-
     isLoading.value = true;
     router.post(
         route("mix.join", inputCode.value),
@@ -81,21 +80,18 @@ function joinMix() {
                 isLoading.value = false;
             },
             onSuccess: () => {
-                if (errorMessage.value !== "") {
-                    return;
-                }
-                resetAndCloseModal;
+                resetAndCloseModal();
             },
             onError: (errors) => {
-                console.log(errors);
+                errorMessage.value = errors.code;
             },
         }
     );
 }
 
 function resetAndCloseModal() {
-    emits("closeModal");
     inputCode.value = "";
-    errorMessage.value = null;
+    errorMessage.value = "";
+    emits("closeModal");
 }
 </script>
