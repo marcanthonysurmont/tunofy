@@ -22,7 +22,7 @@
                         class="w-full bg-transparent border-none text-dark-white placeholder-zinc-400 pl-4 pr-12 py-2 focus:outline-none"
                         :displayValue="(song) => song?.name"
                         @input="handleSearch"
-                        placeholder="Search songs..."
+                        placeholder="Find a song to add..."
                         autocomplete="off"
                         autocorrect="off"
                         autocapitalize="off"

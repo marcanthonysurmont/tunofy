@@ -15,26 +15,26 @@
     /* colors */
     --color-background-page: #101010;
     --color-card-background: #1A1A1A;
-    --color-card-stroke: #2C2C2C;
+    --color-card-stroke: #1F1F1F;
     --color-card-background-hover: #1E1E1E;
     --color-dark-white: #E0E0E0;
     --color-modal-background: #1A1A1A;
-    --color-modal-stroke: #2C2C2C;
+    --color-modal-stroke: #1F1F1F;
 
-    --color-card-background-lighter: #2C2C2C;
+    --color-card-background-lighter: #1F1F1F;
 
     --color-primary: #2B55CC;
 
     --color-navbar-background: #141414;
-    --color-navbar-stroke: #2C2C2C;
+    --color-navbar-stroke: #1F1F1F;
 
-    --color-regular-stroke: #2C2C2C;
+    --color-regular-stroke: #1F1F1F;
 
     --color-audio-player-background: #101010;
-    --color-audio-player-stroke: #2C2C2C;
+    --color-audio-player-stroke: #1F1F1F;
 
     --color-tab-background-inactive: #1A1A1A;
-    --color-tab-stroke-inactive: #2C2C2C;
+    --color-tab-stroke-inactive: #1F1F1F;
 
     /* text colors */
     --color-dark-white: #F4F4F4;
@@ -42,14 +42,15 @@
 
     /* form elements */
     --color-checkbox-background: #121212;
-    --color-checkbox-stroke: #2C2C2C;
+    --color-checkbox-stroke: #1F1F1F;
 
     --color-inputfield-background: #121212;
-    --color-inputfield-stroke: #2C2C2C;
+    --color-inputfield-stroke: #1F1F1F;
 
     --color-image-upload-button-background: #121212;
-    --color-image-upload-button-stroke: #2C2C2C;
+    --color-image-upload-button-stroke: #1F1F1F;
 }
+
 
 @layer base {
 
