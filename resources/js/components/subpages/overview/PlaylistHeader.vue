@@ -103,7 +103,7 @@
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
                         <button
-                            @click="isCodeModalOpen = true"
+                            @click="showCreateSessionModal = true"
                             :class="[
                                 active
                                     ? 'bg-card-background-lighter text-dark-white cursor-pointer'
@@ -115,9 +115,7 @@
                                 class="mr-2 h-5 w-5 text-white"
                                 aria-hidden="true"
                             />
-                            <span
-                                class="font-medium align-middle"
-                                @click="showCreateSessionModal = true"
+                            <span class="font-medium align-middle"
                                 >Generate session code</span
                             >
                         </button>
