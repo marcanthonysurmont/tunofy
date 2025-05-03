@@ -22,6 +22,7 @@ class HandleInertiaRequests extends Middleware
             'user' => Auth::user(),
             'success' => session('success'),
             'danger' => session('error'),
+            'non_toast_danger' => session('non_toast_danger'),
         ];
     }
 }

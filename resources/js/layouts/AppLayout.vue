@@ -106,6 +106,9 @@
                                                     Joined Mixes
                                                 </h1>
                                                 <PlusIcon
+                                                    @click="
+                                                        isJoinMixModalVisible = true
+                                                    "
                                                     class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
                                                 />
                                             </div>
@@ -162,6 +165,7 @@
                                     Joined Mixes
                                 </h1>
                                 <PlusIcon
+                                    @click="isJoinMixModalVisible = true"
                                     class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
                                 />
                             </div>
@@ -228,7 +232,11 @@
     </div>
     <CreateMixModal
         :is-visible="isAddMixModalVisible"
-        @close-modal="closeModal"
+        @close-modal="closeAddMixModal"
+    />
+    <JoinMixModal
+        :is-visible="isJoinMixModalVisible"
+        @close-modal="closeJoinMixModal"
     />
     <ToastList />
 </template>
@@ -251,6 +259,7 @@ import {
 import { ref } from "vue";
 import { Link } from "@inertiajs/vue3";
 import CreateMixModal from "@/components/modals/mixes/CreateMixModal.vue";
+import JoinMixModal from "@/components/modals/mixes/JoinMixModal.vue";
 import YourMixesList from "@/components/mixes/YourMixesList.vue";
 import ToastList from "@/components/toasts/ToastList.vue";
 import { usePage } from "@inertiajs/vue3";
@@ -261,7 +270,12 @@ const user = page.props.user;
 const sidebarOpen = ref(false);
 
 const isAddMixModalVisible = ref(false);
-function closeModal() {
+function closeAddMixModal() {
     isAddMixModalVisible.value = false;
+}
+
+const isJoinMixModalVisible = ref(false);
+function closeJoinMixModal() {
+    isJoinMixModalVisible.value = false;
 }
 </script>

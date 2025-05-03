@@ -16,12 +16,12 @@ class JoinMixController extends Controller
 
         if (!$mix) {
             return redirect()->back()
-                ->with('danger', 'Invalid or expired mix code.');
+                ->with('non_toast_danger', 'Invalid or expired mix code.');
         }
 
         if ($mix->hasUserJoined(Auth::id())) {
             return redirect()->back()
-                ->with('danger', 'You have already joined this mix.');
+                ->with('non_toast_danger', 'You have already joined this mix.');
         }
 
         try {
@@ -34,7 +34,7 @@ class JoinMixController extends Controller
                     'permission' => $mix->session_code_permission,
                 ]
             );
-    
+
             return redirect()->route('mix.show', $mix->slug)
                 ->with('success', 'You have joined the mix successfully.');
         } catch (\Exception $e) {

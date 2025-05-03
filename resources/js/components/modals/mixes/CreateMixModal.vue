@@ -9,7 +9,7 @@
         @submit-from-enter="storeMix"
     >
         <template #title>
-            <h1 class="text-4xl">Add an Admin</h1>
+            <h1 class="text-4xl">Create a mix</h1>
         </template>
         <template #body>
             <div class="mb-6">
