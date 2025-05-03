@@ -41,13 +41,13 @@
     --color-grey: #AEAEAE;
 
     /* form elements */
-    --color-checkbox-background: #121212;
+    --color-checkbox-background: #141414;
     --color-checkbox-stroke: #1F1F1F;
 
-    --color-inputfield-background: #121212;
+    --color-inputfield-background: #141414;
     --color-inputfield-stroke: #1F1F1F;
 
-    --color-image-upload-button-background: #121212;
+    --color-image-upload-button-background: #141414;
     --color-image-upload-button-stroke: #1F1F1F;
 }
 

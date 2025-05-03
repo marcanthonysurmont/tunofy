@@ -22,7 +22,7 @@
                 :aria-invalid="hasError ? 'true' : undefined"
                 :aria-describedby="getAriaDescribedBy"
                 :class="[
-                    'col-start-1 row-start-1 block w-full rounded-md py-1.5 pr-10 pl-3 text-base outline-1 -outline-offset-1 placeholder:text-zinc-500 focus:outline-1 focus:-outline-offset-1 sm:text-sm/6',
+                    'col-start-1 row-start-1 block w-full border-1 border-inputfield-stroke rounded-md py-1.5 pr-10 pl-3 text-base outline-1 -outline-offset-1 placeholder:text-zinc-500 focus:outline-1 focus:-outline-offset-1 sm:text-sm/6',
                     hasError
                         ? 'bg-inputfield-background text-red-400 outline-red-500 focus:outline-red-600 placeholder:text-red-500'
                         : 'bg-inputfield-background text-white outline-inputfield-stroke focus:outline-primary',

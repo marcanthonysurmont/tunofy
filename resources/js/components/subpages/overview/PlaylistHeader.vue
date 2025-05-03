@@ -186,8 +186,6 @@ const readableTime = computed(() => {
     return `${hours > 0 ? hours + "h " : ""}${minutes}min`;
 });
 
-const isCodeModalOpen = ref(false);
-
 function getImageUrl(song) {
     return song.avatar === null
         ? "/images/default-avatar.jpg"

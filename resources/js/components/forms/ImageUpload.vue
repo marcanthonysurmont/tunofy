@@ -37,7 +37,7 @@
                         v-if="imagePreview"
                         type="button"
                         @click="removeImage"
-                        class="rounded-md bg-[#2C2C2C] px-2.5 py-1.5 text-sm font-semibold text-red-400 shadow-sm hover:bg-[#3C3C3C]"
+                        class="rounded-md bg-image-upload-button-background px-2.5 py-1.5 text-sm font-semibold text-red-400 shadow-sm hover:bg-[#3C3C3C]"
                     >
                         Remove
                     </button>
@@ -54,10 +54,10 @@
             <div
                 v-else
                 :class="[
-                    'flex justify-center rounded-md px-4 sm:px-6 py-6 sm:py-8 outline outline-1 -outline-offset-1',
+                    'flex justify-center rounded-md px-4 sm:px-6 py-6 sm:py-8 outline-1 -outline-offset-1 ',
                     isDragging
                         ? 'outline-primary bg-[#1A1A1A]/80'
-                        : 'outline-[#2C2C2C] bg-[#1A1A1A]',
+                        : 'outline-inputfield-stroke bg-inputfield-background',
                     hasError ? 'outline-red-500' : '',
                 ]"
                 @dragenter.prevent="isDragging = true"
@@ -91,7 +91,7 @@
                     >
                         <label
                             :for="`${id}-input`"
-                            class="relative cursor-pointer rounded-md bg-image-upload-button-background px-2 py-1 font-semibold text-white hover:bg-[#3C3C3C] mb-2 sm:mb-0 border-2 border-image-upload-button-stroke"
+                            class="relative cursor-pointer rounded-md bg-image-upload-button-background px-2 py-1 font-semibold text-white hover:bg-[#3C3C3C] mb-2 sm:mb-0 border-1 border-image-upload-button-stroke"
                         >
                             <span>Upload a file</span>
                             <input
