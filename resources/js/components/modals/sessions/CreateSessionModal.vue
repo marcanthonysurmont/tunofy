@@ -63,7 +63,7 @@
                     color="blue"
                     class="w-1/2"
                     type="secondary"
-                    @click="codeGenerated = false"
+                    @click="resetState"
                 >
                     New Code
                 </RegularButton>
@@ -116,10 +116,11 @@ const emits = defineEmits(["closeModal"]);
 const isLoading = ref(false);
 
 function resetState() {
-    codeGenerated.value = false;
     sessionCode.value = "";
     form.reset();
     form.clearErrors();
+    codeGenerated.value = false;
+    selectedMethod.value = "view";
 }
 
 function generateCode() {
