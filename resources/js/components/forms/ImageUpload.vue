@@ -21,7 +21,7 @@
                         class="size-16 sm:size-12 rounded-full flex items-center justify-center bg-[#2C2C2C]"
                     >
                         <UserCircleIcon
-                            class="size-12 sm:size-10 text-gray-500"
+                            class="size-12 sm:size-10 text-zinc-500"
                             aria-hidden="true"
                         />
                     </div>
@@ -83,11 +83,11 @@
                 </div>
                 <div v-else class="text-center w-full">
                     <PhotoIcon
-                        class="mx-auto size-12 text-gray-500"
+                        class="mx-auto size-12 text-zinc-500"
                         aria-hidden="true"
                     />
                     <div
-                        class="mt-4 flex flex-col sm:flex-row justify-center items-center text-sm/6 text-gray-300"
+                        class="mt-4 flex flex-col sm:flex-row justify-center items-center text-sm/6 text-zinc-300"
                     >
                         <label
                             :for="`${id}-input`"
@@ -106,7 +106,7 @@
                             or drag and drop
                         </p>
                     </div>
-                    <p class="text-xs/5 text-gray-400 mt-2">
+                    <p class="text-xs/5 text-zinc-400 mt-2">
                         {{ helperText || "PNG, JPG, GIF up to 10MB" }}
                     </p>
                 </div>
