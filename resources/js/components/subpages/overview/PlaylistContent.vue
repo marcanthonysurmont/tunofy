@@ -68,7 +68,7 @@
                             </td>
                             <td class="py-2 sm:py-4 pl-1 sm:pl-3 text-right">
                                 <button
-                                    @click="deleteSong(index)"
+                                    @click="deleteSong(song.id)"
                                     class="p-1 sm:p-2 cursor-pointer"
                                 >
                                     <TrashIcon
@@ -86,7 +86,7 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { usePage } from "@inertiajs/vue3";
+import { usePage, router } from "@inertiajs/vue3";
 import { TrashIcon } from "@heroicons/vue/24/outline";
 
 const page = usePage();
@@ -108,5 +108,15 @@ function msToMinutes(ms) {
     return `${minutes}:${seconds}`;
 }
 
-function deleteSong(id) {}
+function deleteSong(id) {
+    router.delete(route("mix.remove-song", id), {
+        onSuccess: () => {
+            // Optionally, you can show a success message or perform any other action
+        },
+        onError: (error) => {
+            // Handle error if needed
+            console.error("Error deleting song:", error);
+        },
+    });
+}
 </script>
