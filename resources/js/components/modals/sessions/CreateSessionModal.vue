@@ -135,6 +135,7 @@ function generateCode() {
     form.session_code_permission = selectedMethod.value;
 
     form.post(route("mix.generate-code", mix.value.id), {
+        preserveScroll: true,
         onFinish: () => {
             isLoading.value = false;
         },
