@@ -1,5 +1,5 @@
 <template>
-    <Head title="Tunofy | App" />
+    <Head :title="`Tunofy | ${nameOfMix}`" />
     <AppLayout>
         <TabNav :tabs="tabs" @tab-changed="setActiveTab" />
         <Transition name="fade-with-slide" appear mode="out-in">
@@ -19,7 +19,7 @@ import AppLayout from "@/layouts/AppLayout.vue";
 import TabNav from "@/components/navigation/TabNav.vue";
 import VotingComponent from "@/components/subpages/VotingComponent.vue";
 import StatsComponent from "@/components/subpages/StatsComponent.vue";
-import { Head } from "@inertiajs/vue3";
+import { Head, usePage } from "@inertiajs/vue3";
 import OverviewSubPage from "@/components/subpages/overview/OverviewSubPage.vue";
 
 const tabs = ref([
@@ -27,6 +27,9 @@ const tabs = ref([
     { name: "Voting", active: false },
     { name: "Stats", active: false },
 ]);
+
+const page = usePage();
+const nameOfMix = page.props.mix.name;
 
 const activeTab = ref("Overview");
 
