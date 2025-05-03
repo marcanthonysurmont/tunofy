@@ -1,5 +1,12 @@
 <template>
-    <Transition name="fade">
+    <transition
+        enter-active-class="transition duration-100 ease-out"
+        enter-from-class="transform scale-95 opacity-0"
+        enter-to-class="transform scale-100 opacity-100"
+        leave-active-class="transition duration-75 ease-in"
+        leave-from-class="transform scale-100 opacity-100"
+        leave-to-class="transform scale-95 opacity-0"
+    >
         <div
             v-if="isVisible"
             class="fixed left-0 top-0 z-[999] flex h-full w-full items-center justify-center gap-8 bg-black/25 backdrop-blur-md shadow-2xl"
@@ -24,7 +31,7 @@
                 /></span>
             </div>
         </div>
-    </Transition>
+    </transition>
 </template>
 
 <script setup>
