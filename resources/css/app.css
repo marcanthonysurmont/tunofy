@@ -13,7 +13,7 @@
     --font-headers: "Nohemi", sans-serif;
 
     /* colors */
-    --color-background-page: #121212;
+    --color-background-page: #101010;
     --color-card-background: #1A1A1A;
     --color-card-stroke: #2C2C2C;
     --color-card-background-hover: #1E1E1E;
@@ -25,7 +25,7 @@
 
     --color-primary: #3361E3;
 
-    --color-navbar-background: #1A1A1A;
+    --color-navbar-background: #141414;
     --color-navbar-stroke: #2C2C2C;
 
     --color-regular-stroke: #2C2C2C;
