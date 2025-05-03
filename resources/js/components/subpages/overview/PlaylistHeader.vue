@@ -20,8 +20,10 @@
                     <span
                         class="text-dark-white text-base sm:text-lg mt-0 mb-0 leading-none"
                     >
-                        <span class="font-bold">Gilles Serrien</span> • 234
-                        songs, approx. 19 hours
+                        <span class="font-bold">Gilles Serrien</span> •
+                        {{ mix.songs.length }}
+                        {{ mix.songs.length === 1 ? "song" : "songs" }}, approx.
+                        {{ readableTime }}
                     </span>
                 </div>
             </div>
@@ -176,6 +178,16 @@ const page = usePage();
 const props = computed(() => page.props);
 const mix = computed(() => props.value.mix);
 const showCreateSessionModal = ref(false);
+
+const readableTime = computed(() => {
+    const totalMs = mix.value.songs.reduce(
+        (sum, song) => sum + song.duration_ms,
+        0
+    );
+    const hours = Math.floor(totalMs / 3600000);
+    const minutes = Math.floor((totalMs % 3600000) / 60000);
+    return `${hours > 0 ? hours + "h " : ""}${minutes}min`;
+});
 
 const isCodeModalOpen = ref(false);
 
