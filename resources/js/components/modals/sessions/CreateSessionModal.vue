@@ -62,14 +62,14 @@
                 <RegularButton
                     color="blue"
                     class="w-1/2"
-                    type="secondary"
+                    type="primary"
                     @click="resetState"
                 >
                     New Code
                 </RegularButton>
                 <RegularButton
-                    color="gray"
                     class="w-1/2"
+                    type="secondary"
                     @click="
                         emits('closeModal');
                         resetState();
