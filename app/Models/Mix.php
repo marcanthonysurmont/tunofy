@@ -23,7 +23,6 @@ class Mix extends Model
         'is_public',
         'is_active',
         'co_dj_id',
-        'playback_device_id',
         'preset_id',
         'avatar',
     ];
@@ -41,7 +40,7 @@ class Mix extends Model
 
     public function songs()
     {
-        return $this->belongsToMany(Song::class);
+        return $this->hasMany(Song::class);
     }
 
     public function collaborators()
@@ -73,6 +72,7 @@ class Mix extends Model
             'canManageCollaborators' => $user->can('manageCollaborators', $this),
             'canJoin' => $user->can('join', $this),
             'canGenerateSessionCode' => $user->can('generateSessionCode', $this),
+            'isOwner' => $user->id === $this->user_id,
         ]);
     }
 

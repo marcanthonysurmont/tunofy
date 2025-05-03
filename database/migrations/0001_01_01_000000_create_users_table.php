@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->string('email')->nullable();
             $table->string('avatar')->nullable();
-
+            $table->string('playback_device_id')->nullable();
             $table->text('access_token');
             $table->text('refresh_token')->nullable();
             $table->dateTime('token_expires_at')->nullable();
