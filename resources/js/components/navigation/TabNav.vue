@@ -115,7 +115,3 @@ window.addEventListener("resize", () => {
     positionIndicator();
 });
 </script>
-
-<style scoped>
-/* Add any additional custom styles here if needed */
-</style>

@@ -20,7 +20,7 @@
                     :name="name"
                     :value="option.id"
                     v-model="localValue"
-                    class="relative size-4 appearance-none rounded-full border border-[color:var(--color-card-stroke)] bg-[color:var(--color-card-background)] before:absolute before:inset-1 before:rounded-full before:bg-[color:var(--color-card-background)] not-checked:before:hidden checked:border-[color:var(--color-primary)] checked:bg-[color:var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)] disabled:border-zinc-700 disabled:bg-zinc-800 disabled:before:bg-zinc-700"
+                    class="relative size-4 appearance-none rounded-full border border-checkbox-stroke bg-checkbox-background before:absolute before:inset-1 before:rounded-full before:bg-checkbox-background not-checked:before:hidden checked:border-[color:var(--color-primary)] checked:bg-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:border-zinc-700 disabled:bg-zinc-800 disabled:before:bg-zinc-700"
                 />
                 <label
                     :for="option.id"
