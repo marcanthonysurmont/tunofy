@@ -27,79 +27,129 @@
             </div>
         </div>
 
-        <div
-            class="flex flex-row gap-3 justify-center sm:justify-start mt-2 sm:mt-0"
-        >
-            <UserPlusIcon
-                class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
-            />
-            <UserMinusIcon
-                class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
-            />
-            <Cog8ToothIcon
-                class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
-            />
-            <SearchBarSong />
-            <MenuDropdown>
-                <MenuItem v-slot="{ active }">
-                    <button
-                        :class="[
-                            active
-                                ? 'bg-card-background-lighter text-dark-white cursor-pointer'
-                                : 'text-white',
-                            'group flex w-full items-center rounded-md px-2 py-2 text-sm',
-                        ]"
-                    >
-                        <PencilIcon
-                            :active="active"
-                            class="mr-2 h-5 w-5 text-white"
-                            aria-hidden="true"
-                        />
-                        <span class="font-medium align-middle"
-                            >Edit information</span
+        <div class="flex flex-col sm:flex-row gap-3 mt-2 sm:mt-0">
+            <div class="flex flex-row gap-3 justify-center sm:justify-start">
+                <UserPlusIcon
+                    class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
+                />
+                <UserMinusIcon
+                    class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
+                />
+                <Cog8ToothIcon
+                    class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
+                />
+                <MenuDropdown>
+                    <MenuItem v-slot="{ active }">
+                        <button
+                            :class="[
+                                active
+                                    ? 'bg-card-background-lighter text-dark-white cursor-pointer'
+                                    : 'text-white',
+                                'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                            ]"
                         >
-                    </button>
-                </MenuItem>
-                <MenuItem v-slot="{ active }">
-                    <button
-                        :class="[
-                            active
-                                ? 'bg-card-background-lighter text-dark-white cursor-pointer'
-                                : 'text-white',
-                            'group flex w-full items-center rounded-md px-2 py-2 text-sm',
-                        ]"
-                    >
-                        <LockClosedIcon
-                            :active="active"
-                            class="mr-2 h-5 w-5 text-white"
-                            aria-hidden="true"
-                        />
-                        <span class="font-medium align-middle"
-                            >Make private</span
+                            <PencilIcon
+                                :active="active"
+                                class="mr-2 h-5 w-5 text-white"
+                                aria-hidden="true"
+                            />
+                            <span class="font-medium align-middle"
+                                >Edit information</span
+                            >
+                        </button>
+                    </MenuItem>
+                    <MenuItem v-slot="{ active }">
+                        <button
+                            :class="[
+                                active
+                                    ? 'bg-card-background-lighter text-dark-white cursor-pointer'
+                                    : 'text-white',
+                                'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                            ]"
                         >
-                    </button>
-                </MenuItem>
-                <MenuItem v-slot="{ active }">
-                    <button
-                        @click="deleteMix"
-                        :class="[
-                            active
-                                ? 'bg-card-background-lighter text-dark-white cursor-pointer'
-                                : 'text-white',
-                            'group flex w-full items-center rounded-md px-2 py-2 text-sm',
-                        ]"
-                    >
-                        <TrashIcon
-                            :active="active"
-                            class="mr-2 h-5 w-5 text-white"
-                            aria-hidden="true"
-                        />
-                        <span class="font-medium align-middle">Delete mix</span>
-                    </button>
-                </MenuItem>
-            </MenuDropdown>
+                            <LockClosedIcon
+                                :active="active"
+                                class="mr-2 h-5 w-5 text-white"
+                                aria-hidden="true"
+                            />
+                            <span class="font-medium align-middle"
+                                >Make private</span
+                            >
+                        </button>
+                    </MenuItem>
+                    <MenuItem v-slot="{ active }">
+                        <button
+                            @click="deleteMix"
+                            :class="[
+                                active
+                                    ? 'bg-card-background-lighter text-dark-white cursor-pointer'
+                                    : 'text-white',
+                                'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                            ]"
+                        >
+                            <TrashIcon
+                                :active="active"
+                                class="mr-2 h-5 w-5 text-white"
+                                aria-hidden="true"
+                            />
+                            <span class="font-medium align-middle"
+                                >Delete mix</span
+                            >
+                        </button>
+                    </MenuItem>
+                    <MenuItem v-slot="{ active }">
+                        <button
+                            @click="isCodeModalOpen = true"
+                            :class="[
+                                active
+                                    ? 'bg-card-background-lighter text-dark-white cursor-pointer'
+                                    : 'text-white',
+                                'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                            ]"
+                        >
+                            <KeyIcon
+                                class="mr-2 h-5 w-5 text-white"
+                                aria-hidden="true"
+                            />
+                            <span
+                                class="font-medium align-middle"
+                                @click="showCreateSessionModal = true"
+                                >Generate session code</span
+                            >
+                        </button>
+                    </MenuItem>
+                    <MenuItem v-slot="{ active }">
+                        <button
+                            @click="isCodeModalOpen = true"
+                            :class="[
+                                active
+                                    ? 'bg-card-background-lighter text-dark-white cursor-pointer'
+                                    : 'text-white',
+                                'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                            ]"
+                        >
+                            <ClipboardDocumentIcon
+                                class="mr-2 h-5 w-5 text-white"
+                                aria-hidden="true"
+                            />
+                            <span class="font-medium align-middle"
+                                >Copy session code</span
+                            >
+                        </button>
+                    </MenuItem>
+                </MenuDropdown>
+            </div>
+            <div class="w-full sm:max-w-xs mt-3 sm:mt-0">
+                <SearchBarSong />
+            </div>
         </div>
     </div>
+    <teleport to="body">
+        <CreateSessionModal
+            :is-visible="showCreateSessionModal"
+            @close-modal="showCreateSessionModal = false"
+        />
+    </teleport>
 </template>
 
 <script setup>
@@ -111,15 +161,22 @@ import {
     UserPlusIcon,
     PencilIcon,
     LockClosedIcon,
+    KeyIcon,
+    ClipboardDocumentIcon,
 } from "@heroicons/vue/24/outline";
 
 import MenuDropdown from "@/components/menus/MenuDropdown.vue";
 import SearchBarSong from "@/components/SearchBarSong.vue";
+import CreateSessionModal from "@/components/modals/sessions/CreateSessionModal.vue";
 import { router, usePage } from "@inertiajs/vue3";
+import { ref } from "vue";
 
 const page = usePage();
 const props = page.props;
 const mix = props.mix;
+const showCreateSessionModal = ref(false);
+
+const isCodeModalOpen = ref(false);
 
 function getImageUrl(song) {
     return song.avatar === null

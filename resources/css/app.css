@@ -70,7 +70,20 @@
     textarea,
     select,
     button,
-    span {
+    span,
+    fieldset,
+    legend,
+    option {
+        font-family: var(--font-body);
+        font-weight: 300;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        font-family: var(--font-body);
+    }
+
+    button {
         font-family: var(--font-body);
         font-weight: 300;
     }
