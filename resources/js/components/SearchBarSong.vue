@@ -149,7 +149,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import axios from "axios";
 import { debounce } from "lodash";
 import {
@@ -180,6 +180,16 @@ const form = useForm({
     artist: "",
     image_url: "",
 });
+
+watch(
+    () => isFocused.value,
+    (newValue) => {
+        if (!newValue) {
+            query.value = "";
+            songs.value = [];
+        }
+    }
+);
 
 const debouncedSearch = debounce(async (searchQuery) => {
     if (!searchQuery || searchQuery.trim() === "") {
