@@ -1,6 +1,8 @@
 <template>
     <h1 class="text-4xl sm:text-5xl font-medium mb-6">Quick Templates</h1>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 mb-12"
+    >
         <div
             class="relative bg-card-background border-2 p-4 rounded-lg cursor-pointer transition-all duration-200"
             :class="
@@ -49,8 +51,7 @@ const templates = [
     },
     {
         name: "Custom",
-        description:
-            "Configure your own settings for this playlist according to your needs.",
+        description: "Need some freedom? ",
         image: "/images/workout.jpg",
     },
 ];
