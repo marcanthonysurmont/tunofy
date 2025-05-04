@@ -22,13 +22,11 @@
             <p>{{ template.description }}</p>
         </div>
     </div>
-    <!-- <ToggleSwitchDescription label="Annual billing" :initialState="false" /> -->
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { CheckCircleIcon } from "@heroicons/vue/24/solid";
-// import ToggleSwitchDescription from "@/components/forms/ToggleSwitchDescription.vue";
 
 const templates = [
     {
