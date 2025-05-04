@@ -25,7 +25,6 @@ use App\Http\Controllers\Application\Mixes\StorePresetController;
 use App\Http\Controllers\Application\Mixes\UpdatePresetController;
 use App\Http\Controllers\Application\Mixes\DestroyPresetController;
 use App\Http\Controllers\Application\Spotify\RequestSpotifyPlayerStatusController;
-use App\Http\Controllers\Application\Spotify\GetSpotifyMixPlaybackController;
 use App\Http\Controllers\Application\Spotify\SetMixActiveController;
 
 use App\Http\Controllers\Application\Spotify\SearchSongController;
@@ -62,7 +61,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/search', SearchSongController::class)->name('search');
 
         Route::get('/request-status', RequestSpotifyPlayerStatusController::class)->name('request-status');
-        Route::get('/mix-playback', GetSpotifyMixPlaybackController::class)->name('mix-playback');
         Route::post('/set-mix-active', SetMixActiveController::class)->name('set-mix-active');
     });
     

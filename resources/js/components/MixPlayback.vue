@@ -89,24 +89,21 @@ const loadInitialData = async () => {
   try {
     isLoading.value = true;
     
-    // Get mix status first
-    const statusResponse = await axios.get('/api/spotify/request-status', {
-      params: { mix_id: props.mix.id }
+    // Get mix status with playback data in a single request
+    const response = await axios.get('/api/spotify/request-status', {
+      params: { 
+        mix_id: props.mix.id,
+        include_playback: true,  // Add this to request playback data together
+        max_age: 10 // Keep the max_age for freshness control
+      }
     });
     
     // Set the active state immediately
-    isMixActive.value = statusResponse.data.is_active;
+    isMixActive.value = response.data.is_active;
     
-    // Only fetch playback if mix is active
-    if (isMixActive.value) {
-      const playbackResponse = await axios.get('/api/spotify/mix-playback', {
-        params: { 
-          mix_id: props.mix.id,
-          max_age: 10 // Just use max_age for freshness control
-        }
-      });
-      
-      const playbackData = { ...playbackResponse.data };
+    // If mix is active and playback data was included, use it
+    if (isMixActive.value && response.data.playback_data) {
+      const playbackData = { ...response.data.playback_data };
       delete playbackData._fromCache;
       delete playbackData._timestamp;
       
