@@ -20,7 +20,10 @@
                     :type="type"
                     :placeholder="placeholder"
                     :value="modelValue"
-                    @input="$emit('update:modelValue', $event.target.value)"
+                    @input="
+                        !disabled &&
+                            $emit('update:modelValue', $event.target.value)
+                    "
                     :aria-invalid="hasError ? 'true' : undefined"
                     :aria-describedby="getAriaDescribedBy"
                     :class="[
@@ -30,44 +33,24 @@
                             : 'bg-inputfield-background text-white outline-inputfield-stroke focus:outline-primary',
                         type === 'number' ? 'custom-number-input' : '',
                         inputClass,
+                        disabled ? 'cursor-not-allowed bg-zinc-700' : '',
                     ]"
+                    :disabled="disabled"
                 />
 
                 <!-- Custom chevrons for number input -->
                 <div
-                    v-if="type === 'number'"
+                    v-if="type === 'number' && !disabled"
                     class="absolute inset-y-0 right-2 flex flex-col items-center justify-center"
                 >
-                    <svg
-                        @click="increment"
-                        xmlns="http://www.w3.org/2000/svg"
+                    <ChevronUpIcon
                         class="h-2.5 w-2.5 text-zinc-400 cursor-pointer hover:text-zinc-200"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 15l-7-7-7 7"
-                        />
-                    </svg>
-                    <svg
-                        @click="decrement"
-                        xmlns="http://www.w3.org/2000/svg"
+                        @click="increment"
+                    />
+                    <ChevronDownIcon
                         class="h-2.5 w-2.5 mt-1 text-zinc-400 cursor-pointer hover:text-zinc-200"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M5 9l7 7 7-7"
-                        />
-                    </svg>
+                        @click="decrement"
+                    />
                 </div>
             </div>
 
@@ -91,6 +74,7 @@
 
 <script setup>
 import { ExclamationCircleIcon } from "@heroicons/vue/16/solid";
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/outline";
 import { computed } from "vue";
 
 const props = defineProps({
@@ -115,6 +99,10 @@ const props = defineProps({
         type: [String, Array, Object],
         default: "",
     },
+    disabled: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const hasError = computed(() => !!props.error);
@@ -127,13 +115,17 @@ const getAriaDescribedBy = computed(() => {
 const emit = defineEmits(["update:modelValue"]);
 
 function increment() {
-    const value = Number(props.modelValue) || 0;
-    emit("update:modelValue", value + 1);
+    if (!props.disabled) {
+        const value = Number(props.modelValue) || 0;
+        emit("update:modelValue", value + 1);
+    }
 }
 
 function decrement() {
-    const value = Number(props.modelValue) || 0;
-    emit("update:modelValue", value - 1);
+    if (!props.disabled) {
+        const value = Number(props.modelValue) || 0;
+        emit("update:modelValue", value - 1);
+    }
 }
 </script>
 
