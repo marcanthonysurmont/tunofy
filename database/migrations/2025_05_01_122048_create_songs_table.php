@@ -17,9 +17,6 @@ return new class extends Migration
             $table->string('spotify_id')->index();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->integer('duration_ms')->nullable();
-            $table->integer('priority_boost')->default(0);
-            $table->integer('vote_score')->default(0);
-            $table->boolean('is_killed')->default(false);
             $table->dateTime('last_fetched_at')->nullable();
             $table->string('name');
             $table->string('artist');

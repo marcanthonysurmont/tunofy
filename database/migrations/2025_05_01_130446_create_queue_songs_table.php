@@ -17,6 +17,9 @@ return new class extends Migration
             $table->foreignId('song_id')->constrained()->onDelete('cascade');
             $table->integer('round_number');
             $table->integer('order');
+            $table->integer('priority_boost')->default(0);
+            $table->integer('vote_score')->default(0);      
+            $table->boolean('is_killed')->default(false);  
             $table->boolean('is_playing')->default(false);
             $table->timestamps();
         });
