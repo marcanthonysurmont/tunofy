@@ -24,7 +24,6 @@ use App\Http\Controllers\Application\Mixes\JoinMixController;
 use App\Http\Controllers\Application\Mixes\StorePresetController;
 use App\Http\Controllers\Application\Mixes\UpdatePresetController;
 use App\Http\Controllers\Application\Mixes\DestroyPresetController;
-use App\Http\Controllers\Application\Spotify\SpotifyController;
 use App\Http\Controllers\Application\Spotify\RequestSpotifyPlayerStatusController;
 use App\Http\Controllers\Application\Spotify\GetSpotifyMixPlaybackController;
 use App\Http\Controllers\Application\Spotify\SetMixActiveController;
