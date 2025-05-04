@@ -31,7 +31,7 @@ use App\Http\Controllers\Application\Spotify\SetMixActiveController;
 
 use App\Http\Controllers\Application\Spotify\SearchSongController;
 
-Route::get('/', ShowLandingPageController::class);
+Route::get('/', ShowLandingPageController::class)->name('landing');
 Route::get('/dpa', ShowDPAPageController::class);
 Route::get('/privacy', ShowPrivacyPageController::class);
 Route::get('/terms-of-use', ShowTermsOfUsePageController::class);
@@ -66,6 +66,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/mix-playback', GetSpotifyMixPlaybackController::class)->name('mix-playback');
         Route::post('/set-mix-active', SetMixActiveController::class)->name('set-mix-active');
     });
+    
     Route::get('/logout', LogoutController::class)->name('logout');
 });
 

@@ -14,7 +14,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->redirectGuestsTo(function (Request $request) {
+            // If this is immediately after logout, don't redirect to login
+            if ($request->session()->has('just_logged_out')) {
+                $request->session()->forget('just_logged_out');
+                return route('landing');
+            }
+            
+            return route('login');
+        });
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->web(append: [
