@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Application\Spotify;
 
 use App\Http\Requests\GetSpotifyMixPlaybackRequest;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\SpotifyService;
 use App\Models\Mix;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\JsonResponse;
 
 class GetSpotifyMixPlaybackController extends Controller
 {
-    public function __invoke(GetSpotifyMixPlaybackRequest $request, SpotifyService $spotifyService)
+    public function __invoke(GetSpotifyMixPlaybackRequest $request, SpotifyService $spotifyService): JsonResponse
     {
         $now = now()->timestamp;
         $requestId = substr(md5($now . rand()), 0, 6); // Generate short request ID

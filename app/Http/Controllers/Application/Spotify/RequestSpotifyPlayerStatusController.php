@@ -6,10 +6,11 @@ use App\Http\Requests\RequestSpotifyPlayerStatusRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\JsonResponse;
 
 class RequestSpotifyPlayerStatusController extends Controller
 {
-    public function __invoke(RequestSpotifyPlayerStatusRequest $request)
+    public function __invoke(RequestSpotifyPlayerStatusRequest $request): JsonResponse
     {
         $mixId = $request->input('mix_id');
 
