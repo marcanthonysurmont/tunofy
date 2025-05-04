@@ -19,6 +19,9 @@
             >
                 <h2
                     class="text-xl font-body font-medium whitespace-nowrap overflow-hidden text-ellipsis mt-0 mb-0 leading-none"
+                    :class="{
+                        'text-primary': isActive,
+                    }"
                 >
                     {{ mix.name.trim() }}
                 </h2>
@@ -38,6 +41,10 @@ const props = defineProps({
     mix: {
         type: Object,
         required: true,
+    },
+    isActive: {
+        type: Boolean,
+        default: false,
     },
 });
 
