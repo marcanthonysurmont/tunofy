@@ -12,11 +12,13 @@ class SetMixActiveController extends Controller
 {
     public function __invoke(SetMixActiveRequest $request, MixActivationService $mixActivationService): JsonResponse
     {
-        $mix = Mix::findOrFail($request->input('mix_id'));
+        $validated = $request->validated();
+
+        $mix = Mix::findOrFail($validated['mix_id']);
 
         $this->authorize('update', $mix);
 
-        $result = $mixActivationService->toggleMixActive($mix, $request->boolean('active'));
+        $result = $mixActivationService->toggleMixActive($mix, $validated['active']);
 
         return response()->json($result);
     }

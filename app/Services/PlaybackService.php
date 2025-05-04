@@ -42,6 +42,7 @@ class PlaybackService
                 Log::info("[REQ-{$requestId}] 🔴 First fetch or no cached data, using fresh data");
                 $freshData['_timestamp'] = now()->timestamp;
                 Cache::put($cacheKey, $freshData);
+                
                 return array_merge($freshData, ['_fromCache' => false]);
             }
 

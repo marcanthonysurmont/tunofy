@@ -11,8 +11,9 @@ use Illuminate\Http\JsonResponse;
 
 class RequestSpotifyPlayerStatusController extends Controller
 {
-    public function __invoke(RequestSpotifyPlayerStatusRequest $request, PlaybackService $playbackService): JsonResponse {
-        
+    public function __invoke(RequestSpotifyPlayerStatusRequest $request, PlaybackService $playbackService): JsonResponse
+    {
+
         $validated = $request->validated();
 
         $requestId = substr(md5(now()->timestamp . rand()), 0, 6);
@@ -34,16 +35,23 @@ class RequestSpotifyPlayerStatusController extends Controller
             'timestamp' => now()->toIso8601String(),
         ];
 
-        // Only get playback data if mix is active
-        if ($mix->is_active) {
-            $playbackData = $playbackService->getPlaybackData($mix, $requestId);
-
-            if (isset($playbackData['error'])) {
-                $response['playback_error'] = $playbackData['error'];
-            } else {
-                $response['playback_data'] = $playbackData;
-            }
+        // Return early if mix is not active
+        if (!$mix->is_active) {
+            return response()->json($response);
         }
+
+        // Get playback data since mix is active
+        $playbackData = $playbackService->getPlaybackData($mix, $requestId);
+
+        // Handle error case
+        if (isset($playbackData['error'])) {
+            $response['playback_error'] = $playbackData['error'];
+
+            return response()->json($response);
+        }
+
+        // Add playback data to response
+        $response['playback_data'] = $playbackData;
 
         return response()->json($response);
     }
