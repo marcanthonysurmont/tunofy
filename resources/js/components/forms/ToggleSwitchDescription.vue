@@ -34,7 +34,7 @@ const props = defineProps({
     },
     description: {
         type: String,
-        required: true,
+        required: false,
     },
     initialState: {
         type: Boolean,

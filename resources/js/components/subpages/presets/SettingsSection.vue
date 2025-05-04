@@ -8,11 +8,22 @@
             <h2 class="text-2xl mb-4">
                 {{ option.name }}
             </h2>
-            <div v-if="option.name === 'Voting'">
-                <ToggleSwitchDescription :label="'Enable Voting'" />
+            <div v-if="option.name === 'Voting'" class="flex flex-col gap-6">
+                <p>Batch size input range slider here</p>
+                <ToggleSwitchDescription :label="'Voting disabled'" />
+                <p>Kill percentage input range slider here</p>
+                <ToggleSwitchDescription
+                    :label="'Requires approval disabled'"
+                />
             </div>
-            <div v-else-if="option.name === 'Mix'">
-                <ToggleSwitchDescription :label="'Enable Mix'" />
+            <div v-else-if="option.name === 'Mix'" class="flex flex-col gap-6">
+                <p>Max songs numeric input here</p>
+                <p>Number of rounds numeric input here</p>
+                <ToggleSwitchDescription :label="'Priority boost disabled'" />
+                <ToggleSwitchDescription :label="'Auto remove disabled'" />
+            </div>
+            <div v-else-if="option.name === 'Chat'" class="flex flex-col gap-6">
+                <ToggleSwitchDescription :label="'Emoji chat disabled'" />
             </div>
         </div>
     </div>
