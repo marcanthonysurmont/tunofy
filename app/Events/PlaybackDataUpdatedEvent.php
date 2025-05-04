@@ -8,6 +8,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use App\Http\Resources\SpotifyPlaybackResource;
 
 class PlaybackDataUpdatedEvent implements ShouldBroadcastNow
 {
@@ -34,7 +35,7 @@ class PlaybackDataUpdatedEvent implements ShouldBroadcastNow
     {
         return [
             'mix_id' => $this->mix->id,
-            'playback_data' => $this->playbackData,
+            'playback_data' => new SpotifyPlaybackResource($this->playbackData),
         ];
     }
 }

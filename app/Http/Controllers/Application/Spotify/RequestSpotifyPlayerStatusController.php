@@ -8,6 +8,7 @@ use App\Models\Mix;
 use App\Services\PlaybackService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
+use App\Http\Resources\SpotifyPlaybackResource;
 
 class RequestSpotifyPlayerStatusController extends Controller
 {
@@ -51,7 +52,7 @@ class RequestSpotifyPlayerStatusController extends Controller
         }
 
         // Add playback data to response
-        $response['playback_data'] = $playbackData;
+        $response['playback_data'] = new SpotifyPlaybackResource($playbackData);
 
         return response()->json($response);
     }
