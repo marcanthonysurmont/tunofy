@@ -93,8 +93,6 @@ const loadInitialData = async () => {
     const response = await axios.get('/api/spotify/request-status', {
       params: { 
         mix_id: props.mix.id,
-        include_playback: true,  // Add this to request playback data together
-        max_age: 10 // Keep the max_age for freshness control
       }
     });
     

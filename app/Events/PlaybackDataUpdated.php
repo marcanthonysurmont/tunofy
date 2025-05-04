@@ -38,9 +38,9 @@ class PlaybackDataUpdated implements ShouldBroadcastNow
 
         // First broadcast - always send
         if (!$lastData) {
-            // Update the shared cache
+            // Update the shared cache without expiration
             $this->playbackData['_timestamp'] = now()->timestamp;
-            Cache::put($cacheKey, $this->playbackData, 300);
+            Cache::put($cacheKey, $this->playbackData); // Remove the 300 TTL
 
             Log::info("Broadcasting playback update for mix {$this->mixId} - Reason: first broadcast");
             return true;
@@ -62,9 +62,9 @@ class PlaybackDataUpdated implements ShouldBroadcastNow
         }
 
         if ($hasChanges) {
-            // Update the shared cache
+            // Update the shared cache without expiration
             $this->playbackData['_timestamp'] = now()->timestamp;
-            Cache::put($cacheKey, $this->playbackData, 300);
+            Cache::put($cacheKey, $this->playbackData); // Remove the 300 TTL
 
             Log::info("Broadcasting playback update for mix {$this->mixId} - Reason: {$reason}");
             return true;
@@ -72,7 +72,7 @@ class PlaybackDataUpdated implements ShouldBroadcastNow
 
         // Always update the timestamp even for non-broadcast updates
         $this->playbackData['_timestamp'] = now()->timestamp;
-        Cache::put($cacheKey, $this->playbackData, 300);
+        Cache::put($cacheKey, $this->playbackData); // Remove the 300 TTL
 
         Log::debug("Skipping broadcast for mix {$this->mixId} - No significant changes");
         return false;
