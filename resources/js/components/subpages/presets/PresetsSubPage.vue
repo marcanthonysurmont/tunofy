@@ -1,5 +1,7 @@
 <template>
-    <p>this is presets page</p>
+    <TemplatesSection />
 </template>
 
-<script setup></script>
+<script setup>
+import TemplatesSection from "@/components/subpages/presets/TemplatesSection.vue";
+</script>
