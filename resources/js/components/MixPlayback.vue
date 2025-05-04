@@ -74,14 +74,18 @@ const isLoading = ref(true);
 
 // Simple functions to update player state
 const updatePlayerState = (data) => {
+  console.log('Updating player state with:', data);
+  
   if (!data || !data.item) {
     currentTrack.value = null;
     isPlaying.value = false;
     return;
   }
   
+  // Update with the track info
   currentTrack.value = data.item;
   isPlaying.value = data.is_playing;
+  console.log('Player state updated:', { isPlaying: isPlaying.value, track: currentTrack.value?.name });
 };
 
 // Initial data load
@@ -165,11 +169,24 @@ onMounted(() => {
         } else {
           // Normal playback data
           updatePlayerState(e.playback_data);
+          
+          // Make sure to mark the mix as active when we receive playback data
+          // This is critical - it ensures the UI shows the player when data arrives
+          if (!isMixActive.value) {
+            console.log('Setting mix to active based on incoming playback data');
+            isMixActive.value = true;
+          }
         }
       })
       .listen('.mix-status-changed', (e) => {
-        isMixActive.value = e.isActive;
         console.log('Mix status changed:', e.isActive);
+        isMixActive.value = e.isActive;
+        
+        // If mix was just activated, request fresh data
+        if (e.isActive && !currentTrack.value) {
+          console.log('Mix was activated, requesting fresh playback data');
+          loadInitialData();
+        }
       });
   }
 });
