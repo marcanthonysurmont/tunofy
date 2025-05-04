@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
+use App\Events\MixStatusChangedEvent;
 use App\Models\Mix;
-use App\Events\MixStatusChanged;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use App\Jobs\PollSpotifyMix;
@@ -21,7 +21,7 @@ class MixActivationService
 
         // Broadcast the status change
         Log::info("Broadcasting MixStatusChanged event for mix {$mix->id}, active={$isActive}");
-        broadcast(new MixStatusChanged($mix, $isActive))->toOthers();
+        broadcast(new MixStatusChangedEvent($mix, $isActive))->toOthers();
 
         // Handle deactivation
         if (!$isActive && $wasActive) {

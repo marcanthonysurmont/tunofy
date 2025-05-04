@@ -9,27 +9,15 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MixStatusChanged implements ShouldBroadcastNow
+class MixStatusChangedEvent implements ShouldBroadcastNow
 {
     use Dispatchable;
     use InteractsWithSockets;
     use SerializesModels;
 
-    public $mix;
-    public $isActive;
-
-    /**
-     * Create a new event instance.
-     */
-    public function __construct(Mix $mix, bool $isActive)
-    {
-        $this->mix = $mix;
-        $this->isActive = $isActive;
-    }
-
-    /**
-     * Get the channels the event should broadcast on.
-     */
+    public function __construct(public Mix $mix, public bool $isActive)
+    {}
+    
     public function broadcastOn(): array
     {
         return [
@@ -37,21 +25,15 @@ class MixStatusChanged implements ShouldBroadcastNow
         ];
     }
 
-    /**
-     * The event's broadcast name.
-     */
     public function broadcastAs(): string
     {
-        return 'MixStatusChanged';
+        return 'mix-status-changed';
     }
 
-    /**
-     * Get the data to broadcast.
-     */
     public function broadcastWith(): array
     {
         return [
-            'mixId' => $this->mix->id,
+            'mix_id' => $this->mix->id,
             'isActive' => $this->isActive,
             'timestamp' => now()->timestamp
         ];

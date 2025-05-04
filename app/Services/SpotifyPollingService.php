@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Mix;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
-use App\Events\PlaybackDataUpdated;
+use App\Events\PlaybackDataUpdatedEvent;
 use App\Models\User;
 
 class SpotifyPollingService
@@ -21,58 +21,55 @@ class SpotifyPollingService
     /**
      * Poll Spotify for the current playback state of a mix's owner
      */
-    public function pollPlayback(Mix $mix)
+    public function pollPlayback(Mix $mix): void
     {
         $cacheKey = "spotify:playback:{$mix->id}";
 
         try {
-            // Get the mix owner (the user)
+            // Get the mix owner
             $user = User::find($mix->user_id);
+            Log::info("Requesting playback data from Spotify for user {$user->id}");
 
-            // Get current data from Spotify - pass the User object instead of Mix
+            // Get current data from Spotify
             $playbackData = $this->spotifyService->getCurrentPlayback($user);
 
-            // Check if playback data is valid/not empty
+            // Handle case when nothing is playing
             if (empty($playbackData) || !isset($playbackData['item'])) {
-                Log::warning("Received empty or invalid playback data for mix {$mix->id}");
+                Log::info("No active playback for user {$user->id}");
 
-                // Optionally broadcast a "no playback" status
-                event(new PlaybackDataUpdated($mix, ['status' => 'no_active_playback']));
-                return null;
+                // Broadcast a "no playback" status with timestamp
+                $noPlaybackData = [
+                    'status' => 'no_active_playback',
+                    '_timestamp' => now()->timestamp
+                ];
+
+                // Update cache and broadcast
+                Cache::put($cacheKey, $noPlaybackData);
+                event(new PlaybackDataUpdatedEvent($mix, $noPlaybackData));
+                
+                return;
             }
 
             // Get the previous data from cache
             $previousData = Cache::get($cacheKey);
 
-            // Detect significant changes to determine if we should broadcast
-            $shouldBroadcast = $this->hasSignificantChanges($previousData, $playbackData);
+            // Always add timestamp to the current data
+            $playbackData['_timestamp'] = now()->timestamp;
 
+            // Update cache regardless of changes to keep timestamp fresh
+            Cache::put($cacheKey, $playbackData);
+
+            // Only broadcast if there are significant changes
+            $shouldBroadcast = $this->hasSignificantChanges($previousData, $playbackData);
             if ($shouldBroadcast) {
                 Log::info("Detected changes in mix {$mix->id} - Reason: " . $this->changeReason);
-
-                // Then pass the model to the event
-                event(new PlaybackDataUpdated($mix, $playbackData));
+                event(new PlaybackDataUpdatedEvent($mix, $playbackData));
             } else {
                 Log::debug("Skipping broadcast for mix {$mix->id} - No significant changes");
             }
-
-            // Always update the cache with a timestamp
-            $playbackData['_timestamp'] = now()->timestamp;
-            Cache::put($cacheKey, $playbackData, 60);
-
-            return $playbackData;
         } catch (\Exception $e) {
             Log::error("Error polling playback for mix {$mix->id}: " . $e->getMessage());
-            return null;
         }
-    }
-
-    /**
-     * Get the cached playback data for a mix
-     */
-    public function getCachedPlayback(Mix $mix)
-    {
-        return Cache::get("spotify:playback:{$mix->id}");
     }
 
     /**

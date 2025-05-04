@@ -157,17 +157,17 @@ onMounted(() => {
       .listen('.playback-data', (e) => {
         console.log('📢 Received playback-data event:', e);
         
-        if (e.playbackData.status === 'no_active_playback') {
+        if (e.playback_data.status === 'no_active_playback') {
           // Clear current track
           currentTrack.value = null;
           isPlaying.value = false;
           console.log('No active playback');
         } else {
           // Normal playback data
-          updatePlayerState(e.playbackData);
+          updatePlayerState(e.playback_data);
         }
       })
-      .listen('.MixStatusChanged', (e) => {
+      .listen('.mix-status-changed', (e) => {
         isMixActive.value = e.isActive;
         console.log('Mix status changed:', e.isActive);
       });
