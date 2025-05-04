@@ -10,13 +10,10 @@ use App\Models\User;
 
 class SpotifyPollingService
 {
-    protected $spotifyService;
     protected $changeReason = ''; // Add this property to store reason for changes
 
-    public function __construct(SpotifyService $spotifyService)
-    {
-        $this->spotifyService = $spotifyService;
-    }
+    public function __construct(protected SpotifyService $spotifyService)
+    {}
 
     /**
      * Poll Spotify for the current playback state of a mix's owner
@@ -46,7 +43,7 @@ class SpotifyPollingService
                 // Update cache and broadcast
                 Cache::put($cacheKey, $noPlaybackData);
                 event(new PlaybackDataUpdatedEvent($mix, $noPlaybackData));
-                
+
                 return;
             }
 
@@ -75,7 +72,7 @@ class SpotifyPollingService
     /**
      * Determine if there are significant changes between previous and current playback data
      */
-    private function hasSignificantChanges($previous, $current)
+    private function hasSignificantChanges($previous, $current): bool
     {
         if (!$previous) {
             $this->changeReason = "first broadcast";

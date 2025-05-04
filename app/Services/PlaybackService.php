@@ -9,12 +9,8 @@ use Illuminate\Support\Facades\Log;
 
 class PlaybackService
 {
-    protected $spotifyService;
-
-    public function __construct(SpotifyService $spotifyService)
-    {
-        $this->spotifyService = $spotifyService;
-    }
+    public function __construct(protected SpotifyService $spotifyService)
+    {}
 
     /**
      * Get playback data for a mix, optimized for server-side polling architecture
@@ -30,6 +26,10 @@ class PlaybackService
         // If we have cached data, use it
         if ($cachedData) {
             Log::info("[REQ-{$requestId}] Using cached data");
+            if (!is_array($cachedData)) {
+                Log::warning("[REQ-{$requestId}] Cached data is not an array, converting");
+                $cachedData = (array)$cachedData;
+            }
             return array_merge($cachedData, ['_fromCache' => true]);
         }
 
@@ -40,9 +40,17 @@ class PlaybackService
 
             if ($freshData) {
                 Log::info("[REQ-{$requestId}] 🔴 First fetch or no cached data, using fresh data");
+                if (!is_array($freshData)) {
+                    Log::warning("[REQ-{$requestId}] Fresh data is not an array, converting");
+                    if (is_string($freshData) && json_validate($freshData)) {
+                        $freshData = json_decode($freshData, true);
+                    } else {
+                        $freshData = (array)$freshData;
+                    }
+                }
                 $freshData['_timestamp'] = now()->timestamp;
                 Cache::put($cacheKey, $freshData);
-                
+
                 return array_merge($freshData, ['_fromCache' => false]);
             }
 
