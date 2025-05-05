@@ -22,7 +22,7 @@
                         class="w-full bg-transparent border-none text-dark-white placeholder-zinc-400 pl-4 pr-12 py-2 focus:outline-none"
                         :displayValue="(song) => song?.name"
                         @input="handleSearch"
-                        placeholder="Find a song to add..."
+                        placeholder="Search songs..."
                         autocomplete="off"
                         autocorrect="off"
                         autocapitalize="off"
@@ -118,7 +118,7 @@
                                     class="ml-2 flex-shrink-0"
                                 >
                                     <button
-                                        class="md:opacity-0 md:group-hover:opacity-100 opacity-100 transition-opacity p-1 rounded-full transition-all duration-200"
+                                        class="lg:opacity-0 lg:group-hover:opacity-100 opacity-100 p-1 rounded-full transition-all duration-200"
                                         :class="
                                             isSongAdded(song)
                                                 ? 'text-green-500 hover:text-green-400 hover:bg-zinc-700/30'
@@ -149,7 +149,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed } from "vue";
 import axios from "axios";
 import { debounce } from "lodash";
 import {
@@ -180,16 +180,6 @@ const form = useForm({
     artist: "",
     image_url: "",
 });
-
-watch(
-    () => isFocused.value,
-    (newValue) => {
-        if (!newValue) {
-            query.value = "";
-            songs.value = [];
-        }
-    }
-);
 
 const debouncedSearch = debounce(async (searchQuery) => {
     if (!searchQuery || searchQuery.trim() === "") {
