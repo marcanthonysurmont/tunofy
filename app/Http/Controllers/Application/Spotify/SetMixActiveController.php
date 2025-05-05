@@ -11,7 +11,7 @@ use Illuminate\Http\JsonResponse;
 
 class SetMixActiveController extends Controller
 {
-    public function __invoke(SetMixActiveRequest $request, MixActivationService $mixActivationService, QueueManagementService $queueManagementService): JsonResponse 
+    public function __invoke(SetMixActiveRequest $request, MixActivationService $mixActivationService, QueueManagementService $queueManagementService): JsonResponse
     {
         $validated = $request->validated();
 
@@ -19,16 +19,24 @@ class SetMixActiveController extends Controller
 
         $this->authorize('update', $mix);
 
-        // Activation handling (now separate from queue management)
+        // Activation handling
         $result = $mixActivationService->toggleMixActive($mix, $validated['active']);
 
-        // Queue handling (done separately)
+        // Queue handling
         $queueResult = null;
 
         if ($validated['active'] === true) {
-            // Initialize and start queue when activating
-            $queueManagementService->initializeQueue($mix);
-            $queueResult = $queueManagementService->startPlayback($mix->id);
+            // When activating, ensure we properly initialize the queue first
+            $resetQueue = $request->input('reset_queue', true); // Default to true to fix first song skip
+
+            // Initialize queue first
+            $queueManagementService->initializeQueue($mix, $resetQueue);
+
+            // Short pause to ensure queue is properly initialized
+            usleep(100000); // 100ms pause
+
+            // Start playback after initialization is complete
+            $queueResult = $queueManagementService->startPlayback($mix->id, $resetQueue);
         } else {
             // Stop and clear queue when deactivating
             $queueResult = $queueManagementService->stopPlayback($mix->id);

@@ -8,6 +8,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Central service for all queue operations
@@ -18,15 +19,16 @@ use Illuminate\Support\Facades\Auth;
  */
 class QueueManagementService
 {
-    public function __construct(protected SpotifyService $spotifyService, protected SongPlaybackService $songPlaybackService) 
-    {}
+    public function __construct(protected SpotifyService $spotifyService, protected SongPlaybackService $songPlaybackService)
+    {
+    }
 
     /**
      * Initialize queue for a mix
      *
      * Creates queue entries for all songs in the mix.
      */
-    public function initializeQueue(Mix $mix): array
+    public function initializeQueue(Mix $mix, bool $resetQueue = false): array
     {
         Log::info("Initializing queue for mix {$mix->id}");
 
@@ -51,6 +53,12 @@ class QueueManagementService
 
         Log::info("Created {$order} queue entries for mix {$mix->id}");
 
+        // If resetQueue is true, ensure the queue position is reset to 0
+        if ($resetQueue) {
+            Cache::put("mix_{$mix->id}_queue_position", 0, 3600);
+            Log::info("Queue position reset for mix {$mix->id}");
+        }
+
         return [
             'success' => true,
             'message' => "Queue initialized with {$order} songs"
@@ -60,9 +68,9 @@ class QueueManagementService
     /**
      * Start or resume queue playback
      */
-    public function startPlayback(int $mixId): array
+    public function startPlayback(int $mixId, bool $resetQueue = false): array
     {
-        Log::info("Starting playback for mix {$mixId}");
+        Log::info("Starting playback for mix {$mixId}, resetQueue: " . ($resetQueue ? 'true' : 'false'));
 
         // Get the mix and user
         $mix = Mix::findOrFail($mixId);
@@ -74,6 +82,14 @@ class QueueManagementService
         // Give Spotify a moment to register the device activation
         sleep(1);
 
+        // If resetQueue is true, ensure we start from the beginning
+        if ($resetQueue) {
+            // Reset the position to ensure we start from the first song
+            Cache::put("mix_{$mixId}_queue_position", 0, 3600);
+            Log::info("Queue position reset to 0 for mix {$mixId} before playback");
+        }
+
+        // Use the standard playback method - don't try to do it ourselves
         return $this->songPlaybackService->startPlayback($mixId);
     }
 

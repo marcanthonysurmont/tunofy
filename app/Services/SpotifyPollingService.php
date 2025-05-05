@@ -325,6 +325,9 @@ class SpotifyPollingService
             ];
 
             Cache::put($cacheKey, $noPlaybackData);
+
+            // Always broadcast no playback state
+            Log::info("Broadcasting no active playback for mix {$mix->id}");
             event(new PlaybackDataUpdatedEvent($mix, $noPlaybackData));
             return;
         }
@@ -335,7 +338,15 @@ class SpotifyPollingService
         // Update cache
         Cache::put($cacheKey, $playbackData);
 
-        // Only broadcast significant changes
+        // MODIFICATION: Always broadcast when the mix is active regardless of changes
+        if ($mix->is_active) {
+            // For active mixes, broadcast every update to keep all browsers in sync
+            Log::info("Broadcasting playback data for active mix {$mix->id}");
+            event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+            return;
+        }
+
+        // For inactive mixes, only broadcast significant changes
         if ($this->hasSignificantChanges($previousData, $playbackData)) {
             Log::info("Broadcasting playback change: {$this->changeReason}");
             event(new PlaybackDataUpdatedEvent($mix, $playbackData));
