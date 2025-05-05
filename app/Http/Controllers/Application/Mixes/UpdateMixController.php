@@ -18,7 +18,7 @@ class UpdateMixController extends Controller
         try {
             $avatarPath = null;
             if ($request->hasFile('avatar')) {
-                $avatarPath = $request->file('avatar')->store('', 'mix_avatars');
+                $avatarPath = $request->file('avatar')->store('mix_avatars', 'public');
             }
 
             $mix->update([

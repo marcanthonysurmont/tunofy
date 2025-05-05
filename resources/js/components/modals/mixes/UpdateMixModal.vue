@@ -101,7 +101,7 @@ function updateMix() {
 
     isLoading.value = true;
 
-    form.put(route("mix.update", mix.value.id), {
+    form.post(route("mix.update", mix.value.id), {
         onFinish: () => {
             isLoading.value = false;
         },

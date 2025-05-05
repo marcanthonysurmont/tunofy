@@ -42,7 +42,7 @@ Route::middleware('auth')->group(function () {
 
         Route::prefix('/mix')->name('mix.')->group(function () {
             Route::post('/store', StoreMixController::class)->name('store');
-            Route::put('/update/{mix}', UpdateMixController::class)->name('update');
+            Route::post('/update/{mix}', UpdateMixController::class)->name('update');
             Route::delete('/destroy/{mix}', DestroyMixController::class)->name('destroy');
             Route::post('/add-song/{mix}', AddSongToMixController::class)->name('add-song');
             Route::delete('/remove-song/{song}', RemoveSongFromMixController::class)->name('remove-song');
