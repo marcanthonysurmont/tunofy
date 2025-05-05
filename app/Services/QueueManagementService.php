@@ -98,7 +98,20 @@ class QueueManagementService
      */
     public function stopPlayback(int $mixId): array
     {
+        $mix = Mix::findOrFail($mixId);
+        $user = User::findOrFail($mix->user_id);
+
         Log::info("Stopping playback for mix {$mixId}");
+
+        // First, try to pause Spotify playback
+        try {
+            // This is likely missing in your current implementation
+            $this->spotifyService->pausePlayback($user);
+            Log::info("Paused Spotify playback for mix {$mixId}");
+        } catch (\Exception $e) {
+            Log::error("Failed to pause Spotify playback: " . $e->getMessage());
+            // Continue with queue cleanup even if pause fails
+        }
 
         // Clear the queue
         $this->clearQueue($mixId);
