@@ -3,13 +3,14 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StorePresetRequest extends FormRequest
 {
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'mix_id' => ['required', Rule::exists('mixes', 'id')],
             'batch_size' => ['required', 'integer', 'min:1'],
             'max_songs' => ['integer', 'min:1'],
             'num_rounds' => ['integer', 'min:1'],

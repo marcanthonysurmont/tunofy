@@ -47,6 +47,11 @@ class Mix extends Model
         return $this->hasMany(Song::class);
     }
 
+    public function presets()
+    {
+        return $this->hasMany(Preset::class);
+    }
+
     public function collaborators()
     {
         return $this->belongsToMany(User::class, 'mix_accesses')
@@ -67,7 +72,7 @@ class Mix extends Model
     {
         $user = Auth::user();
 
-        return new Attribute(fn() => [
+        return new Attribute(fn () => [
             'canView' => $user->can('view', $this),
             'canAddSong' => $user->can('addSongs', $this),
             'canRemoveSong' => $user->can('removeSongs', $this),
@@ -78,6 +83,25 @@ class Mix extends Model
             'canGenerateSessionCode' => $user->can('generateSessionCode', $this),
             'isOwner' => $user->id === $this->user_id,
         ]);
+    }
+
+    protected function allPresets(): Attribute
+    {
+        return new Attribute(function () {
+            // Get and sort mix-specific presets
+            $mixPresets = $this->relationLoaded('presets')
+                ? $this->presets
+                : $this->presets()->get();
+            $mixPresets = $mixPresets->sortBy('created_at');
+
+            // Get and sort default presets
+            $defaultPresets = Preset::where('is_system', true)
+                ->where('mix_id', null)
+                ->get()->sortBy('created_at');
+
+            // Combine collections in desired order: default presets first, then mix presets
+            return $defaultPresets->concat($mixPresets)->values();
+        });
     }
 
     /**************************************/
