@@ -67,6 +67,9 @@ class SpotifyPollingService
 
                 if ($pendingSongs) {
                     $this->songPlaybackService->startPlayback($mix->id);
+
+                    // After starting playback, refresh playback data
+                    $playbackData = $this->spotifyService->getCurrentPlayback($user);
                 }
             } else {
                 // Analyze player state and take appropriate action
@@ -78,7 +81,22 @@ class SpotifyPollingService
                     $previousData
                 );
 
-                $this->handlePlayerState($mix, $playerState);
+                $stateChanged = $this->handlePlayerState($mix, $playerState);
+
+                // If state changed (song advanced), refresh playback data
+                if ($stateChanged && in_array($playerState, [
+                    self::PLAYER_STATE_FINISHED,
+                    self::PLAYER_STATE_TRACK_MISMATCH,
+                    self::PLAYER_STATE_NO_PLAYBACK,
+                    self::PLAYER_STATE_MANUAL_SEEK_END,
+                    self::PLAYER_STATE_PLAYING_TOO_LONG
+                ])) {
+                    // Give Spotify a moment to update
+                    sleep(1);
+
+                    // Refresh playback data
+                    $playbackData = $this->spotifyService->getCurrentPlayback($user);
+                }
             }
 
             // Always update cache and broadcast
@@ -198,8 +216,10 @@ class SpotifyPollingService
     /**
      * Take action based on the analyzed player state
      */
-    private function handlePlayerState(Mix $mix, string $playerState): void
+    private function handlePlayerState(Mix $mix, string $playerState): bool
     {
+        $stateChanged = false;
+
         switch ($playerState) {
             case self::PLAYER_STATE_NO_PLAYBACK:
             case self::PLAYER_STATE_TRACK_MISMATCH:
@@ -208,7 +228,14 @@ class SpotifyPollingService
             case self::PLAYER_STATE_PLAYING_TOO_LONG:
                 // All these states require advancing to the next song
                 Log::info("Advancing queue for mix {$mix->id} due to player state: {$playerState}");
+
+                // IMPORTANT: Explicitly clear the playback cache before advancing
+                $playbackCacheKey = self::CACHE_PREFIX_PLAYBACK . $mix->id;
+                Cache::forget($playbackCacheKey);
+                Log::info("Cleared playback cache for mix {$mix->id}");
+
                 $this->songPlaybackService->advanceToNextSong($mix->id);
+                $stateChanged = true;
 
                 // Clean up any related cache entries
                 if ($playerState === self::PLAYER_STATE_MANUAL_SEEK_END) {
@@ -228,8 +255,14 @@ class SpotifyPollingService
 
                 if ($stuckCount >= 3) {
                     Log::info("Playback stuck for mix {$mix->id} - advancing queue");
+
+                    // IMPORTANT: Also clear cache here
+                    $playbackCacheKey = self::CACHE_PREFIX_PLAYBACK . $mix->id;
+                    Cache::forget($playbackCacheKey);
+
                     $this->songPlaybackService->advanceToNextSong($mix->id);
                     Cache::forget($stuckKey);
+                    $stateChanged = true;
                 }
                 break;
 
@@ -239,6 +272,8 @@ class SpotifyPollingService
                 Log::debug("Song nearing end for mix {$mix->id} - monitoring closely");
                 break;
         }
+
+        return $stateChanged;
     }
 
     /**

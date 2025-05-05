@@ -20,7 +20,7 @@ class PlaybackService
         // Generate request ID if not provided
         $requestId = $requestId ?? substr(md5(now()->timestamp . rand()), 0, 6);
 
-        $cacheKey = "spotify:playback:{$mix->id}";
+        $cacheKey = "mix:playback:{$mix->id}";
         $cachedData = Cache::get($cacheKey);
 
         // If we have cached data, use it
