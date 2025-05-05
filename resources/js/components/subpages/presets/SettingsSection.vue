@@ -23,15 +23,25 @@
                 {{ option.name }}
             </h2>
             <div v-if="option.name === 'Voting'" class="flex flex-col gap-6">
-                <p class="text-zinc-400">Batch size input range slider here</p>
+                <InputRangeSlider
+                    label="Batch size"
+                    v-model="settingsForm.batch_size"
+                    :min="1"
+                    :max="50"
+                    :step="1"
+                />
+                <InputRangeSlider
+                    label="Kill percentage"
+                    v-model="settingsForm.kill_percentage_percent"
+                    :min="0"
+                    :max="100"
+                    :step="1"
+                />
                 <ToggleSwitchDescription
                     :label="'Voting'"
                     v-model="settingsForm.voting_enabled"
                     :disabled="!isCustomTemplate"
                 />
-                <p class="text-zinc-400">
-                    Kill percentage input range slider here
-                </p>
                 <ToggleSwitchDescription
                     :label="'Requires approval'"
                     v-model="settingsForm.requires_approval"
@@ -86,6 +96,7 @@
         @click="saveChanges"
         :loading="isLoading"
         v-if="isCustomTemplate"
+        class="w-full sm:w-auto"
     >
         Save changes
     </RegularButton>
@@ -98,6 +109,7 @@ import { useForm, router, usePage } from "@inertiajs/vue3";
 import { computed, ref, watch } from "vue";
 import RegularButton from "@/components/buttons/RegularButton.vue";
 import { useTemplatesStore } from "@/stores/StorePresets.js";
+import InputRangeSlider from "../../forms/InputRangeSlider.vue";
 
 const templatesStore = useTemplatesStore();
 
@@ -163,8 +175,8 @@ function saveChanges() {
     }
     isLoading.value = true;
 
-    console.log(settingsForm);
     settingsForm.post(route("mix.presets.update", presetId.value), {
+        preserveScroll: true,
         onSuccess: () => {
             isLoading.value = false;
         },

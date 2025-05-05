@@ -18,7 +18,7 @@
                 v-if="templatesStore.selectedTemplateIndex === index"
                 class="absolute top-2 right-2 w-6 h-6 text-blue-500"
             />
-            <h2 class="text-2xl font-semibold mb-4 font-body">
+            <h2 class="text-2xl font-semibold font-body">
                 {{ template.name }}
             </h2>
             <p>{{ template.description }}</p>
