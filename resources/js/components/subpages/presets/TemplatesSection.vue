@@ -34,6 +34,7 @@ import { computed } from "vue";
 
 const page = usePage();
 const mix = computed(() => page.props.mix);
+const authorization = computed(() => page.props.mix.authorized);
 
 const templatesStore = useTemplatesStore();
 
@@ -42,6 +43,11 @@ const selectPresetForm = useForm({
 });
 
 function selectTemplate(index, id) {
+    //if user is not owner, then do not allow to select template
+    if (authorization.value.isOwner === false) {
+        return;
+    }
+
     //save in store
     templatesStore.selectTemplate(index, id);
 

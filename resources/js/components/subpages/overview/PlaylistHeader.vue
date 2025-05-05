@@ -43,7 +43,10 @@
                     class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
                 />
                 <MenuDropdown>
-                    <MenuItem v-slot="{ active }">
+                    <MenuItem
+                        v-slot="{ active }"
+                        v-if="authorization.canUpdate"
+                    >
                         <button
                             :class="[
                                 active
@@ -62,7 +65,7 @@
                             >
                         </button>
                     </MenuItem>
-                    <MenuItem v-slot="{ active }">
+                    <MenuItem v-slot="{ active }" v-if="authorization.isOwner">
                         <button
                             :class="[
                                 active
@@ -81,7 +84,7 @@
                             >
                         </button>
                     </MenuItem>
-                    <MenuItem v-slot="{ active }">
+                    <MenuItem v-slot="{ active }" v-if="authorization.isOwner">
                         <button
                             @click="deleteMix"
                             :class="[
@@ -101,7 +104,10 @@
                             >
                         </button>
                     </MenuItem>
-                    <MenuItem v-slot="{ active }">
+                    <MenuItem
+                        v-slot="{ active }"
+                        v-if="authorization.canGenerateSessionCode"
+                    >
                         <button
                             @click="showCreateSessionModal = true"
                             :class="[
@@ -174,6 +180,7 @@ const page = usePage();
 const props = computed(() => page.props);
 const mix = computed(() => props.value.mix);
 const owner = computed(() => props.value.owner);
+const authorization = computed(() => page.props.mix.authorized);
 const showCreateSessionModal = ref(false);
 
 const readableTime = computed(() => {

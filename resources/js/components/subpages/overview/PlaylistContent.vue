@@ -70,6 +70,7 @@
                                 <button
                                     @click="deleteSong(song.id)"
                                     class="p-1 sm:p-2 cursor-pointer"
+                                    v-if="authorization.canRemoveSong"
                                 >
                                     <TrashIcon
                                         class="h-4 w-4 sm:h-5 sm:w-5 text-red-500 hover:text-red-700"
@@ -92,6 +93,7 @@ import { TrashIcon } from "@heroicons/vue/24/outline";
 const page = usePage();
 const props = computed(() => page.props);
 const songs = computed(() => props.value.mix.songs);
+const authorization = computed(() => page.props.mix.authorized);
 
 function getImageUrl(song) {
     return song.avatar === null

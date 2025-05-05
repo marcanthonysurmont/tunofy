@@ -34,15 +34,17 @@
                     {{ tab.name }}
                 </a>
             </nav>
-            <SearchBarSong v-if="activeTabIndex === 0" />
+            <SearchBarSong
+                v-if="activeTabIndex === 0 && authorization.canAddSong"
+            />
         </div>
     </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, computed, nextTick } from "vue";
-import { ChevronDownIcon } from "@heroicons/vue/16/solid";
 import SearchBarSong from "@/components/SearchBarSong.vue";
+import { usePage } from "@inertiajs/vue3";
 
 const props = defineProps({
     tabs: {
@@ -53,6 +55,9 @@ const props = defineProps({
 
 const activeTabIndicator = ref(null);
 const tabElements = ref([]);
+
+const page = usePage();
+const authorization = computed(() => page.props.mix.authorized);
 
 const emit = defineEmits(["tab-changed"]);
 
