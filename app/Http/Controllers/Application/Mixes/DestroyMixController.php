@@ -11,16 +11,16 @@ class DestroyMixController extends Controller
     public function __invoke(Mix $mix): RedirectResponse
     {
         $this->authorize('delete', $mix);
-        
+
         try {
             $mix->delete();
 
-            return redirect()->back()
+            return redirect()
+                ->route('app')
                 ->with('success', 'Mix deleted successfully.');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('danger', 'Failed to delete mix. Please try again later.');
         }
-
     }
 }

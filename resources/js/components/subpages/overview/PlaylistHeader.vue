@@ -48,6 +48,7 @@
                         v-if="authorization.canUpdate"
                     >
                         <button
+                            @click="showUpdateMixModal = true"
                             :class="[
                                 active
                                     ? 'bg-card-background-lighter text-dark-white cursor-pointer'
@@ -154,6 +155,10 @@
             :is-visible="showCreateSessionModal"
             @close-modal="showCreateSessionModal = false"
         />
+        <UpdateMixModal
+            :is-visible="showUpdateMixModal"
+            @close-modal="showUpdateMixModal = false"
+        />
     </teleport>
 </template>
 
@@ -175,13 +180,16 @@ import CreateSessionModal from "@/components/modals/sessions/CreateSessionModal.
 import { router, usePage } from "@inertiajs/vue3";
 import { ref, computed } from "vue";
 import toast from "@/stores/StoreToast.js";
+import UpdateMixModal from "@/components/modals/mixes/UpdateMixModal.vue";
 
 const page = usePage();
 const props = computed(() => page.props);
 const mix = computed(() => props.value.mix);
 const owner = computed(() => props.value.owner);
 const authorization = computed(() => page.props.mix.authorized);
+
 const showCreateSessionModal = ref(false);
+const showUpdateMixModal = ref(false);
 
 const readableTime = computed(() => {
     const totalMs = mix.value.songs.reduce(
@@ -204,12 +212,7 @@ function deleteMix() {
         onError: (error) => {
             console.error("Error deleting mix:", error);
         },
-        onFinish: () => {
-            router.visit(route("app"), {
-                preserveState: true,
-                preserveScroll: true,
-            });
-        },
+        onFinish: () => {},
     });
 }
 function copyCodeToClipboard() {
