@@ -11,11 +11,8 @@ use Illuminate\Http\JsonResponse;
 
 class SetMixActiveController extends Controller
 {
-    public function __invoke(
-        SetMixActiveRequest $request,
-        MixActivationService $mixActivationService,
-        QueueManagementService $queueManagementService
-    ): JsonResponse {
+    public function __invoke(SetMixActiveRequest $request, MixActivationService $mixActivationService, QueueManagementService $queueManagementService): JsonResponse 
+    {
         $validated = $request->validated();
 
         $mix = Mix::findOrFail($validated['mix_id']);

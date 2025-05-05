@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Preset;
 
 class StoreMixController extends Controller
 {
@@ -20,13 +21,13 @@ class StoreMixController extends Controller
                 $avatarPath = $request->file('image')->store('mix_avatars', 'public');
             }
 
-            Mix::create([
+            $mix = Mix::create([
                 'user_id' => Auth::id(),
                 'name' => $validated['name'],
                 'is_public' => $validated['is_public'],
                 'avatar' => $avatarPath,
             ]);
-
+            
             return redirect()->back()
                 ->with('success', 'Mix created successfully!');
         } catch (\Exception $e) {

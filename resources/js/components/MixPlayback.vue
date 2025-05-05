@@ -11,9 +11,15 @@
       </button>
     </div>
     
-    <!-- Simple loading state -->
-    <div v-if="isLoading" class="loading">
-      Loading...
+    <!-- Loading state while we're syncing with Spotify -->
+    <div v-if="isSyncingWithSpotify" class="loading">
+      <div class="flex items-center justify-center">
+        <svg class="animate-spin h-5 w-5 mr-2 text-spotify-green" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Syncing with Spotify...
+      </div>
     </div>
     
     <!-- Content based on active state -->
@@ -66,13 +72,15 @@ const props = defineProps({
   }
 });
 
-// State - keep it simple
+// State variables with consistent naming and purpose
 const currentTrack = ref(null);
 const isPlaying = ref(false);
-const isMixActive = ref(false);
-const isLoading = ref(true);
+const isMixActive = ref(props.mix?.is_active || false);
+const isLoading = ref(false);  // Used only for button loading state
+const isSyncingWithSpotify = ref(false);
+let syncTimeoutId = null;
 
-// Simple functions to update player state
+// Update player state with consistent handling
 const updatePlayerState = (data) => {
   console.log('Updating player state with:', data);
   
@@ -85,14 +93,19 @@ const updatePlayerState = (data) => {
   // Update with the track info
   currentTrack.value = data.item;
   isPlaying.value = data.is_playing;
+  
+  // When we have a valid playing track, we're no longer syncing
+  if (data.is_playing && data.item) {
+    console.log('Valid playing track detected, ending sync state');
+    clearSyncingState();
+  }
+  
   console.log('Player state updated:', { isPlaying: isPlaying.value, track: currentTrack.value?.name });
 };
 
-// Initial data load
+// Initial data load with clear error handling
 const loadInitialData = async () => {
   try {
-    isLoading.value = true;
-    
     // Get mix status with playback data in a single request
     const response = await axios.get('/api/spotify/request-status', {
       params: { 
@@ -103,24 +116,37 @@ const loadInitialData = async () => {
     // Set the active state immediately
     isMixActive.value = response.data.is_active;
     
+    // If mix is active, show syncing UI
+    if (isMixActive.value) {
+      setSyncingState();
+    }
+    
     // If mix is active and playback data was included, use it
     if (isMixActive.value && response.data.playback_data) {
       const playbackData = { ...response.data.playback_data };
-      delete playbackData._fromCache;
-      delete playbackData._timestamp;
+      
+      if (playbackData.item && playbackData.is_playing) {
+        clearSyncingState();
+      }
       
       updatePlayerState(playbackData);
     }
   } catch (err) {
     console.error('Error loading initial data:', err);
-  } finally {
-    isLoading.value = false;
+    clearSyncingState();
   }
 };
 
-// Toggle mix active status
+// Toggle mix active status with clear states
 const toggleMixActive = async () => {
   try {
+    isLoading.value = true;
+    
+    // When activating, set syncing flag immediately
+    if (!isMixActive.value) {
+      setSyncingState();
+    }
+    
     // Make the API call
     const response = await axios.post('/api/spotify/set-mix-active', {
       mix_id: props.mix.id,
@@ -130,30 +156,62 @@ const toggleMixActive = async () => {
     console.log('Toggle response:', response.data);
     
     // Update local state based on server response
-    isMixActive.value = response.data.is_active;
+    isMixActive.value = response.data.activation.is_active;
     
-    // If activating AND server returned playback data, use it!
-    if (response.data.is_active && response.data.playback_data) {
-      console.log('Using playback data from activation response');
-      updatePlayerState(response.data.playback_data);
-    } else if (response.data.is_active) {
-      // If activated but no data was included, fetch fresh data
-      console.log('Fetching fresh data after activation');
-      loadInitialData();
-    } else {
-      // If deactivating, clear the UI
+    // If deactivating, clear the UI
+    if (!isMixActive.value) {
+      clearSyncingState();
       currentTrack.value = null;
       isPlaying.value = false;
     }
+    // If playback data is available and we're activating, use it
+    else if (response.data.playback_data) {
+      updatePlayerState(response.data.playback_data);
+    }
   } catch (err) {
     console.error('Error toggling mix active status:', err);
+    clearSyncingState();
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Clean helper functions for sync state
+const setSyncingState = () => {
+  isSyncingWithSpotify.value = true;
+  
+  // Clear any existing timeout
+  if (syncTimeoutId) {
+    clearTimeout(syncTimeoutId);
+  }
+  
+  // Set a new timeout
+  syncTimeoutId = setTimeout(() => {
+    if (isSyncingWithSpotify.value) {
+      console.log('Sync timeout reached, showing current state');
+      isSyncingWithSpotify.value = false;
+    }
+  }, 10000); // 10 seconds max sync time
+};
+
+const clearSyncingState = () => {
+  isSyncingWithSpotify.value = false;
+  
+  if (syncTimeoutId) {
+    clearTimeout(syncTimeoutId);
+    syncTimeoutId = null;
   }
 };
 
 // Lifecycle hooks
 onMounted(() => {
   if (props.mix) {
-    // Force fresh data on initial page load
+    // Start with syncing state if mix is active
+    if (props.mix.is_active) {
+      setSyncingState();
+    }
+    
+    // Load initial data
     loadInitialData();
     
     // Listen for playback data updates
@@ -171,7 +229,6 @@ onMounted(() => {
           updatePlayerState(e.playback_data);
           
           // Make sure to mark the mix as active when we receive playback data
-          // This is critical - it ensures the UI shows the player when data arrives
           if (!isMixActive.value) {
             console.log('Setting mix to active based on incoming playback data');
             isMixActive.value = true;
@@ -182,17 +239,25 @@ onMounted(() => {
         console.log('Mix status changed:', e.isActive);
         isMixActive.value = e.isActive;
         
-        // If mix was just activated, request fresh data
-        if (e.isActive && !currentTrack.value) {
-          console.log('Mix was activated, requesting fresh playback data');
-          loadInitialData();
+        // If mix was just activated, show syncing state
+        if (e.isActive) {
+          setSyncingState();
+        } else {
+          // If deactivated, clear syncing state and track info
+          clearSyncingState();
+          currentTrack.value = null;
+          isPlaying.value = false;
         }
       });
   }
 });
 
 onUnmounted(() => {
-  // Clean up subscriptions when component is destroyed
+  // Clean up subscriptions and timers when component is destroyed
+  if (syncTimeoutId) {
+    clearTimeout(syncTimeoutId);
+  }
+  
   if (props.mix) {
     Echo.leave(`mix.${props.mix.id}`);
   }

@@ -81,6 +81,16 @@ class SpotifyPollingService
                     $previousData
                 );
 
+                // If track mismatch is detected
+                if ($playerState === self::PLAYER_STATE_TRACK_MISMATCH) {
+                    // Handle mismatch by correcting playback
+                    $this->handlePlayerState($mix, $playerState);
+
+                    // Don't broadcast mismatched playback data - we'll get a new event when it's fixed
+                    Log::info("Suppressing playback data broadcast due to track mismatch");
+                    return;
+                }
+
                 $stateChanged = $this->handlePlayerState($mix, $playerState);
 
                 // If state changed (song advanced), refresh playback data
@@ -125,6 +135,7 @@ class SpotifyPollingService
 
         // CASE 2: Track mismatch
         if ($playbackData['item']['id'] !== $currentQueueSong->song->spotify_id) {
+            Log::info("Track mismatch detected. Expected: {$currentQueueSong->song->spotify_id}, playing: {$playbackData['item']['id']}");
             return self::PLAYER_STATE_TRACK_MISMATCH;
         }
 
@@ -219,6 +230,7 @@ class SpotifyPollingService
     private function handlePlayerState(Mix $mix, string $playerState): bool
     {
         $stateChanged = false;
+        $resumeOnMismatch = false;
 
         switch ($playerState) {
             case self::PLAYER_STATE_NO_PLAYBACK:
@@ -226,26 +238,21 @@ class SpotifyPollingService
             case self::PLAYER_STATE_FINISHED:
             case self::PLAYER_STATE_MANUAL_SEEK_END:
             case self::PLAYER_STATE_PLAYING_TOO_LONG:
-                // All these states require advancing to the next song
-                Log::info("Advancing queue for mix {$mix->id} due to player state: {$playerState}");
-
-                // IMPORTANT: Explicitly clear the playback cache before advancing
+                // Clear cache before taking action
                 $playbackCacheKey = self::CACHE_PREFIX_PLAYBACK . $mix->id;
                 Cache::forget($playbackCacheKey);
                 Log::info("Cleared playback cache for mix {$mix->id}");
 
-                $this->songPlaybackService->advanceToNextSong($mix->id);
-                $stateChanged = true;
-
-                // Clean up any related cache entries
-                if ($playerState === self::PLAYER_STATE_MANUAL_SEEK_END) {
-                    $currentQueueSong = QueueSong::where('mix_id', $mix->id)
-                        ->where('status', 'playing')
-                        ->first();
-                    if ($currentQueueSong) {
-                        Cache::forget(self::CACHE_PREFIX_SEEK . $currentQueueSong->id);
-                    }
+                // For track mismatch, consider resuming intended track
+                if ($playerState === self::PLAYER_STATE_TRACK_MISMATCH && $resumeOnMismatch) {
+                    // Try to resume our intended track
+                    $this->songPlaybackService->resumeIntendedTrack($mix->id);
+                } else {
+                    // Otherwise advance to next song
+                    $this->songPlaybackService->advanceToNextSong($mix->id);
                 }
+
+                $stateChanged = true;
                 break;
 
             case self::PLAYER_STATE_STUCK:
