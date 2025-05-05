@@ -34,11 +34,11 @@
             <div class="mb-6">
                 <ImageUpload
                     v-model="form.image"
-                    label="Cover Photo"
+                    label="Cover Photo (optional)"
                     id="cover-photo"
                     :error="form.errors.image"
                     helperText="PNG, JPG up to 5MB"
-                    :maxSizeInMB="5"
+                    :maxSizeInMB="2"
                 />
             </div>
         </template>

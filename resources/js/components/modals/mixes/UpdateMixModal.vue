@@ -34,11 +34,11 @@
             <div class="mb-6">
                 <ImageUpload
                     v-model="form.avatar"
-                    label="Cover Photo"
+                    label="Cover Photo (optional)"
                     id="cover-photo"
                     :error="form.errors.avatar"
                     helperText="PNG, JPG up to 5MB"
-                    :maxSizeInMB="5"
+                    :maxSizeInMB="2"
                 />
             </div>
         </template>
@@ -83,21 +83,10 @@ watch(
         if (visible) {
             form.name = mix.value.name;
             form.is_public = mix.value.is_public;
-            form.avatar = getImageUrl(mix.value.avatar);
+            form.avatar = null;
         }
     }
 );
-
-watch(
-    () => form.avatar,
-    (newAvatar) => {
-        console.log(newAvatar);
-    }
-);
-
-function getImageUrl(avatar) {
-    return avatar === null || undefined ? null : "/storage/" + avatar;
-}
 
 //emit to close modal
 const emits = defineEmits(["closeModal"]);
