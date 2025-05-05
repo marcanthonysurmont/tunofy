@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('presets', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
+            $table->string('name')->default('Custom');
+            $table->unsignedBigInteger('mix_id')->nullable();
             $table->boolean('is_system')->default(false);
             $table->integer('batch_size')->default(10);
             $table->integer('max_songs')->nullable();

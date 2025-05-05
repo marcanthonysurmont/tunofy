@@ -12,7 +12,7 @@ class Preset extends Model
 
     protected $fillable = [
         'name',
-        'user_id',
+        'mix_id',
         'batch_size',
         'max_songs',
         'num_rounds',

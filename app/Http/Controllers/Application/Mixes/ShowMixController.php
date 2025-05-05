@@ -13,12 +13,16 @@ class ShowMixController extends Controller
     public function __invoke(Mix $mix): Response
     {
         $this->authorize('view', $mix);
+        
         $user = Auth::user();
+
+        $mix->load(['songs', 'presets', 'user']);
+        $user->load(['mixes', 'accessibleMixes']);
 
         return Inertia::render('MixSlugPage', [
             'mix' => $mix,
             'songs' => $mix->songs,
-            'presets' => Auth::user()->presets,
+            'presets' => $mix->all_presets,
             'your_mixes' => $user->mixes,
             'joined_mixes' => $user->accessibleMixes,
             'owner' => $mix->user
