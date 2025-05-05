@@ -8,20 +8,17 @@
                 <VotingSubPage v-else-if="activeTab === 'Voting'" />
                 <StatsSubPage v-else-if="activeTab === 'Stats'" />
                 <PresetsSubPage v-else-if="activeTab === 'Presets'" />
-                <!-- <MixPlayback v-if="isDetailPage" :mix="mix" /> -->
             </div>
         </Transition>
     </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-
+import { ref } from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
 import TabNav from "@/components/navigation/TabNav.vue";
 import { Head, usePage } from "@inertiajs/vue3";
 import OverviewSubPage from "@/components/subpages/overview/OverviewSubPage.vue";
-import MixPlayback from "@/components/MixPlayback.vue";
 import PresetsSubPage from "@/components/subpages/presets/PresetsSubPage.vue";
 import StatsSubPage from "@/components/subpages/stats/StatsSubPage.vue";
 import VotingSubPage from "@/components/subpages/voting/VotingSubPage.vue";
@@ -36,17 +33,7 @@ const tabs = ref([
 const page = usePage();
 const nameOfMix = page.props.mix.name;
 
-// Determine if we're on the mix detail page
-const isDetailPage = computed(() => {
-    return !!page.props.mix;
-});
-
-const mix = computed(() => {
-    return page.props.mix || null;
-});
-
 const activeTab = ref("Overview");
-
 const setActiveTab = (tabName) => {
     activeTab.value = tabName;
     tabs.value.forEach((tab) => {
