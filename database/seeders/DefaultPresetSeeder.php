@@ -11,6 +11,7 @@ class DefaultPresetSeeder extends Seeder
     {
         DB::table('presets')->insert([
             'name' => 'Default',
+            'description' => 'Default preset for all mixes',
             'mix_id' => null,
             'is_system' => true,
             'batch_size' => 10,
