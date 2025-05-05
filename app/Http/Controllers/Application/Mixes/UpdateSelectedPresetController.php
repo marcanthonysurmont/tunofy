@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Application\Mixes;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateSelectedPresetRequest;
 use App\Models\Mix;
-use App\Models\Preset;
 use Illuminate\Http\RedirectResponse;
 
 class UpdateSelectedPresetController extends Controller
@@ -18,6 +17,7 @@ class UpdateSelectedPresetController extends Controller
             $mix->update([
                 'preset_id' => $validated['preset_id'],
             ]);
+
             return redirect()->back();
         } catch (\Exception $e) {
             return redirect()->back()

@@ -50,7 +50,6 @@ Route::middleware('auth')->group(function () {
 
             // app/mix/presets (mix.presets)
             Route::prefix('/presets')->name('presets.')->group(function () {
-                // Route::post('/store', StorePresetController::class)->name('store');
                 Route::post('/update/{preset}', UpdatePresetController::class)->name('update');
                 Route::post('/update-selected/{mix}', UpdateSelectedPresetController::class)->name('update-selected');
                 Route::delete('/destroy/{preset}', DestroyPresetController::class)->name('destroy');
