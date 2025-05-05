@@ -26,6 +26,42 @@ class SpotifyService
         return response()->json(['error' => 'Spotify API request failed'], $response->status());
     }
 
+    public function playSong(User $user, string $uri): bool
+    {
+        try {
+            $response = $this->spotifyRequest(
+                $user,
+                'PUT',
+                'https://api.spotify.com/v1/me/player/play',
+                ['uris' => [$uri]]
+            );
+            
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error("Spotify playSong error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Resume playback on the user's active device
+     */
+    public function resumePlayback(User $user): bool
+    {
+        try {
+            $response = $this->spotifyRequest(
+                $user,
+                'PUT', 
+                'https://api.spotify.com/v1/me/player/play'
+            );
+            
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error("Spotify resumePlayback error: " . $e->getMessage());
+            return false;
+        }
+    }
+
     /**
      * Get current playback state from Spotify
      */

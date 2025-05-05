@@ -13,17 +13,29 @@ class QueueSong extends Model
     protected $fillable = [
         'mix_id',
         'song_id',
-        'round_number',
-        'order',
-        'priority_boost',
-        'vote_score',
+        'status',
         'is_killed',
-        'is_playing',
+        'like_count',
+        'dislike_count',
+        'order',
+        'round_number',
+        'priority_boost',
+        'played_at',
     ];
 
     /**************************************/
     /*           Relationships            */
     /**************************************/
+
+    public function mix()
+    {
+        return $this->belongsTo(Mix::class);
+    }
+
+    public function song()
+    {
+        return $this->belongsTo(Song::class);
+    }
 
     /**************************************/
     /*       Accessors / Mutators         */

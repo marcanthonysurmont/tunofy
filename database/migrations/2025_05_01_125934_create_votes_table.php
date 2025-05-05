@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('song_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('queue_song_id')->constrained()->onDelete('cascade');
             $table->enum('vote_type', ['like', 'dislike', 'kill']);
             $table->timestamps();
         });

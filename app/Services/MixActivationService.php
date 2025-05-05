@@ -2,52 +2,68 @@
 
 namespace App\Services;
 
-use App\Events\MixStatusChangedEvent;
 use App\Models\Mix;
-use Illuminate\Support\Facades\Cache;
+use App\Events\MixStatusChangedEvent;
 use Illuminate\Support\Facades\Log;
 use App\Jobs\PollSpotifyMix;
 
 class MixActivationService
 {
-    public function toggleMixActive(Mix $mix, bool $isActive): array
+    public function __construct(protected QueueManagementService $queueService) 
+    {}
+
+    /**
+     * Toggle a mix active state with consolidated handling of related operations
+     */
+    public function toggleMixActive(Mix $mix, bool $activate): array
     {
-        $wasActive = $mix->is_active;
-        
-        Log::info("Setting mix {$mix->id} active status: {$wasActive} → {$isActive}");
-
-        // Update the mix active status
-        $mix->update(['is_active' => $isActive]);
-
-        // Broadcast the status change
-        Log::info("Broadcasting MixStatusChanged event for mix {$mix->id}, active={$isActive}");
-        broadcast(new MixStatusChangedEvent($mix, $isActive))->toOthers();
-
-        // Handle deactivation
-        if (!$isActive && $wasActive) {
-            $this->handleDeactivation($mix);
+        if ($activate) {
+            return $this->activateMix($mix);
+        } else {
+            return $this->deactivateMix($mix);
         }
+    }
 
-        // Handle activation
-        if ($isActive && !$wasActive) {
-            $this->handleActivation($mix);
-        }
+    /**
+     * Activate a mix and handle all related operations in one place
+     */
+    protected function activateMix(Mix $mix): array
+    {
+        // Update mix status
+        $mix->update(['is_active' => true]);
+
+        // Log the activation
+        Log::info("Mix {$mix->id} activated");
+
+        // Broadcast event
+        event(new MixStatusChangedEvent($mix, true));
+
+        // Start polling directly (no longer relies on QueueService to do this)
+        dispatch(new PollSpotifyMix($mix));
 
         return [
             'success' => true,
-            'is_active' => (bool) $mix->is_active,
+            'message' => 'Mix activated successfully'
         ];
     }
 
-    private function handleDeactivation(Mix $mix): void
+    /**
+     * Deactivate a mix and handle all related cleanup
+     */
+    protected function deactivateMix(Mix $mix): array
     {
-        Log::info("Clearing cache for deactivated mix {$mix->id}");
-        Cache::forget("spotify:playback:{$mix->id}");
-    }
+        // Update mix status
+        $mix->update(['is_active' => false]);
 
-    private function handleActivation(Mix $mix): void
-    {
-        Log::info("Dispatching polling job for mix {$mix->id}");
-        PollSpotifyMix::dispatch($mix);
+        // Log the deactivation
+        Log::info("Mix {$mix->id} deactivated");
+
+        // Broadcast event
+        event(new MixStatusChangedEvent($mix, false));
+
+        return [
+            'success' => true,
+            'message' => 'Mix deactivated successfully'
+        ];
     }
 }
