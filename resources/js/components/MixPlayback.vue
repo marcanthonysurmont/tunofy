@@ -74,14 +74,18 @@ const isLoading = ref(true);
 
 // Simple functions to update player state
 const updatePlayerState = (data) => {
+  console.log('Updating player state with:', data);
+  
   if (!data || !data.item) {
     currentTrack.value = null;
     isPlaying.value = false;
     return;
   }
   
+  // Update with the track info
   currentTrack.value = data.item;
   isPlaying.value = data.is_playing;
+  console.log('Player state updated:', { isPlaying: isPlaying.value, track: currentTrack.value?.name });
 };
 
 // Initial data load
@@ -89,24 +93,19 @@ const loadInitialData = async () => {
   try {
     isLoading.value = true;
     
-    // Get mix status first
-    const statusResponse = await axios.get('/api/spotify/request-status', {
-      params: { mix_id: props.mix.id }
+    // Get mix status with playback data in a single request
+    const response = await axios.get('/api/spotify/request-status', {
+      params: { 
+        mix_id: props.mix.id,
+      }
     });
     
     // Set the active state immediately
-    isMixActive.value = statusResponse.data.is_active;
+    isMixActive.value = response.data.is_active;
     
-    // Only fetch playback if mix is active
-    if (isMixActive.value) {
-      const playbackResponse = await axios.get('/api/spotify/mix-playback', {
-        params: { 
-          mix_id: props.mix.id,
-          max_age: 10 // Just use max_age for freshness control
-        }
-      });
-      
-      const playbackData = { ...playbackResponse.data };
+    // If mix is active and playback data was included, use it
+    if (isMixActive.value && response.data.playback_data) {
+      const playbackData = { ...response.data.playback_data };
       delete playbackData._fromCache;
       delete playbackData._timestamp;
       
@@ -162,19 +161,32 @@ onMounted(() => {
       .listen('.playback-data', (e) => {
         console.log('📢 Received playback-data event:', e);
         
-        if (e.playbackData.status === 'no_active_playback') {
+        if (e.playback_data.status === 'no_active_playback') {
           // Clear current track
           currentTrack.value = null;
           isPlaying.value = false;
           console.log('No active playback');
         } else {
           // Normal playback data
-          updatePlayerState(e.playbackData);
+          updatePlayerState(e.playback_data);
+          
+          // Make sure to mark the mix as active when we receive playback data
+          // This is critical - it ensures the UI shows the player when data arrives
+          if (!isMixActive.value) {
+            console.log('Setting mix to active based on incoming playback data');
+            isMixActive.value = true;
+          }
         }
       })
-      .listen('.MixStatusChanged', (e) => {
-        isMixActive.value = e.isActive;
+      .listen('.mix-status-changed', (e) => {
         console.log('Mix status changed:', e.isActive);
+        isMixActive.value = e.isActive;
+        
+        // If mix was just activated, request fresh data
+        if (e.isActive && !currentTrack.value) {
+          console.log('Mix was activated, requesting fresh playback data');
+          loadInitialData();
+        }
       });
   }
 });

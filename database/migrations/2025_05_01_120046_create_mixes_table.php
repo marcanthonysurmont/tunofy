@@ -23,6 +23,7 @@ return new class () extends Migration {
             $table->foreignId('co_dj_id')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('preset_id')->nullable()->default(1)->constrained()->onDelete('set null');
             $table->string('avatar')->nullable();
+            $table->integer('mix_count')->default(0);
             $table->timestamps();
 
             $table->index('session_code', 'session_code_expires_at');

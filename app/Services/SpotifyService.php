@@ -2,15 +2,16 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log; // Add this import
-use Carbon\Carbon; // Add this import
-use App\Models\User; // Add this import
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
+use App\Models\User;
 
 class SpotifyService
 {
-    public function search($query)
+    public function search($query): array
     {
         $response = $this->spotifyRequest(Auth::user(), 'GET', 'https://api.spotify.com/v1/search', [
             'q' => $query,
@@ -25,10 +26,46 @@ class SpotifyService
         return response()->json(['error' => 'Spotify API request failed'], $response->status());
     }
 
+    public function playSong(User $user, string $uri): bool
+    {
+        try {
+            $response = $this->spotifyRequest(
+                $user,
+                'PUT',
+                'https://api.spotify.com/v1/me/player/play',
+                ['uris' => [$uri]]
+            );
+            
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error("Spotify playSong error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Resume playback on the user's active device
+     */
+    public function resumePlayback(User $user): bool
+    {
+        try {
+            $response = $this->spotifyRequest(
+                $user,
+                'PUT', 
+                'https://api.spotify.com/v1/me/player/play'
+            );
+            
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error("Spotify resumePlayback error: " . $e->getMessage());
+            return false;
+        }
+    }
+
     /**
      * Get current playback state from Spotify
      */
-    public function getCurrentPlayback(User $user)
+    public function getCurrentPlayback(User $user): ?array
     {
         try {
             Log::info("Requesting playback data from Spotify for user {$user->id}");
@@ -74,7 +111,7 @@ class SpotifyService
     /**
      * Get a valid access token for the user
      */
-    public function getAccessToken($user)
+    public function getAccessToken($user): string
     {
         // Check if token is expired or about to expire
         if ($this->isTokenExpired($user)) {
@@ -87,7 +124,7 @@ class SpotifyService
     /**
      * Make a request to the Spotify API
      */
-    protected function spotifyRequest(User $user, string $method, string $endpoint, array $body = [], array $queryParams = [], array $additionalHeaders = [])
+    protected function spotifyRequest(User $user, string $method, string $endpoint, array $body = [], array $queryParams = [], array $additionalHeaders = []): Response
     {
         // Add query parameters to URL if any exist
         if (!empty($queryParams)) {
@@ -123,7 +160,7 @@ class SpotifyService
     /**
      * Check if the token is expired or about to expire (within 5 minutes)
      */
-    private function isTokenExpired($user)
+    private function isTokenExpired($user): bool
     {
         if (empty($user->token_expires_at)) {
             return true;
@@ -139,7 +176,7 @@ class SpotifyService
         return $expiresAt->subMinutes(5)->isPast();
     }
 
-    private function refreshAccessToken($user)
+    private function refreshAccessToken($user): bool
     {
         $clientId = config('services.spotify.client_id');
         $clientSecret = config('services.spotify.client_secret');

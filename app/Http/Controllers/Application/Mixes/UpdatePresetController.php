@@ -5,10 +5,11 @@ namespace App\Http\Controllers\Application\Mixes;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdatePresetRequest;
 use App\Models\Preset;
+use Illuminate\Http\RedirectResponse;
 
 class UpdatePresetController extends Controller
 {
-    public function __invoke(UpdatePresetRequest $request, Preset $preset)
+    public function __invoke(UpdatePresetRequest $request, Preset $preset): RedirectResponse
     {
         $this->authorize('update', $preset);
         

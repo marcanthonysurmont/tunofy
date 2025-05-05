@@ -15,13 +15,17 @@ return new class extends Migration
             $table->id();
             $table->foreignId('mix_id')->constrained()->onDelete('cascade');
             $table->foreignId('song_id')->constrained()->onDelete('cascade');
+            $table->enum('status', ['pending', 'playing', 'finished'])->default('pending');
+            $table->boolean('is_killed')->default(false);  
             $table->integer('round_number');
             $table->integer('order');
+            $table->integer('like_count')->default(0);
+            $table->integer('dislike_count')->default(0);
             $table->integer('priority_boost')->default(0);
-            $table->integer('vote_score')->default(0);      
-            $table->boolean('is_killed')->default(false);  
-            $table->boolean('is_playing')->default(false);
+            $table->dateTime('played_at')->nullable();
             $table->timestamps();
+
+            $table->index(['mix_id', 'status']);
         });
     }
 

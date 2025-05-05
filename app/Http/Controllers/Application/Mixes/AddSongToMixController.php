@@ -29,10 +29,11 @@ class AddSongToMixController extends Controller
                 'image_url' => $validated['image_url'],
             ]);
 
+            $mix->update(['mix_count' => $mix->mix_count + 1]);
+
             return redirect()->back()
                 ->with('success', 'Song added to mix successfully.');
         } catch (\Exception $e) {
-            ds($e);
             return redirect()->back()
                 ->with('danger', 'Failed to add song to mix');
         }
