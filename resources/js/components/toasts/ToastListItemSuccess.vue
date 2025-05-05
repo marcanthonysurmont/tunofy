@@ -13,14 +13,14 @@
             role="alert"
         >
             <div class="p-4">
-                <div class="flex items-start">
+                <div class="flex items-center">
                     <div class="shrink-0">
                         <CheckCircleIcon
                             class="h-6 w-6 text-green-300"
                             aria-hidden="true"
                         />
                     </div>
-                    <div class="ml-3 w-0 flex-1 pt-0.5">
+                    <div class="ml-3 w-0 flex-1">
                         <p class="text-sm font-medium text-zinc-200">
                             {{ message }}
                         </p>

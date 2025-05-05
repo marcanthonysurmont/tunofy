@@ -13,7 +13,7 @@
             role="alert"
         >
             <div class="p-4">
-                <div class="flex items-start">
+                <div class="flex items-center">
                     <div class="shrink-0">
                         <XCircleIcon
                             class="h-6 w-6 text-red-400"
