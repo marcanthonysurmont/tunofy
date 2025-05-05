@@ -5,23 +5,14 @@
       <button 
         @click="toggleMixActive" 
         :class="['control-button', isMixActive ? 'active' : 'inactive']"
-        :disabled="isLoading || stateUpdating"
+        :disabled="isLoading"
       >
         {{ isMixActive ? 'Deactivate Polling' : 'Activate Polling' }}
-      </button>
-      
-      <!-- Add a refresh button for debugging - you can remove this later -->
-      <button 
-        @click="refreshMixState" 
-        class="refresh-button"
-        :disabled="isLoading || stateUpdating"
-      >
-        Refresh State
       </button>
     </div>
     
     <!-- Loading states - Prioritize showing one at a time -->
-    <div v-if="stateUpdating" class="loading">
+    <div v-if="isLoading" class="loading">
       Updating state...
     </div>
     
@@ -75,27 +66,11 @@
         {{ isPlaying ? 'Now Playing' : 'Paused' }}
       </div>
     </div>
-
-    <!-- Debug Info -->
-    <div v-if="props.mix.authorized.isOwner" class="debug-info">
-      <div class="debug-title" @click="showDebug = !showDebug">
-        Debug Info {{ showDebug ? '▲' : '▼' }}
-      </div>
-      <div v-if="showDebug" class="debug-details">
-        <p>Mix Active: {{ isMixActive }}</p>
-        <p>Syncing: {{ isSyncingWithSpotify }}</p>
-        <p>Has Track: {{ !!currentTrack }}</p>
-        <p>Is Playing: {{ isPlaying }}</p>
-        <p>Queue Completed: {{ queueCompleted }}</p>
-        <p>Loading: {{ isLoading }}</p>
-        <p>State Updating: {{ stateUpdating }}</p>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import axios from 'axios';
 
 // Props
@@ -103,318 +78,178 @@ const props = defineProps({
   mix: {
     type: Object,
     required: true
-  },
-  isOwner: {
-    type: Boolean,
-    default: false
   }
 });
 
-// State variables
+// Core state variables
 const isMixActive = ref(props.mix?.is_active || false);
 const isLoading = ref(false);
-const stateUpdating = ref(false);
-const isSyncingWithSpotify = ref(false);
 const currentTrack = ref(null);
 const isPlaying = ref(false);
+const isSyncingWithSpotify = ref(false);
 const queueCompleted = ref(false);
 
-// Add last event timestamp
-const lastEventTimestamp = ref(0);
-
-// New state variable to track last toggle time
-const lastToggleTime = ref(Date.now());
-
-// Add debug state
-const showDebug = ref(false);
-
+// Simplified state tracking
+const lastEventTime = ref(0);
+const lastToggleTime = ref(0);
 let syncTimeoutId = null;
 
-// Add a force refresh timer
-const lastRefreshTime = ref(0);
+// Debug panel toggle (can be removed in production)
+const showDebug = ref(false);
 
-// Add these for more reliable state tracking
-const lastEventTime = ref(0);
-
-// Add a method to periodically refresh the state
-const setupAutoRefresh = () => {
-  if (!props.mix.authorized.isOwner) return;
-  
-  // Create an interval that checks if we need to refresh
-  const refreshInterval = setInterval(() => {
-    // Only refresh if polling is active and it's been more than 10 seconds
-    if (isMixActive.value && Date.now() - lastRefreshTime.value > 10000) {
-      refreshMixState();
-      lastRefreshTime.value = Date.now();
-    }
-  }, 10000);
-
-  // Clean up on unmount
-  onUnmounted(() => {
-    clearInterval(refreshInterval);
-  });
-};
-
-// Modify toggleMixActive to immediately show UI feedback
+// Toggle mix active state
 const toggleMixActive = async () => {
   try {
     // Prevent rapid toggling
-    const now = Date.now();
-    if (now - lastToggleTime.value < 1000) {
-      console.log('Preventing rapid toggle, please wait');
-      return;
-    }
+    if (Date.now() - lastToggleTime.value < 1000) return;
+    lastToggleTime.value = Date.now();
     
-    // Update last toggle time
-    lastToggleTime.value = now;
-    
-    // Set loading states
+    // Set loading state
     isLoading.value = true;
-    stateUpdating.value = true;
-    queueCompleted.value = false;
     
-    // Store the target state
+    // Optimistically update UI
     const targetActive = !isMixActive.value;
-    
-    // IMMEDIATELY update UI for better responsiveness
-    // This gives the perception of instant response
     isMixActive.value = targetActive;
     
-    // If activating, immediately show syncing state
+    // Update UI immediately
     if (targetActive) {
       setSyncingState();
-      // Clear any stale data
       currentTrack.value = null;
       isPlaying.value = false;
+      queueCompleted.value = false;
     } else {
-      // If deactivating, immediately clear UI
       clearSyncingState();
       currentTrack.value = null;
       isPlaying.value = false;
     }
     
-    console.log(`Optimistically toggled UI to: ${targetActive ? 'active' : 'inactive'}`);
-    
-    // Now make the actual API call
+    // Make API call
     const response = await axios.post('/api/spotify/set-mix-active', {
       mix_id: props.mix.id,
       active: targetActive,
-      reset_queue: targetActive // Always reset queue when activating
+      reset_queue: targetActive
     });
     
-    console.log('Toggle response:', response.data);
+    // Confirm server status
+    isMixActive.value = response.data.activation.is_active;
     
-    // Verify our optimistic update was correct
-    const serverIsActive = response.data.activation.is_active;
-    
-    // If server disagrees with our optimistic update, correct it
-    if (serverIsActive !== isMixActive.value) {
-      console.log(`Correcting optimistic UI update: ${isMixActive.value} → ${serverIsActive}`);
-      isMixActive.value = serverIsActive;
-    }
-    
-    // If activating, schedule multiple refreshes to get initial state
-    if (serverIsActive) {
-      // If playback data was included in response, use it
-      if (response.data.playback_data) {
-        updatePlayerState(response.data.playback_data);
-      }
-      
-      // Schedule follow-up refreshes
-      setTimeout(() => refreshMixState(), 2000);
-      setTimeout(() => refreshMixState(), 5000);
+    // If activating, handle initial data
+    if (isMixActive.value && response.data.playback_data) {
+      updatePlayerState(response.data.playback_data);
     }
   } catch (err) {
     console.error('Error toggling mix active status:', err);
     clearSyncingState();
   } finally {
-    // Clear loading states
-    setTimeout(() => {
-      isLoading.value = false;
-      stateUpdating.value = false;
-    }, 500);
+    setTimeout(() => isLoading.value = false, 500);
   }
 };
 
-// Enhanced refreshMixState
+// Refresh mix state from server
 const refreshMixState = async () => {
   try {
-    console.log('Refreshing mix state from server');
     const response = await axios.get('/api/spotify/request-status', {
       params: { mix_id: props.mix.id }
     });
     
-    console.log('Status response:', response.data);
-    
-    // Update activation state from server
+    // Update state from server
     isMixActive.value = response.data.is_active;
     
-    // Update playback data if available
+    // Handle playback data
     if (response.data.playback_data) {
-      // Force UI update with the latest playback data
       updatePlayerState(response.data.playback_data);
-      
-      // Clear syncing if we have playback data
-      clearSyncingState();
     } else if (isMixActive.value) {
-      // If active but no playback data yet, ensure syncing state is shown
       setSyncingState();
     } else {
-      // If inactive and no data, clear everything
       clearSyncingState();
       currentTrack.value = null;
       isPlaying.value = false;
     }
-    
-    // Log the state after refresh
-    console.log(`Mix state after refresh: active=${isMixActive.value}, playing=${isPlaying.value}, track=${currentTrack.value?.name || 'none'}`);
-    
-    // Record the refresh time
-    lastRefreshTime.value = Date.now();
   } catch (err) {
     console.error('Error refreshing mix state:', err);
   }
 };
 
-// Clear the syncing state
+// Syncing state management
 const clearSyncingState = () => {
   isSyncingWithSpotify.value = false;
-  
   if (syncTimeoutId) {
     clearTimeout(syncTimeoutId);
     syncTimeoutId = null;
   }
 };
 
-// Set the syncing state
 const setSyncingState = () => {
   isSyncingWithSpotify.value = true;
-  
-  // Clear any existing timeout
-  if (syncTimeoutId) {
-    clearTimeout(syncTimeoutId);
-  }
-  
-  // Set a new timeout
-  syncTimeoutId = setTimeout(() => {
-    if (isSyncingWithSpotify.value) {
-      console.log('Sync timeout reached, showing current state');
-      isSyncingWithSpotify.value = false;
-    }
-  }, 10000); // 10 seconds max sync time
+  if (syncTimeoutId) clearTimeout(syncTimeoutId);
+  // Auto-clear after 10s to prevent getting stuck
+  syncTimeoutId = setTimeout(() => isSyncingWithSpotify.value = false, 10000);
 };
 
-// Update player state
+// Update player with playback data
 const updatePlayerState = (playbackData) => {
-  if (!playbackData) {
-    console.log('No playback data provided to updatePlayerState');
-    return;
-  }
+  if (!playbackData) return;
   
   isPlaying.value = playbackData.is_playing === true;
   currentTrack.value = playbackData.item;
   
-  // If we have a current track, we're no longer syncing
-  if (currentTrack.value) {
-    clearSyncingState();
-  }
-  
-  console.log(`Player updated: playing=${isPlaying.value}, track=${currentTrack.value?.name || 'none'}`);
+  // Clear syncing state if we have track data
+  if (currentTrack.value) clearSyncingState();
 };
 
-// Add event listeners with improved debugging
+// Setup WebSocket listeners
 onMounted(() => {
   if (props.mix) {
     // Initialize state
     isMixActive.value = !!props.mix.is_active;
-    console.log(`Initial mix active state: ${isMixActive.value}`);
+    if (isMixActive.value) setSyncingState();
     
-    // Set syncing state if active
-    if (isMixActive.value) {
-      setSyncingState();
-    }
-    
-    // Load initial data
+    // Initial data load
     refreshMixState();
     
-    // Listen for events with improved logging
+    // Listen for real-time events
     Echo.channel(`mix.${props.mix.id}`)
       .listen('.playback-data', (e) => {
-        console.log('📢 Received playback-data event:', e);
-        
-        // Check for out-of-sequence events
+        // Ignore out-of-sequence events
         const eventTime = e.timestamp || Date.now();
-        if (eventTime < lastEventTime.value) {
-          console.log('Ignoring out-of-sequence event');
-          return;
-        }
-        
-        // Update our timestamp tracker
+        if (eventTime < lastEventTime.value) return;
         lastEventTime.value = eventTime;
         
-        // If we're in an inactive state but receive data for active mix,
-        // update our state to match reality
-        if (!isMixActive.value && e.playback_data && 
-            e.playback_data.item && e.playback_data.is_playing) {
-          console.log('Mix appears to be active based on playback data');
+        // Update active state if needed
+        if (!isMixActive.value && e.playback_data?.item && e.playback_data.is_playing) {
           isMixActive.value = true;
         }
         
-        // Update player with the new data
+        // Update player
         updatePlayerState(e.playback_data);
       })
       .listen('.mix-status-changed', (e) => {
-        console.log('📣 Mix status changed:', e);
-        
-        // Check for out-of-sequence events
+        // Ignore out-of-sequence events
         const eventTime = e.timestamp || Date.now();
-        if (eventTime < lastEventTime.value) {
-          console.log('Ignoring out-of-sequence status event');
-          return;
-        }
-        
-        // Update our timestamp tracker
+        if (eventTime < lastEventTime.value) return;
         lastEventTime.value = eventTime;
         
-        // Update the UI state
+        // Update active state
         isMixActive.value = e.isActive;
         
-        // Handle specific state transitions
+        // Handle state changes
         if (!e.isActive) {
           clearSyncingState();
           currentTrack.value = null;
           isPlaying.value = false;
-          
-          // If queue completed, show the completion state
-          if (e.reason === 'queue_completed') {
-            queueCompleted.value = true;
-          }
+          if (e.reason === 'queue_completed') queueCompleted.value = true;
         } else {
-          // If activating, show syncing state
           setSyncingState();
           queueCompleted.value = false;
         }
       });
-    
-    // Set up auto refresh
-    setupAutoRefresh();
   }
 });
 
-// Add a watch for isMixActive changes to help with debugging
-watch(isMixActive, (newValue, oldValue) => {
-  console.log(`🔄 Mix active state changed: ${oldValue} -> ${newValue}`);
-});
-
+// Clean up
 onUnmounted(() => {
-  // Clean up subscriptions and timers when component is destroyed
-  if (syncTimeoutId) {
-    clearTimeout(syncTimeoutId);
-  }
-  
-  if (props.mix) {
-    Echo.leave(`mix.${props.mix.id}`);
-  }
+  if (syncTimeoutId) clearTimeout(syncTimeoutId);
+  if (props.mix) Echo.leave(`mix.${props.mix.id}`);
 });
 </script>
 
@@ -538,41 +373,5 @@ onUnmounted(() => {
 .control-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-/* Add this to your styles */
-.refresh-button {
-  margin-top: 10px;
-  padding: 4px 8px;
-  font-size: 12px;
-  color: #333;
-  background: #eee;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-/* Add these styles */
-.debug-info {
-  margin-top: 20px;
-  font-size: 12px;
-  border-top: 1px solid #444;
-  padding-top: 10px;
-}
-
-.debug-title {
-  cursor: pointer;
-  color: #888;
-  text-align: center;
-}
-
-.debug-details {
-  background: #333;
-  padding: 10px;
-  border-radius: 4px;
-  margin-top: 5px;
-}
-
-.debug-details p {
-  margin: 2px 0;
 }
 </style>
