@@ -61,49 +61,48 @@ class PollSpotifyMix implements ShouldQueue
         // Set current timestamp
         Cache::put($cacheKey, $now, 60);
 
-        // Immediately check if still active (refresh to get latest state)
-        $this->mix = Mix::find($mixId);
+        // Get a fresh instance of the mix ONCE
+        $freshMix = Mix::find($mixId);
 
-        if (!$this->mix || !$this->mix->is_active) {
+        // Check if still active
+        if (!$freshMix || !$freshMix->is_active) {
             Log::info("Mix {$mixId} is not active, exiting job immediately");
             return;
         }
 
         try {
-            // Perform the actual polling
-            $pollingService->pollPlayback($this->mix);
+            // Pass the fresh mix to polling service
+            $pollingService->pollPlayback($freshMix);
 
             // Schedule the next poll
-            $this->scheduleNextPoll();
+            $this->scheduleNextPoll($freshMix);
         } catch (\Exception $e) {
-            Log::error("Error polling mix {$mixId}: " . $e->getMessage());
+            Log::error("Error polling mix {$mixId}: " . $e->getMessage(), [
+                'exception' => $e,
+                'mix_id' => $mixId
+            ]);
 
             // Even if there's an error, schedule next poll
-            $this->scheduleNextPoll();
+            $this->scheduleNextPoll($freshMix);
         }
     }
 
     /**
      * Schedule the next polling job with appropriate interval
      */
-    private function scheduleNextPoll(): void
+    private function scheduleNextPoll(?Mix $mix = null): void
     {
-        // Refresh mix to get latest state
-        $this->mix->refresh();
+        // Use provided mix or fallback to the stored one
+        $mixToUse = $mix ?? $this->mix;
 
-        // Only schedule if mix is still active
-        if (!$this->mix->is_active) {
-            Log::info("Mix {$this->mix->id} is no longer active, not scheduling next poll");
-            return;
-        }
+        // Determine if we should adjust the polling interval
+        $interval = $this->intervalSeconds;
 
-        // Determine appropriate polling interval
-        $nextInterval = $this->determinePollingInterval();
+        // Create a new job with the fresh mix
+        PollSpotifyMix::dispatch($mixToUse, $this->maxIterations, $interval)
+            ->delay(now()->addSeconds($interval));
 
-        // Schedule next poll
-        Log::debug("Scheduling next poll for mix {$this->mix->id} in {$nextInterval} seconds");
-        $nextJob = new PollSpotifyMix($this->mix, $this->maxIterations, $this->intervalSeconds);
-        dispatch($nextJob->delay(now()->addSeconds($nextInterval)));
+        Log::debug("Scheduling next poll for mix {$mixToUse->id} in {$interval} seconds");
     }
 
     /**
