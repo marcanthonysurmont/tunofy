@@ -9,7 +9,6 @@ class UpdatePresetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
             'batch_size' => ['required', 'integer', 'min:1'],
             'max_songs' => ['integer', 'min:1'],
             'num_rounds' => ['integer', 'min:1'],

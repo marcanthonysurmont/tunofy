@@ -1,5 +1,5 @@
 <template>
-    <div class="mb-6">
+    <div class="mb-12">
         <div
             class="flex md:items-center justify-between md:flex-row flex-col gap-6"
         >

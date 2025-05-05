@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col gap-2">
         <div
-            class="flex flex-col sm:flex-row gap-4 md:gap-8 w-full items-center relative z-10 py-2 pr-2 mt-8 sm:mt-16"
+            class="flex flex-col sm:flex-row gap-4 md:gap-8 w-full items-center relative z-10 py-2 pr-2"
         >
             <img
                 :src="getImageUrl(mix)"
