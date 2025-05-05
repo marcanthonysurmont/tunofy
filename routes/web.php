@@ -1,33 +1,34 @@
 <?php
 
-use App\Http\Controllers\Auth\LogoutController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LogoutController;
 
-use App\Http\Controllers\General\ShowLandingPageController;
 use App\Http\Controllers\General\ShowDPAPageController;
-use App\Http\Controllers\General\ShowPrivacyPageController;
-use App\Http\Controllers\General\ShowTermsOfUsePageController;
-
-use App\Http\Controllers\Auth\RedirectToSpotifyController;
 use App\Http\Controllers\Auth\SpotifyCallbackController;
-
+use App\Http\Controllers\Auth\RedirectToSpotifyController;
 use App\Http\Controllers\Application\ShowAppPageController;
 
-use App\Http\Controllers\Application\Mixes\StoreMixController;
+use App\Http\Controllers\General\ShowLandingPageController;
+use App\Http\Controllers\General\ShowPrivacyPageController;
+
+use App\Http\Controllers\Application\Mixes\JoinMixController;
+
 use App\Http\Controllers\Application\Mixes\ShowMixController;
+use App\Http\Controllers\Application\Mixes\StoreMixController;
+use App\Http\Controllers\General\ShowTermsOfUsePageController;
 use App\Http\Controllers\Application\Mixes\UpdateMixController;
 use App\Http\Controllers\Application\Mixes\DestroyMixController;
-use App\Http\Controllers\Application\Mixes\AddSongToMixController;
-use App\Http\Controllers\Application\Mixes\RemoveSongFromMixController;
-use App\Http\Controllers\Application\Mixes\GenerateMixCodeController;
-use App\Http\Controllers\Application\Mixes\JoinMixController;
 use App\Http\Controllers\Application\Mixes\StorePresetController;
+use App\Http\Controllers\Application\Mixes\AddSongToMixController;
 use App\Http\Controllers\Application\Mixes\UpdatePresetController;
-use App\Http\Controllers\Application\Mixes\DestroyPresetController;
-use App\Http\Controllers\Application\Spotify\RequestSpotifyPlayerStatusController;
-use App\Http\Controllers\Application\Spotify\SetMixActiveController;
-
 use App\Http\Controllers\Application\Spotify\SearchSongController;
+use App\Http\Controllers\Application\Mixes\DestroyPresetController;
+use App\Http\Controllers\Application\Spotify\SetMixActiveController;
+use App\Http\Controllers\Application\Mixes\GenerateMixCodeController;
+use App\Http\Controllers\Application\Mixes\RemoveSongFromMixController;
+
+use App\Http\Controllers\Application\Mixes\UpdateSelectedPresetController;
+use App\Http\Controllers\Application\Spotify\RequestSpotifyPlayerStatusController;
 
 Route::get('/', ShowLandingPageController::class)->name('landing');
 Route::get('/dpa', ShowDPAPageController::class);
@@ -52,6 +53,7 @@ Route::middleware('auth')->group(function () {
             Route::prefix('/presets')->name('presets.')->group(function () {
                 // Route::post('/store', StorePresetController::class)->name('store');
                 Route::post('/update/{preset}', UpdatePresetController::class)->name('update');
+                Route::post('/update-selected/{mix}', UpdateSelectedPresetController::class)->name('update-selected');
                 Route::delete('/destroy/{preset}', DestroyPresetController::class)->name('destroy');
             });
         });

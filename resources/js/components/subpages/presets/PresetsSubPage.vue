@@ -14,11 +14,28 @@ const templatesStore = useTemplatesStore();
 
 const page = usePage();
 const presets = computed(() => page.props.presets);
+const mix = computed(() => page.props.mix);
+const activePresetId = computed(() => mix.value?.preset_id);
 
 watch(
     presets,
     (newPresets) => {
         templatesStore.templates = newPresets;
+    },
+    { immediate: true }
+);
+
+watch(
+    activePresetId,
+    (newActivePresetId) => {
+        if (newActivePresetId && templatesStore.templates?.length) {
+            const activeIndex = templatesStore.templates.findIndex(
+                (template) => template.id === newActivePresetId
+            );
+
+            templatesStore.selectedTemplateIndex =
+                activeIndex >= 0 ? activeIndex : 3;
+        }
     },
     { immediate: true }
 );

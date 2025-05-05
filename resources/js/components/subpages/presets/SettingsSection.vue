@@ -29,6 +29,7 @@
                     :min="1"
                     :max="50"
                     :step="1"
+                    :disabled="!isCustomTemplate"
                 />
                 <InputRangeSlider
                     label="Kill percentage"
@@ -36,6 +37,7 @@
                     :min="0"
                     :max="100"
                     :step="1"
+                    :disabled="!isCustomTemplate"
                 />
                 <ToggleSwitchDescription
                     :label="'Voting'"
@@ -106,7 +108,7 @@
 import ToggleSwitchDescription from "@/components/forms/ToggleSwitchDescription.vue";
 import InputFieldAdvanced from "@/components/forms/InputFieldAdvanced.vue";
 import { useForm, router, usePage } from "@inertiajs/vue3";
-import { computed, ref, watch } from "vue";
+import { computed, onBeforeMount, ref, watch } from "vue";
 import RegularButton from "@/components/buttons/RegularButton.vue";
 import { useTemplatesStore } from "@/stores/StorePresets.js";
 import InputRangeSlider from "../../forms/InputRangeSlider.vue";
@@ -119,55 +121,34 @@ const presetId = computed(() => page.props.mix.presets[0].id);
 
 const settingsForm = useForm({
     mix_id: mixId.value,
-    batch_size: templatesStore.batch_size,
-    max_songs: templatesStore.max_songs,
-    num_rounds: templatesStore.num_rounds,
-    requires_approval: templatesStore.requires_approval,
-    voting_enabled: templatesStore.voting_enabled,
-    kill_percentage_percent: templatesStore.kill_percentage_percent,
-    priority_boost_new: templatesStore.priority_boost_new,
-    auto_remove_negative: templatesStore.auto_remove_negative,
-    emoji_chat_enabled: templatesStore.emoji_chat_enabled,
+    batch_size: null,
+    max_songs: null,
+    num_rounds: null,
+    requires_approval: null,
+    voting_enabled: null,
+    kill_percentage_percent: null,
+    priority_boost_new: null,
+    auto_remove_negative: null,
+    emoji_chat_enabled: null,
 });
+
+const isLoading = ref(false);
+
+//watch for if user selects another template
+watch(
+    () => templatesStore.selectedTemplateIndex,
+    (newIndex) => {
+        //get the selected template
+        const selectedTemplate = templatesStore.getSelectedTemplate();
+
+        //if user selects a template, update the form data
+        setFormValues(selectedTemplate);
+    }
+);
 
 const isCustomTemplate = computed(() => {
     return templatesStore.getSelectedTemplate().name === "Custom";
 });
-const isLoading = ref(false);
-
-//watch for template changes and update form data
-watch(
-    () => templatesStore.selectedTemplateIndex,
-    (newIndex) => {
-        const selectedTemplate = templatesStore.getSelectedTemplate();
-
-        //bind form data based on selected template.
-        settingsForm.batch_size = selectedTemplate.batch_size;
-        settingsForm.max_songs = selectedTemplate.max_songs;
-        settingsForm.num_rounds = selectedTemplate.num_rounds;
-        settingsForm.requires_approval = selectedTemplate.requires_approval;
-        settingsForm.kill_percentage_percent =
-            selectedTemplate.kill_percentage_percent;
-        settingsForm.priority_boost_new = selectedTemplate.priority_boost_new;
-        settingsForm.auto_remove_negative =
-            selectedTemplate.auto_remove_negative;
-        settingsForm.emoji_chat_enabled = selectedTemplate.emoji_chat_enabled;
-        settingsForm.voting_enabled = selectedTemplate.voting_enabled;
-    },
-    { immediate: true }
-);
-watch(
-    () => settingsForm.voting_enabled,
-    (newValue) => {
-        console.log(newValue);
-    }
-);
-watch(
-    () => settingsForm.auto_remove_negative,
-    (newValue) => {
-        console.log(newValue);
-    }
-);
 
 function saveChanges() {
     if (isLoading.value) {
@@ -190,6 +171,19 @@ function saveChanges() {
     });
 }
 
+function setFormValues(selectedTemplate) {
+    settingsForm.batch_size = selectedTemplate.batch_size;
+    settingsForm.max_songs = selectedTemplate.max_songs;
+    settingsForm.num_rounds = selectedTemplate.num_rounds;
+    settingsForm.requires_approval = selectedTemplate.requires_approval;
+    settingsForm.kill_percentage_percent =
+        selectedTemplate.kill_percentage_percent;
+    settingsForm.priority_boost_new = selectedTemplate.priority_boost_new;
+    settingsForm.auto_remove_negative = selectedTemplate.auto_remove_negative;
+    settingsForm.emoji_chat_enabled = selectedTemplate.emoji_chat_enabled;
+    settingsForm.voting_enabled = selectedTemplate.voting_enabled;
+}
+
 const options = [
     {
         name: "Voting",
@@ -201,4 +195,10 @@ const options = [
         name: "Chat",
     },
 ];
+
+onBeforeMount(() => {
+    const selectedTemplate = templatesStore.getSelectedTemplate();
+
+    setFormValues(selectedTemplate);
+});
 </script>

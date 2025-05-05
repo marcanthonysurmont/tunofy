@@ -17,6 +17,7 @@
             :max="max"
             :step="step"
             :value="modelValue"
+            :disabled="disabled"
             @input="$emit('update:modelValue', +$event.target.value)"
         />
     </div>
@@ -24,7 +25,10 @@
 
 <script setup>
 defineProps({
-    label: String,
+    label: {
+        type: String,
+        default: "Undefined Label",
+    },
     min: {
         type: Number,
         default: 0,
@@ -40,6 +44,10 @@ defineProps({
     modelValue: {
         type: Number,
         required: true,
+    },
+    disabled: {
+        type: Boolean,
+        default: false,
     },
 });
 

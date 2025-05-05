@@ -52,6 +52,5 @@ const setActiveTab = (tabName) => {
     tabs.value.forEach((tab) => {
         tab.active = tab.name === tabName;
     });
-    console.log("Active tab changed to:", activeTab.value);
 };
 </script>

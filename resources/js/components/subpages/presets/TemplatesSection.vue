@@ -12,7 +12,7 @@
             "
             v-for="(template, index) in templatesStore.templates"
             :key="index"
-            @click="templatesStore.selectTemplate(index)"
+            @click="selectTemplate(index, template.id)"
         >
             <CheckCircleIcon
                 v-if="templatesStore.selectedTemplateIndex === index"
@@ -29,6 +29,30 @@
 <script setup>
 import { CheckCircleIcon } from "@heroicons/vue/24/solid";
 import { useTemplatesStore } from "@/stores/StorePresets.js";
+import { useForm, usePage } from "@inertiajs/vue3";
+import { computed } from "vue";
+
+const page = usePage();
+const mix = computed(() => page.props.mix);
 
 const templatesStore = useTemplatesStore();
+
+const selectPresetForm = useForm({
+    preset_id: templatesStore.selectedTemplateID,
+});
+
+function selectTemplate(index, id) {
+    //save in store
+    templatesStore.selectTemplate(index, id);
+
+    //save in form
+    selectPresetForm.preset_id = id;
+
+    //submit form
+    selectPresetForm.post(route("mix.presets.update-selected", mix.value.id), {
+        onError: (error) => {
+            console.error("Error updating selected preset:", error);
+        },
+    });
+}
 </script>
