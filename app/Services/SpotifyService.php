@@ -78,6 +78,27 @@ class SpotifyService
     }
 
     /**
+     * Pause playback on the user's active device
+     */
+    public function pausePlayback(User $user): bool
+    {
+        try {
+            Log::info("Pausing Spotify playback for user {$user->id}");
+
+            $response = $this->spotifyRequest(
+                $user,
+                'PUT',
+                'https://api.spotify.com/v1/me/player/pause'
+            );
+
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error("Spotify pausePlayback error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Get current playback state from Spotify
      */
     public function getCurrentPlayback(User $user): ?array
@@ -187,6 +208,32 @@ class SpotifyService
             return $success;
         } catch (\Exception $e) {
             Log::error("Spotify device activation error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function setVolume(User $user, int $volumePercent): bool
+    {
+        try {
+            // Ensure volume is within valid range
+            $volumePercent = max(0, min(100, $volumePercent));
+
+            Log::info("Setting Spotify volume to {$volumePercent}% for user {$user->id}");
+
+            $response = $this->spotifyRequest(
+                $user,
+                'PUT',
+                'https://api.spotify.com/v1/me/player/volume',
+                [
+                    'query' => [
+                        'volume_percent' => $volumePercent
+                    ]
+                ]
+            );
+
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error("Spotify setVolume error: " . $e->getMessage());
             return false;
         }
     }

@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use App\Events\PlaybackDataUpdatedEvent;
+use App\Events\MixStatusChangedEvent;
 
 class SpotifyPollingService
 {
@@ -26,6 +27,7 @@ class SpotifyPollingService
     public const PLAYER_STATE_STUCK = 'stuck';
     public const PLAYER_STATE_MANUAL_SEEK_END = 'manual_seek_end';
     public const PLAYER_STATE_PLAYING_TOO_LONG = 'playing_too_long';
+    public const PLAYER_STATE_QUEUE_COMPLETED = 'queue_completed';
 
     protected $changeReason = '';
 
@@ -70,6 +72,33 @@ class SpotifyPollingService
 
                     // After starting playback, refresh playback data
                     $playbackData = $this->spotifyService->getCurrentPlayback($user);
+                } else {
+                    // No current song playing and no pending songs - check if queue is complete
+                    $anyPlayedSongs = QueueSong::where('mix_id', $mix->id)
+                        ->whereIn('status', ['finished', 'interrupted'])
+                        ->exists();
+
+                    if ($anyPlayedSongs) {
+                        // Queue is complete - pause playback and deactivate mix
+                        Log::info("Queue completed for mix {$mix->id} - auto-deactivating");
+
+                        // Pause playback first
+                        $this->spotifyService->pausePlayback($user);
+
+                        // Deactivate the mix
+                        $mix->is_active = false;
+                        $mix->save();
+
+                        // Broadcast completion status
+                        event(new MixStatusChangedEvent($mix, false));
+                        $this->updateCacheAndBroadcast($mix, [
+                            'status' => 'queue_completed',
+                            '_timestamp' => now()->timestamp
+                        ], null, $cacheKey);
+
+                        // Exit immediately
+                        return;
+                    }
                 }
             } else {
                 // Analyze player state and take appropriate action

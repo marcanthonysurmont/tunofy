@@ -22,6 +22,14 @@
       </div>
     </div>
     
+    <!-- Add queue completion state -->
+    <div v-else-if="queueCompleted" class="queue-completed">
+      <div class="checkmark">✓</div>
+      <div class="completion-message">
+        Queue completed! All songs have been played.
+      </div>
+    </div>
+    
     <!-- Content based on active state -->
     <div v-else-if="!isMixActive" class="not-active">
       Playback polling is inactive for this mix
@@ -71,6 +79,9 @@ const props = defineProps({
     default: false
   }
 });
+
+// Add queue completion state
+const queueCompleted = ref(false);
 
 // State variables with consistent naming and purpose
 const currentTrack = ref(null);
@@ -141,6 +152,7 @@ const loadInitialData = async () => {
 const toggleMixActive = async () => {
   try {
     isLoading.value = true;
+    queueCompleted.value = false;  // Reset queue completion state
     
     // When activating, set syncing flag immediately
     if (!isMixActive.value) {
@@ -219,14 +231,36 @@ onMounted(() => {
       .listen('.playback-data', (e) => {
         console.log('📢 Received playback-data event:', e);
         
-        if (e.playback_data.status === 'no_active_playback') {
+        // Extract the playback data
+        const playbackData = e.playback_data;
+        
+        // Check specifically for queue completion
+        if (playbackData.status === 'queue_completed') {
+          // Queue completed - mix was auto-deactivated
+          console.log('Queue completed, mix deactivated');
+          currentTrack.value = null;
+          isPlaying.value = false;
+          isMixActive.value = false; // Update UI to show deactivated state
+          clearSyncingState();
+          
+          // Set queue completion state
+          queueCompleted.value = true;
+          
+          // Auto-clear the completion state after 30 seconds
+          setTimeout(() => {
+            queueCompleted.value = false;
+          }, 30000);
+          
+        } else if (playbackData.status === 'no_active_playback') {
           // Clear current track
           currentTrack.value = null;
           isPlaying.value = false;
           console.log('No active playback');
+          queueCompleted.value = false;
         } else {
           // Normal playback data
-          updatePlayerState(e.playback_data);
+          updatePlayerState(playbackData);
+          queueCompleted.value = false;
           
           // Make sure to mark the mix as active when we receive playback data
           if (!isMixActive.value) {
@@ -278,6 +312,37 @@ onUnmounted(() => {
   text-align: center;
   padding: 20px;
   color: #aaa;
+}
+
+.queue-completed {
+  text-align: center;
+  padding: 24px 16px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.checkmark {
+  color: #1DB954;
+  font-size: 32px;
+  margin-bottom: 12px;
+  background-color: rgba(29, 185, 84, 0.1);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.completion-message {
+  font-size: 1.1rem;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .track-info {

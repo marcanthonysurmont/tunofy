@@ -16,7 +16,7 @@ class PlaybackDataUpdatedEvent implements ShouldBroadcastNow
     use InteractsWithSockets;
     use SerializesModels;
 
-    public function __construct(public Mix $mix, public $playbackData)
+    public function __construct(public Mix $mix, public array $playbackData)
     {}
 
     public function broadcastOn(): array
@@ -36,6 +36,7 @@ class PlaybackDataUpdatedEvent implements ShouldBroadcastNow
         return [
             'mix_id' => $this->mix->id,
             'playback_data' => new SpotifyPlaybackResource($this->playbackData),
+            'timestamp' => now()->timestamp
         ];
     }
 }
