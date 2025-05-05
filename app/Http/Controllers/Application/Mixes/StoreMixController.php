@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Application\Mixes;
 
-use App\Http\Requests\StoreMixRequest;
-use App\Http\Controllers\Controller;
 use App\Models\Mix;
-use Illuminate\Http\RedirectResponse;
+use App\Models\Preset;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\StoreMixRequest;
 
 class StoreMixController extends Controller
 {
@@ -20,11 +21,26 @@ class StoreMixController extends Controller
                 $avatarPath = $request->file('image')->store('mix_avatars', 'public');
             }
 
-            Mix::create([
+            $mix = Mix::create([
                 'user_id' => Auth::id(),
                 'name' => $validated['name'],
                 'is_public' => $validated['is_public'],
                 'avatar' => $avatarPath,
+            ]);
+
+            Preset::create([
+                'name' => 'Custom',
+                'mix_id' => $mix->id,
+                'is_system' => false,
+                'batch_size' => 1,
+                'max_songs' => 1,
+                'num_rounds' => 1,
+                'requires_approval' => 0,
+                'voting_enabled' => 0,
+                'kill_percentage_percent' => 0,
+                'priority_boost_new' => 0,
+                'auto_remove_negative' => 0,
+                'emoji_chat_enabled' => 0,
             ]);
 
             return redirect()->back()

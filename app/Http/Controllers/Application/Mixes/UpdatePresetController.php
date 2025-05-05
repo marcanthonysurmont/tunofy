@@ -11,13 +11,12 @@ class UpdatePresetController extends Controller
 {
     public function __invoke(UpdatePresetRequest $request, Preset $preset): RedirectResponse
     {
-        $this->authorize('update', $preset);
-        
+        // $this->authorize('update', $preset);
+
         $validated = $request->validated();
 
         try {
             $preset->update([
-                'name' => $validated['name'],
                 'batch_size' => $validated['batch_size'],
                 'max_songs' => $validated['max_songs'],
                 'num_rounds' => $validated['num_rounds'],

@@ -6,9 +6,8 @@
             :class="[
                 enabled ? 'bg-primary' : 'bg-zinc-700',
                 disabled && 'opacity-50 cursor-not-allowed',
-                'relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:outline-hidden',
+                'relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-all duration-200 ease-in-out focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:outline-hidden',
             ]"
-            @change="updateModelValue"
         >
             <span
                 aria-hidden="true"
@@ -19,14 +18,19 @@
             />
         </Switch>
         <SwitchLabel as="span" class="ml-3 text-sm text-zinc-100">
-            <span class="font-medium">{{ label }}</span>
+            <span
+                class="font-medium transition-all duration-200 ease-in-out"
+                :class="disabled ? 'opacity-40' : ''"
+            >
+                {{ label }}
+            </span>
             <span class="text-zinc-500">{{ description }}</span>
         </SwitchLabel>
     </SwitchGroup>
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, defineProps, defineEmits } from "vue";
 import { Switch, SwitchGroup, SwitchLabel } from "@headlessui/vue";
 
 const props = defineProps({
@@ -39,7 +43,7 @@ const props = defineProps({
         required: false,
     },
     modelValue: {
-        type: Boolean,
+        type: [Boolean, Number],
         default: false,
     },
     disabled: {
@@ -48,16 +52,19 @@ const props = defineProps({
     },
 });
 
-const enabled = ref(props.modelValue);
+const emit = defineEmits(["update:modelValue"]);
+
+const enabled = ref(Boolean(props.modelValue));
 
 watch(
     () => props.modelValue,
     (newValue) => {
-        enabled.value = newValue;
+        enabled.value = Boolean(newValue);
     }
 );
 
-const updateModelValue = () => {
-    emit("update:modelValue", enabled.value);
-};
+watch(enabled, (newValue) => {
+    //0 and 1 values for the backend
+    emit("update:modelValue", newValue ? 1 : 0);
+});
 </script>

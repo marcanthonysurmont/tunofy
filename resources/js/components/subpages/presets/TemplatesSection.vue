@@ -6,16 +6,16 @@
         <div
             class="relative bg-card-background border-2 p-4 rounded-lg cursor-pointer transition-all duration-200"
             :class="
-                selected === index
+                templatesStore.selectedTemplateIndex === index
                     ? 'border-blue-500 shadow-lg'
                     : 'border-card-stroke'
             "
-            v-for="(template, index) in templates"
+            v-for="(template, index) in templatesStore.templates"
             :key="index"
-            @click="selected = index"
+            @click="templatesStore.selectTemplate(index)"
         >
             <CheckCircleIcon
-                v-if="selected === index"
+                v-if="templatesStore.selectedTemplateIndex === index"
                 class="absolute top-2 right-2 w-6 h-6 text-blue-500"
             />
             <h2 class="text-2xl font-semibold mb-4 font-body">
@@ -27,33 +27,8 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
 import { CheckCircleIcon } from "@heroicons/vue/24/solid";
+import { useTemplatesStore } from "@/stores/StorePresets.js";
 
-const templates = [
-    {
-        name: "Quick Party",
-        description:
-            "The perfect option for a party where time is limited but fun is priority.",
-        image: "/images/marathon.jpg",
-    },
-    {
-        name: "Marathon",
-        description:
-            "The perfect option for a party where time is limited but fun is priority.",
-        image: "/images/party.jpg",
-    },
-    {
-        name: "Request Night",
-        description:
-            "The perfect option for a party where time is limited but fun is priority.",
-        image: "/images/chill.jpg",
-    },
-    {
-        name: "Custom",
-        description: "Need some freedom? ",
-        image: "/images/workout.jpg",
-    },
-];
-const selected = ref(0);
+const templatesStore = useTemplatesStore();
 </script>

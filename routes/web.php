@@ -50,7 +50,7 @@ Route::middleware('auth')->group(function () {
 
             // app/mix/presets (mix.presets)
             Route::prefix('/presets')->name('presets.')->group(function () {
-                Route::post('/store', StorePresetController::class)->name('store');
+                // Route::post('/store', StorePresetController::class)->name('store');
                 Route::post('/update/{preset}', UpdatePresetController::class)->name('update');
                 Route::delete('/destroy/{preset}', DestroyPresetController::class)->name('destroy');
             });
@@ -63,7 +63,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/request-status', RequestSpotifyPlayerStatusController::class)->name('request-status');
         Route::post('/set-mix-active', SetMixActiveController::class)->name('set-mix-active');
     });
-    
+
     Route::get('/logout', LogoutController::class)->name('logout');
 });
 
