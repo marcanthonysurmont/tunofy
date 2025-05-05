@@ -30,6 +30,11 @@ class Song extends Model
         return $this->belongsTo(Mix::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     /**************************************/
     /*       Accessors / Mutators         */
     /**************************************/

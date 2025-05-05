@@ -18,7 +18,6 @@ use App\Http\Controllers\Application\Mixes\StoreMixController;
 use App\Http\Controllers\General\ShowTermsOfUsePageController;
 use App\Http\Controllers\Application\Mixes\UpdateMixController;
 use App\Http\Controllers\Application\Mixes\DestroyMixController;
-use App\Http\Controllers\Application\Mixes\StorePresetController;
 use App\Http\Controllers\Application\Mixes\AddSongToMixController;
 use App\Http\Controllers\Application\Mixes\UpdatePresetController;
 use App\Http\Controllers\Application\Spotify\SearchSongController;
