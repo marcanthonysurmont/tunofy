@@ -1,6 +1,6 @@
 <template>
     <ul v-for="mix in mixes" v-if="mixes.length > 0">
-        <YourMixesListItem
+        <JoinedMixesListItem
             :key="mix.id"
             :mix="mix"
             :is-active="isActive(mix)"
@@ -14,11 +14,11 @@
 <script setup>
 import { computed } from "vue";
 import { usePage } from "@inertiajs/vue3";
-import YourMixesListItem from "./YourMixesListItem.vue";
+import JoinedMixesListItem from "./JoinedMixesListItem.vue";
 
 const page = usePage();
 const props = computed(() => page.props);
-const mixes = computed(() => props.value.your_mixes);
+const mixes = computed(() => props.value.joined_mixes);
 const currentMix = computed(() => props.value.mix);
 
 function isActive(mix) {

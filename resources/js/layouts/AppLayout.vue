@@ -112,6 +112,12 @@
                                                     class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
                                                 />
                                             </div>
+                                            <ul
+                                                role="list"
+                                                class="flex flex-col gap-y-4"
+                                            >
+                                                <JoinedMixesList />
+                                            </ul>
                                         </li>
                                     </ul>
                                 </nav>
@@ -169,6 +175,12 @@
                                     class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
                                 />
                             </div>
+                            <ul
+                                role="list"
+                                class="flex flex-col max-h-[800px] overflow-y-auto custom-scrollbar gap-y-4"
+                            >
+                                <JoinedMixesList />
+                            </ul>
                         </li>
                         <li
                             class="-mx-6 mt-auto flex flex-row items-center justify-between border-t border-regular-stroke px-6 py-3"
@@ -263,6 +275,7 @@ import JoinMixModal from "@/components/modals/mixes/JoinMixModal.vue";
 import YourMixesList from "@/components/mixes/YourMixesList.vue";
 import ToastList from "@/components/toasts/ToastList.vue";
 import { usePage } from "@inertiajs/vue3";
+import JoinedMixesList from "../components/mixes/JoinedMixesList.vue";
 
 const page = usePage();
 const user = page.props.user;
