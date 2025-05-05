@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Log;
 class SongPlaybackService
 {
     public function __construct(protected SpotifyService $spotifyService)
-    {}
+    {
+    }
 
     /**
      * Get the next song to play from the queue
@@ -165,5 +166,82 @@ class SongPlaybackService
             ]);
 
         Log::info("Cleared queue for mix {$mixId}");
+    }
+
+    /**
+     * Verify that the expected song is actually playing
+     */
+    public function verifyPlaybackIntegrity(int $mixId, array $playbackData): bool
+    {
+        // Get what we think is playing
+        $currentQueueSong = QueueSong::where('mix_id', $mixId)
+            ->where('status', 'playing')
+            ->with('song')
+            ->first();
+
+        if (!$currentQueueSong) {
+            return true; // Nothing playing in our system, so no mismatch
+        }
+
+        // Get what's actually playing on Spotify
+        $spotifyTrackUri = $playbackData['item']['uri'] ?? null;
+        $expectedTrackUri = "spotify:track:" . $currentQueueSong->song->spotify_id;
+
+        // Compare the two
+        if ($spotifyTrackUri && $spotifyTrackUri !== $expectedTrackUri) {
+            Log::warning("Playback mismatch detected: Expected {$expectedTrackUri}, playing {$spotifyTrackUri}");
+
+            // Update the queue to reflect reality
+            $currentQueueSong->update([
+                'status' => 'interrupted',
+                'played_at' => Carbon::now()
+            ]);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Attempt to resume the currently intended track
+     * (useful when Spotify gets out of sync with the app's queue)
+     */
+    public function resumeIntendedTrack(int $mixId): array
+    {
+        $mix = Mix::findOrFail($mixId);
+        $user = User::findOrFail($mix->user_id);
+
+        // Get what we think should be playing
+        $currentQueueSong = QueueSong::where('mix_id', $mixId)
+            ->where('status', 'playing')
+            ->with('song')
+            ->first();
+
+        if (!$currentQueueSong) {
+            return [
+                'success' => false,
+                'message' => 'No song currently marked as playing in the mix'
+            ];
+        }
+
+        // Attempt to play the correct song
+        $songUri = "spotify:track:{$currentQueueSong->song->spotify_id}";
+        $playResult = $this->spotifyService->playSong($user, $songUri);
+
+        if (!$playResult) {
+            Log::error("Failed to resume intended track {$currentQueueSong->song->spotify_id}");
+            return [
+                'success' => false,
+                'message' => 'Failed to resume intended track'
+            ];
+        }
+
+        Log::info("Successfully resumed intended track {$currentQueueSong->song->spotify_id}");
+        return [
+            'success' => true,
+            'queue_song' => $currentQueueSong,
+            'song' => $currentQueueSong->song
+        ];
     }
 }

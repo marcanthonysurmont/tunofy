@@ -43,7 +43,7 @@ class StoreMixController extends Controller
                 'emoji_chat_enabled' => 0,
             ]);
 
-            return redirect()->back()
+             return redirect()->back()
                 ->with('success', 'Mix created successfully!');
         } catch (\Exception $e) {
             return redirect()->back()

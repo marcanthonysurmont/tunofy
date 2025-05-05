@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use App\Events\PlaybackDataUpdatedEvent;
+use App\Events\MixStatusChangedEvent;
 
 class SpotifyPollingService
 {
@@ -26,6 +27,7 @@ class SpotifyPollingService
     public const PLAYER_STATE_STUCK = 'stuck';
     public const PLAYER_STATE_MANUAL_SEEK_END = 'manual_seek_end';
     public const PLAYER_STATE_PLAYING_TOO_LONG = 'playing_too_long';
+    public const PLAYER_STATE_QUEUE_COMPLETED = 'queue_completed';
 
     protected $changeReason = '';
 
@@ -70,6 +72,33 @@ class SpotifyPollingService
 
                     // After starting playback, refresh playback data
                     $playbackData = $this->spotifyService->getCurrentPlayback($user);
+                } else {
+                    // No current song playing and no pending songs - check if queue is complete
+                    $anyPlayedSongs = QueueSong::where('mix_id', $mix->id)
+                        ->whereIn('status', ['finished', 'interrupted'])
+                        ->exists();
+
+                    if ($anyPlayedSongs) {
+                        // Queue is complete - pause playback and deactivate mix
+                        Log::info("Queue completed for mix {$mix->id} - auto-deactivating");
+
+                        // Pause playback first
+                        $this->spotifyService->pausePlayback($user);
+
+                        // Deactivate the mix
+                        $mix->is_active = false;
+                        $mix->save();
+
+                        // Broadcast completion status
+                        event(new MixStatusChangedEvent($mix, false));
+                        $this->updateCacheAndBroadcast($mix, [
+                            'status' => 'queue_completed',
+                            '_timestamp' => now()->timestamp
+                        ], null, $cacheKey);
+
+                        // Exit immediately
+                        return;
+                    }
                 }
             } else {
                 // Analyze player state and take appropriate action
@@ -80,6 +109,16 @@ class SpotifyPollingService
                     $playbackData,
                     $previousData
                 );
+
+                // If track mismatch is detected
+                if ($playerState === self::PLAYER_STATE_TRACK_MISMATCH) {
+                    // Handle mismatch by correcting playback
+                    $this->handlePlayerState($mix, $playerState);
+
+                    // Don't broadcast mismatched playback data - we'll get a new event when it's fixed
+                    Log::info("Suppressing playback data broadcast due to track mismatch");
+                    return;
+                }
 
                 $stateChanged = $this->handlePlayerState($mix, $playerState);
 
@@ -125,6 +164,7 @@ class SpotifyPollingService
 
         // CASE 2: Track mismatch
         if ($playbackData['item']['id'] !== $currentQueueSong->song->spotify_id) {
+            Log::info("Track mismatch detected. Expected: {$currentQueueSong->song->spotify_id}, playing: {$playbackData['item']['id']}");
             return self::PLAYER_STATE_TRACK_MISMATCH;
         }
 
@@ -219,6 +259,7 @@ class SpotifyPollingService
     private function handlePlayerState(Mix $mix, string $playerState): bool
     {
         $stateChanged = false;
+        $resumeOnMismatch = false;
 
         switch ($playerState) {
             case self::PLAYER_STATE_NO_PLAYBACK:
@@ -226,26 +267,21 @@ class SpotifyPollingService
             case self::PLAYER_STATE_FINISHED:
             case self::PLAYER_STATE_MANUAL_SEEK_END:
             case self::PLAYER_STATE_PLAYING_TOO_LONG:
-                // All these states require advancing to the next song
-                Log::info("Advancing queue for mix {$mix->id} due to player state: {$playerState}");
-
-                // IMPORTANT: Explicitly clear the playback cache before advancing
+                // Clear cache before taking action
                 $playbackCacheKey = self::CACHE_PREFIX_PLAYBACK . $mix->id;
                 Cache::forget($playbackCacheKey);
                 Log::info("Cleared playback cache for mix {$mix->id}");
 
-                $this->songPlaybackService->advanceToNextSong($mix->id);
-                $stateChanged = true;
-
-                // Clean up any related cache entries
-                if ($playerState === self::PLAYER_STATE_MANUAL_SEEK_END) {
-                    $currentQueueSong = QueueSong::where('mix_id', $mix->id)
-                        ->where('status', 'playing')
-                        ->first();
-                    if ($currentQueueSong) {
-                        Cache::forget(self::CACHE_PREFIX_SEEK . $currentQueueSong->id);
-                    }
+                // For track mismatch, consider resuming intended track
+                if ($playerState === self::PLAYER_STATE_TRACK_MISMATCH && $resumeOnMismatch) {
+                    // Try to resume our intended track
+                    $this->songPlaybackService->resumeIntendedTrack($mix->id);
+                } else {
+                    // Otherwise advance to next song
+                    $this->songPlaybackService->advanceToNextSong($mix->id);
                 }
+
+                $stateChanged = true;
                 break;
 
             case self::PLAYER_STATE_STUCK:
@@ -289,6 +325,9 @@ class SpotifyPollingService
             ];
 
             Cache::put($cacheKey, $noPlaybackData);
+
+            // Always broadcast no playback state
+            Log::info("Broadcasting no active playback for mix {$mix->id}");
             event(new PlaybackDataUpdatedEvent($mix, $noPlaybackData));
             return;
         }
@@ -299,7 +338,15 @@ class SpotifyPollingService
         // Update cache
         Cache::put($cacheKey, $playbackData);
 
-        // Only broadcast significant changes
+        // MODIFICATION: Always broadcast when the mix is active regardless of changes
+        if ($mix->is_active) {
+            // For active mixes, broadcast every update to keep all browsers in sync
+            Log::info("Broadcasting playback data for active mix {$mix->id}");
+            event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+            return;
+        }
+
+        // For inactive mixes, only broadcast significant changes
         if ($this->hasSignificantChanges($previousData, $playbackData)) {
             Log::info("Broadcasting playback change: {$this->changeReason}");
             event(new PlaybackDataUpdatedEvent($mix, $playbackData));

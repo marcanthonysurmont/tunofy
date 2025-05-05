@@ -15,9 +15,13 @@ class MixStatusChangedEvent implements ShouldBroadcastNow
     use InteractsWithSockets;
     use SerializesModels;
 
-    public function __construct(public Mix $mix, public bool $isActive)
-    {}
-    
+    public function __construct(
+        public Mix $mix,
+        public bool $isActive,
+        public ?string $reason = null
+    ) {
+    }
+
     public function broadcastOn(): array
     {
         return [
@@ -35,6 +39,7 @@ class MixStatusChangedEvent implements ShouldBroadcastNow
         return [
             'mix_id' => $this->mix->id,
             'isActive' => $this->isActive,
+            'reason' => $this->reason,
             'timestamp' => now()->timestamp
         ];
     }

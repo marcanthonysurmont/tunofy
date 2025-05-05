@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('mix_id')->constrained()->onDelete('cascade');
             $table->foreignId('song_id')->constrained()->onDelete('cascade');
-            $table->enum('status', ['pending', 'playing', 'finished'])->default('pending');
+            $table->enum('status', ['pending', 'playing', 'finished', 'interrupted'])->default('pending');
             $table->boolean('is_killed')->default(false);  
             $table->integer('round_number');
             $table->integer('order');
