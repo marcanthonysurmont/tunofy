@@ -26,7 +26,7 @@
                     {{ mix.name.trim() }}
                 </h2>
                 <span class="text-zinc-400 text-sm mt-0 mb-0 leading-none">
-                    Playlist • 5 songs
+                    Mix • {{ mix.mix_count }} songs
                 </span>
             </div>
         </div>

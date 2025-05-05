@@ -28,6 +28,7 @@ class Mix extends Model
         'co_dj_id',
         'preset_id',
         'avatar',
+        'mix_count',
     ];
 
     protected $appends = ['authorized'];
