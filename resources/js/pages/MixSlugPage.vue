@@ -5,8 +5,8 @@
         <Transition name="fade-with-slide" appear mode="out-in">
             <div :key="activeTab">
                 <OverviewSubPage v-if="activeTab === 'Overview'" />
-                <VotingComponent v-else-if="activeTab === 'Voting'" />
-                <StatsComponent v-else-if="activeTab === 'Stats'" />
+                <VotingSubPage v-else-if="activeTab === 'Voting'" />
+                <StatsSubPage v-else-if="activeTab === 'Stats'" />
                 <PresetsSubPage v-else-if="activeTab === 'Presets'" />
                 <!-- <MixPlayback v-if="isDetailPage" :mix="mix" /> -->
             </div>
@@ -19,12 +19,12 @@ import { ref, computed } from "vue";
 
 import AppLayout from "@/layouts/AppLayout.vue";
 import TabNav from "@/components/navigation/TabNav.vue";
-import VotingComponent from "@/components/subpages/VotingComponent.vue";
-import StatsComponent from "@/components/subpages/StatsComponent.vue";
 import { Head, usePage } from "@inertiajs/vue3";
 import OverviewSubPage from "@/components/subpages/overview/OverviewSubPage.vue";
 import MixPlayback from "@/components/MixPlayback.vue";
 import PresetsSubPage from "@/components/subpages/presets/PresetsSubPage.vue";
+import StatsSubPage from "@/components/subpages/stats/StatsSubPage.vue";
+import VotingSubPage from "@/components/subpages/voting/VotingSubPage.vue";
 
 const tabs = ref([
     { name: "Overview", active: true },

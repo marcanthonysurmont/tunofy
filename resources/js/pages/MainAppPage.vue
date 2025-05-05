@@ -11,11 +11,7 @@
 import { ref } from "vue";
 
 import AppLayout from "@/layouts/AppLayout.vue";
-import TabNav from "@/components/navigation/TabNav.vue";
-import VotingComponent from "@/components/subpages/VotingComponent.vue";
-import StatsComponent from "@/components/subpages/StatsComponent.vue";
 import { Head } from "@inertiajs/vue3";
-import OverviewSubPage from "@/components/subpages/overview/OverviewSubPage.vue";
 
 const tabs = ref([
     { name: "Overview", active: true },
