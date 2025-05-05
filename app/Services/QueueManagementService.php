@@ -18,11 +18,8 @@ use Illuminate\Support\Facades\Auth;
  */
 class QueueManagementService
 {
-    public function __construct(
-        protected SpotifyService $spotifyService,
-        protected SongPlaybackService $songPlaybackService
-    ) {
-    }
+    public function __construct(protected SpotifyService $spotifyService, protected SongPlaybackService $songPlaybackService) 
+    {}
 
     /**
      * Initialize queue for a mix
