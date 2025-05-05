@@ -56,7 +56,7 @@ import { ExclamationCircleIcon } from "@heroicons/vue/16/solid";
 
 const props = defineProps({
     modelValue: {
-        type: Boolean,
+        type: [Boolean, Number],
         default: false,
     },
     label: String,
@@ -71,20 +71,18 @@ const emit = defineEmits(["update:modelValue"]);
 
 const hasError = !!props.error;
 
+const isNumber = typeof props.modelValue === "number";
+
 const proxyChecked = computed({
     get() {
-        return props.modelValue;
+        return isNumber ? Boolean(props.modelValue) : props.modelValue;
     },
     set(val) {
-        emit("update:modelValue", val);
+        emit("update:modelValue", isNumber ? (val ? 1 : 0) : val);
     },
 });
 
 const onChange = () => {
-    emit("update:modelValue", proxyChecked.value);
+    emit("update:modelValue", props.modelValue);
 };
 </script>
-
-<style scoped>
-/* Additional styling here if needed */
-</style>

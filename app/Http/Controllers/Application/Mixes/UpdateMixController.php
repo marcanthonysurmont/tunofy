@@ -12,23 +12,24 @@ class UpdateMixController extends Controller
     public function __invoke(UpdateMixRequest $request, Mix $mix): RedirectResponse
     {
         $this->authorize('update', $mix);
-        
+
         $validated = $request->validated();
 
         try {
             $avatarPath = null;
             if ($request->hasFile('avatar')) {
-                $avatarPath = $request->file('avatar')->store('', 'mix_avatars');
+                $avatarPath = $request->file('avatar')->store('mix_avatars', 'public');
             }
-    
+
             $mix->update([
                 'name' => $validated['name'],
                 'is_public' => $validated['is_public'],
-                'preset_id' => $validated['preset_id'],
+                // 'preset_id' => $validated['preset_id'],
                 'avatar' => $avatarPath ?? $mix->avatar,
             ]);
-    
-            return redirect()->back()
+
+            return redirect()
+                ->route('mix.show', $mix)
                 ->with('success', 'Mix updated successfully.');
         } catch (\Exception $e) {
             return redirect()->back()
