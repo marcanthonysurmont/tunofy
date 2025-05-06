@@ -25,7 +25,7 @@
                             ></th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody v-if="songs.length > 0">
                         <tr v-for="(song, index) in songs" :key="song.id">
                             <td
                                 class="py-2 sm:py-4 pr-1 sm:pr-3 text-sm text-zinc-100"
@@ -76,6 +76,17 @@
                         </tr>
                     </tbody>
                 </table>
+                <div v-if="!songs.length > 0" class="mb-32 mt-8">
+                    <p
+                        class="text-white text-left text-base"
+                        v-if="authorization.canAddSong"
+                    >
+                        No songs found. Search for a song and add it!
+                    </p>
+                    <p v-else class="text-white text-center sm:text-left">
+                        No songs found..
+                    </p>
+                </div>
             </div>
         </div>
     </div>
