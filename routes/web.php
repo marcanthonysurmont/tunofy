@@ -25,6 +25,7 @@ use App\Http\Controllers\Application\Mixes\DestroyPresetController;
 use App\Http\Controllers\Application\Spotify\SetMixActiveController;
 use App\Http\Controllers\Application\Mixes\GenerateMixCodeController;
 use App\Http\Controllers\Application\Mixes\RemoveSongFromMixController;
+use App\Http\Controllers\Application\Mixes\RemoveSessionCodeController;
 
 use App\Http\Controllers\Application\Mixes\UpdateSelectedPresetController;
 use App\Http\Controllers\Application\Spotify\RequestSpotifyPlayerStatusController;
@@ -47,6 +48,7 @@ Route::middleware('auth')->group(function () {
             Route::delete('/remove-song/{song}', RemoveSongFromMixController::class)->name('remove-song');
             Route::post('/generate-code/{mix}', GenerateMixCodeController::class)->name('generate-code');
             Route::post('/join/{session_code}', JoinMixController::class)->name('join');
+            Route::post('/remove-session-code/{mix}', RemoveSessionCodeController::class)->name('remove-session-code');
 
             // app/mix/presets (mix.presets)
             Route::prefix('/presets')->name('presets.')->group(function () {
