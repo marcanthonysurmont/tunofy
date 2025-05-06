@@ -42,8 +42,7 @@ class StoreMixController extends Controller
                 'auto_remove_negative' => 0,
                 'emoji_chat_enabled' => 0,
             ]);
-
-             return redirect()->back()
+            return redirect()->route('mix.show', $mix->slug)
                 ->with('success', 'Mix created successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
