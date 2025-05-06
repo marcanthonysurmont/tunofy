@@ -9,6 +9,13 @@
     >
         <template #title>
             <h1 class="text-4xl" v-if="!codeGenerated">Generate Code</h1>
+            <p
+                class="text-red-400 flex items-center gap-1 mt-2"
+                v-if="mix.session_code !== null && !codeGenerated"
+            >
+                <ExclamationCircleIcon class="size-5" /> This will override your
+                other generated code.
+            </p>
         </template>
         <template #body>
             <div v-if="!codeGenerated">
@@ -26,7 +33,7 @@
                 <div class="mb-4 text-center">
                     <h1 class="text-4xl mb-8">Your session code is ready!</h1>
                     <div
-                        class="border-2 border-card-stroke rounded-lg p-6 text-center relative"
+                        class="border-2 border-zinc-800 rounded-lg p-6 text-center relative"
                     >
                         <p class="text-2xl font-semibold">{{ sessionCode }}</p>
                         <ClipboardDocumentIcon
@@ -89,6 +96,7 @@ import { ref, computed } from "vue";
 import { useForm, usePage } from "@inertiajs/vue3";
 import RadioGroup from "@/components/forms/RadioGroup.vue";
 import { ClipboardDocumentIcon, CheckIcon } from "@heroicons/vue/24/outline";
+import { ExclamationCircleIcon } from "@heroicons/vue/24/solid";
 
 const notificationMethods = [
     { id: "view", title: "View" },
