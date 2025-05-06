@@ -371,7 +371,24 @@ function resumeMix() {
 function skipSong() {
     axios.post(`/api/spotify/skip-song/${props.mix.id}`)
         .then(response => {
-            if (response.data.success) {
+            if (response.data.success && response.data.song) {
+                // Transform the data to match the expected structure
+                currentTrack.value = {
+                    name: response.data.song.name,
+                    album: {
+                        images: [{ url: response.data.song.image_url }]
+                    },
+                    artists: [{ name: response.data.song.artist }],
+                    // Add any other required properties
+                    id: response.data.song.spotify_id,
+                    duration_ms: response.data.song.duration_ms
+                };
+                
+                // Update playing state if available
+                if (response.data.is_playing !== undefined) {
+                    isPlaying.value = response.data.is_playing;
+                }
+                
                 console.log('Song skipped successfully');
             }
         })
@@ -405,6 +422,7 @@ onMounted(() => {
         Echo.channel(`mix.${props.mix.id}`)
             .listen(".playback-data", (e) => {
                 //ignore out-of-sequence events
+                console.log(e);
                 const eventTime = e.timestamp || Date.now();
                 if (eventTime < lastEventTime.value) return;
                 lastEventTime.value = eventTime;

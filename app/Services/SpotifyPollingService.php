@@ -317,7 +317,7 @@ class SpotifyPollingService
      */
     private function updateCacheAndBroadcast(Mix $mix, ?array $playbackData, ?array $previousData, string $cacheKey): void
     {
-        // Handle no playback data
+        // Handle no playback data case
         if (empty($playbackData) || !isset($playbackData['item'])) {
             $noPlaybackData = [
                 'status' => 'no_active_playback',
@@ -326,30 +326,29 @@ class SpotifyPollingService
 
             Cache::put($cacheKey, $noPlaybackData);
 
-            // Always broadcast no playback state
-            Log::info("Broadcasting no active playback for mix {$mix->id}");
-            event(new PlaybackDataUpdatedEvent($mix, $noPlaybackData));
+            // Only broadcast if previous state was different
+            if (empty($previousData) ||
+                isset($previousData['item']) ||
+                ($previousData['status'] ?? '') !== 'no_active_playback') {
+
+                Log::info("Broadcasting no active playback for mix {$mix->id}");
+                event(new PlaybackDataUpdatedEvent($mix, $noPlaybackData));
+            }
             return;
         }
 
         // Add timestamp to playback data
         $playbackData['_timestamp'] = now()->timestamp;
 
-        // Update cache
+        // Always update cache
         Cache::put($cacheKey, $playbackData);
 
-        // MODIFICATION: Always broadcast when the mix is active regardless of changes
-        if ($mix->is_active) {
-            // For active mixes, broadcast every update to keep all browsers in sync
-            Log::info("Broadcasting playback data for active mix {$mix->id}");
-            event(new PlaybackDataUpdatedEvent($mix, $playbackData));
-            return;
-        }
-
-        // For inactive mixes, only broadcast significant changes
+        // Only broadcast if we have significant changes - even for active mixes
         if ($this->hasSignificantChanges($previousData, $playbackData)) {
-            Log::info("Broadcasting playback change: {$this->changeReason}");
+            Log::info("Broadcasting playback change for mix {$mix->id}: {$this->changeReason}");
             event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+        } else {
+            Log::debug("No significant changes for mix {$mix->id} - skipping broadcast");
         }
     }
 

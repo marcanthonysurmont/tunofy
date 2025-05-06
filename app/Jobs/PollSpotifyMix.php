@@ -51,6 +51,14 @@ class PollSpotifyMix implements ShouldQueue
             return;
         }
 
+        if (Cache::has("mix:{$mixId}:manual_change")) {
+            Log::info("Mix {$mixId} was just manually changed, skipping this poll");
+            Cache::forget("mix:{$mixId}:manual_change");
+
+            $this->scheduleNextPoll();
+            return;
+        }
+
         // Use a cache-based rate limiter
         $cacheKey = "mix_poll_{$mixId}_lastrun";
         $lastRun = Cache::get($cacheKey);
