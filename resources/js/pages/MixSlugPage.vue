@@ -27,7 +27,7 @@ import OverviewSubPage from "@/components/subpages/overview/OverviewSubPage.vue"
 import PresetsSubPage from "@/components/subpages/presets/PresetsSubPage.vue";
 import StatsSubPage from "@/components/subpages/stats/StatsSubPage.vue";
 import VotingSubPage from "@/components/subpages/voting/VotingSubPage.vue";
-import MixPlayback from "@/components/MixPlayback.vue";
+import MixPlayback from "@/components/playback/MixPlayback.vue";
 
 const tabs = ref([
     { name: "Overview", active: true, id: "overview" },

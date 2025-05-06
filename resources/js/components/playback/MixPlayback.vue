@@ -1,27 +1,56 @@
 <template>
     <div
-        class="fixed bottom-0 left-0 right-0 w-full z-50 bg-card-background/40 border-t-2 lg:border-2 backdrop-blur-xl border-card-stroke p-4 lg:fixed lg:bottom-5 lg:left-1/2 lg:-translate-x-1/2 lg:ml-[160px] lg:max-w-2xl lg:rounded-lg"
+        class="fixed bottom-0 left-0 right-0 w-full z-50 bg-card-background/40 border-t-2 lg:border-2 backdrop-blur-xl border-card-stroke p-4 lg:fixed lg:bottom-5 lg:left-1/2 lg:-translate-x-1/2 lg:ml-[160px] lg:max-w-2xl lg:rounded-lg xl:max-w-3xl"
     >
-        <div v-if="props.mix.authorized.isOwner" class="text-center mb-4">
+        <!-- top part of the player -->
+        <div
+            v-if="props.mix.authorized.isOwner"
+            class="mb-4 flex flex-row justify-between items-center"
+        >
             <ToggleSwitchReadValue
                 :model-value="isMixActive"
                 :disabled="isLoading"
-                :label="
-                    isMixActive
-                        ? 'Spotify sync enabled'
-                        : 'Spotify sync disabled'
-                "
+                label="Spotify sync"
                 @click="toggleMixActive"
+            />
+            <StatusIndicator
+                :is-playing="isPlaying"
+                :is-sync-disabled="!isMixActive"
+                class="visible md:hidden"
             />
         </div>
         <!-- Loading states - Prioritize showing one at a time -->
-        <div v-if="isLoading" class="loading"><p>Updating state...</p></div>
+        <div v-if="isLoading" class="loading">
+            <div class="flex items-center justify-center">
+                <svg
+                    class="animate-spin h-5 w-5 mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                >
+                    <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                    ></circle>
+                    <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                </svg>
+                <p>Updating state...</p>
+            </div>
+        </div>
 
         <!-- Loading state while we're syncing with Spotify -->
         <div v-else-if="isSyncingWithSpotify" class="loading">
             <div class="flex items-center justify-center">
                 <svg
-                    class="animate-spin h-5 w-5 mr-2 text-spotify-green"
+                    class="animate-spin h-5 w-5 mr-2"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -52,17 +81,88 @@
             </div>
         </div>
 
-        <!-- Content based on active state - explicit Boolean check -->
-        <div v-else-if="isMixActive === false" class="not-active">
-            <p>Playback polling is inactive for this mix</p>
+        <!-- Desktop player with no active queue -->
+        <div v-else-if="isMixActive === false">
+            <div class="flex-row items-center w-full hidden md:flex">
+                <div class="track-info flex items-center flex-1 gap-1">
+                    <img
+                        src="/images/default-song.png"
+                        class="album-art"
+                        alt="Album Art"
+                    />
+                    <div class="text-info ml-2">
+                        <div class="track-name">
+                            <p class="font-semibold">No song playing</p>
+                        </div>
+                        <div class="artist-name">
+                            <p>No song playing</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    v-if="props.mix.authorized.isOwner"
+                    class="flex flex-row items-center justify-center flex-none gap-2"
+                >
+                    <ChevronDoubleLeftIcon
+                        class="size-6 cursor-not-allowed opacity-50"
+                    />
+                    <PlayCircleIcon
+                        class="size-12 cursor-not-allowed opacity-50"
+                    />
+                    <ChevronDoubleRightIcon
+                        class="size-6 cursor-not-allowed opacity-50"
+                    />
+                </div>
+
+                <StatusIndicator
+                    :is-playing="isPlaying"
+                    :is-sync-disabled="!isMixActive"
+                />
+            </div>
+            <!-- Mobile playback with no active queue -->
+            <div
+                class="flex flex-row items-center w-full md:hidden gap-2 sm:gap-0"
+            >
+                <div class="track-info flex items-center flex-1">
+                    <img
+                        src="/images/default-song.png"
+                        class="album-art"
+                        alt="Album Art"
+                    />
+                    <div class="text-info ml-2">
+                        <div class="track-name">
+                            <p class="font-semibold text-lg">No song playing</p>
+                        </div>
+                        <div class="artist-name">
+                            <p class="text-sm text-zinc-400">No song playing</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <div
+                        v-if="props.mix.authorized.isOwner"
+                        class="flex flex-row items-center justify-center flex-none gap-2"
+                    >
+                        <ChevronDoubleLeftIcon class="size-6 opacity-50" />
+                        <PlayCircleIcon class="size-12 opacity-50" />
+                        <ChevronDoubleRightIcon class="size-6 opacity-50" />
+                    </div>
+                    <StatusIndicator
+                        :is-playing="isPlaying"
+                        :is-sync-disabled="!isMixActive"
+                        v-else
+                    />
+                </div>
+            </div>
         </div>
 
         <div v-else-if="!currentTrack" class="text-center py-2">
             <p class="text-zinc-400">Nothing is currently playing..</p>
         </div>
 
-        <!-- desktop playback -->
-        <div v-else>
+        <!-- desktop playback with active queue -->
+        <div v-else-if="isMixActive">
             <div class="flex-row items-center w-full hidden md:flex">
                 <div class="track-info flex items-center flex-1 gap-1">
                     <img
@@ -95,7 +195,7 @@
                 >
                     <ChevronDoubleLeftIcon
                         @click="previousSong"
-                        class="size-6 text-spotify-green cursor-pointer"
+                        class="size-6 cursor-pointer"
                     />
                     <PauseCircleIcon
                         @click="pauseMix"
@@ -105,35 +205,18 @@
                     <PlayCircleIcon
                         @click="resumeMix"
                         v-if="!isPlaying"
-                        class="size-12 text-spotify-green cursor-pointer"
+                        class="size-12 cursor-pointer"
                     />
                     <ChevronDoubleRightIcon
-                        class="size-6 text-spotify-green cursor-pointer"
+                        class="size-6 cursor-pointer"
                         @click="skipSong"
                     />
                 </div>
 
-                <div class="text-right flex-1 flex justify-end items-center">
-                    <span
-                        class="px-3 py-2 rounded text-xs font-semibold flex items-center gap-x-2"
-                        :class="{
-                            'bg-green-900 text-green-400': isPlaying,
-                            'bg-zinc-950 text-zinc-400': !isPlaying,
-                        }"
-                    >
-                        <div
-                            class="size-2 rounded-full"
-                            :class="{
-                                'bg-green-400 ': isPlaying,
-                                'bg-zinc-400 ': !isPlaying,
-                            }"
-                        ></div>
-                        {{ isPlaying ? "Now Playing" : "Paused" }}
-                    </span>
-                </div>
+                <StatusIndicator :is-playing="isPlaying" />
             </div>
 
-            <!-- mobile playback -->
+            <!-- mobile playback with active queue -->
             <div
                 class="flex flex-row items-center w-full md:hidden gap-2 sm:gap-0"
             >
@@ -166,7 +249,8 @@
                         v-if="props.mix.authorized.isOwner"
                         class="flex flex-row items-center justify-center flex-none gap-2"
                     >
-                        <ChevronDoubleLeftIcon class="size-6 cursor-pointer" 
+                        <ChevronDoubleLeftIcon
+                            class="size-6 cursor-pointer"
                             @click="previousSong"
                         />
                         <PlayCircleIcon
@@ -179,28 +263,12 @@
                             v-if="isPlaying"
                             class="size-12 cursor-pointer"
                         />
-                        <ChevronDoubleRightIcon class="size-6 cursor-pointer" 
+                        <ChevronDoubleRightIcon
+                            class="size-6 cursor-pointer"
                             @click="skipSong"
                         />
                     </div>
-                    <div v-else>
-                        <span
-                            class="px-3 py-2 rounded text-xs font-semibold flex items-center gap-x-2"
-                            :class="{
-                                'bg-green-900 text-green-400': isPlaying,
-                                'bg-zinc-950 text-zinc-400': !isPlaying,
-                            }"
-                        >
-                            <div
-                                class="size-2 rounded-full"
-                                :class="{
-                                    'bg-green-400 ': isPlaying,
-                                    'bg-zinc-400 ': !isPlaying,
-                                }"
-                            ></div>
-                            {{ isPlaying ? "Now Playing" : "Paused" }}
-                        </span>
-                    </div>
+                    <StatusIndicator :is-playing="isPlaying" v-else />
                 </div>
             </div>
         </div>
@@ -208,13 +276,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import axios from "axios";
 import { ChevronDoubleLeftIcon } from "@heroicons/vue/16/solid";
 import { ChevronDoubleRightIcon } from "@heroicons/vue/16/solid";
 import { PauseCircleIcon, PlayCircleIcon } from "@heroicons/vue/24/solid";
-import RegularButton from "@/components/buttons/RegularButton.vue";
 import ToggleSwitchReadValue from "@/components/forms/ToggleSwitchReadValue.vue";
+import StatusIndicator from "@/components/playback/StatusIndicator.vue";
 
 const props = defineProps({
     mix: {
@@ -345,50 +413,54 @@ function updatePlayerState(playbackData) {
 }
 
 function pauseMix() {
-    axios.post(`/api/spotify/pause-mix/${props.mix.id}`)
-        .then(response => {
+    axios
+        .post(`/api/spotify/pause-mix/${props.mix.id}`)
+        .then((response) => {
             if (response.data.success) {
                 isPlaying.value = false;
             }
         })
-        .catch(error => {
-            console.error('Failed to pause playback:', error);
+        .catch((error) => {
+            console.error("Failed to pause playback:", error);
         });
 }
 
 function resumeMix() {
-    axios.post(`/api/spotify/resume-mix/${props.mix.id}`)
-        .then(response => {
+    axios
+        .post(`/api/spotify/resume-mix/${props.mix.id}`)
+        .then((response) => {
             if (response.data.success) {
                 isPlaying.value = true;
             }
         })
-        .catch(error => {
-            console.error('Failed to resume playback:', error);
+        .catch((error) => {
+            console.error("Failed to resume playback:", error);
         });
 }
 
 function skipSong() {
-    axios.post(`/api/spotify/skip-song/${props.mix.id}`)
-        .then(response => {
+    axios
+        .post(`/api/spotify/skip-song/${props.mix.id}`)
+        .then((response) => {
             if (response.data.success) {
-                console.log('Song skipped successfully');
+                console.log("Song skipped successfully");
             }
         })
-        .catch(error => {
-            console.error('Failed to skip song:', error);
+        .catch((error) => {
+            console.error("Failed to skip song:", error);
         });
 }
 
 function previousSong() {
-    axios.post(`/api/spotify/previous-song/${props.mix.id}`)
-        .then(response => {
+    axios
+        .post(`/api/spotify/previous-song/${props.mix.id}`)
+        .then((response) => {
             if (response.data.success) {
-                console.log('Skipped to previous song successfully');
+                console.log("Skipped to previous song successfully");
             }
         })
-        .catch(error => {
-            console.error('Failed to skip to previous song:', error);
+        .catch((error) => {
+            console.error("Failed to skip to previous song:", error);
         });
 }
 
@@ -414,7 +486,6 @@ onMounted(() => {
                     e.playback_data?.item &&
                     e.playback_data.is_playing
                 ) {
-                    // console.log("Mix is active, updating state");
                     isMixActive.value = true;
                 }
 
@@ -453,22 +524,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.music-player {
-    position: fixed;
-    bottom: 20px; /* Distance from bottom */
-    left: calc(50% + 320 / 2); /* Center in the content area */
-    transform: translateX(-50%); /* Center the player itself */
-    width: 300px; /* Or whatever width you need */
-}
-/* .playback-container {
-    background-color: #222;
-    border-radius: 8px;
-    padding: 16px;
-    color: white;
-    max-width: 500px;
-    margin: 0 auto;
-} */
-
 .loading,
 .error,
 .not-playing,
@@ -523,6 +578,9 @@ onUnmounted(() => {
     height: 60px;
     border-radius: 4px;
     margin-right: 0px;
+    /* Better rendering */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: auto;
 }
 
 .text-info {
