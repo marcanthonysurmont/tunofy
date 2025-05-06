@@ -42,7 +42,7 @@
                 <Cog8ToothIcon
                     class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
                 />
-                <MenuDropdown>
+                <MenuDropdown v-if="showMenuDropdown">
                     <MenuItem
                         v-slot="{ active }"
                         v-if="authorization.canUpdate"
@@ -127,7 +127,10 @@
                             >
                         </button>
                     </MenuItem>
-                    <MenuItem v-slot="{ active }">
+                    <MenuItem 
+                        v-slot="{ active }"
+                        v-if="authorization.isOwner && authorization.canCopySessionCode"
+                    >
                         <button
                             @click="copyCodeToClipboard"
                             :class="[
@@ -199,6 +202,15 @@ const readableTime = computed(() => {
     const hours = Math.floor(totalMs / 3600000);
     const minutes = Math.floor((totalMs % 3600000) / 60000);
     return `${hours > 0 ? hours + "h " : ""}${minutes}min`;
+});
+
+const showMenuDropdown = computed(() => {
+    return (
+        authorization.value.canUpdate || 
+        authorization.value.isOwner || 
+        authorization.value.canGenerateSessionCode ||
+        (authorization.value.isOwner && authorization.value.canCopySessionCode)
+    );
 });
 
 function getImageUrl(song) {

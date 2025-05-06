@@ -31,6 +31,12 @@ class Mix extends Model
         'mix_count',
     ];
 
+    protected $hidden = [
+        'session_code',
+        'session_code_expires_at',
+        'session_code_permission',
+    ];
+
     protected $appends = ['authorized'];
 
     /**************************************/

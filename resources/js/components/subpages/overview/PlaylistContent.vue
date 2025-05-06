@@ -94,7 +94,6 @@ const page = usePage();
 const props = computed(() => page.props);
 const songs = computed(() => props.value.mix.songs);
 const authorization = computed(() => page.props.mix.authorized);
-console.log(props.value);
 
 function getImageUrl(song) {
     return song.avatar === null
