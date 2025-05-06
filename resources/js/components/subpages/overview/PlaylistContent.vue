@@ -3,7 +3,7 @@
         <div class="mt-8 flow-root mb-32">
             <div class="w-full">
                 <table class="w-full text-left table-fixed">
-                    <thead>
+                    <thead class="border-b border-zinc-800">
                         <tr>
                             <th
                                 class="py-3.5 pr-1 sm:pr-3 text-left text-sm font-semibold text-zinc-200 w-6 sm:w-10"
@@ -26,11 +26,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr
-                            v-for="(song, index) in songs"
-                            :key="song.id"
-                            class="border-t border-zinc-800"
-                        >
+                        <tr v-for="(song, index) in songs" :key="song.id">
                             <td
                                 class="py-2 sm:py-4 pr-1 sm:pr-3 text-sm text-zinc-100"
                             >
