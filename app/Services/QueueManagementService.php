@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\PlaybackDataUpdatedEvent;
 use App\Models\Mix;
 use App\Models\QueueSong;
 use App\Models\User;

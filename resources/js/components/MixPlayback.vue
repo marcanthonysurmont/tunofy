@@ -421,8 +421,10 @@ onMounted(() => {
         //setup WebSocket listeners and listen for events
         Echo.channel(`mix.${props.mix.id}`)
             .listen(".playback-data", (e) => {
+                // Debug logging - add this
+                console.log("FULL EVENT DATA:", JSON.stringify(e));
+                
                 //ignore out-of-sequence events
-                console.log(e);
                 const eventTime = e.timestamp || Date.now();
                 if (eventTime < lastEventTime.value) return;
                 lastEventTime.value = eventTime;
@@ -459,7 +461,22 @@ onMounted(() => {
                     setSyncingState();
                     queueCompleted.value = false;
                 }
+            })
+            .listen('.debug-pause-test', (e) => {
+                console.log("DEBUG TEST EVENT RECEIVED:", e);
+            })
+            .listenForWhisper('*', (e) => {
+                console.log("WHISPER RECEIVED:", e);
             });
+
+        // Add connection debugging
+        window.Echo.connector.pusher.connection.bind('connected', () => {
+            console.log('Pusher connected!');
+        });
+
+        window.Echo.connector.pusher.connection.bind('error', (error) => {
+            console.error('Pusher connection error:', error);
+        });
     }
 });
 
