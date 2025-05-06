@@ -10,6 +10,8 @@ class RemoveCoDJController extends Controller
 {
     public function __invoke(Mix $mix): RedirectResponse
     {
+        $this->authorize('assignCoDJ', $mix);
+
         try {
             $mix->update(['co_dj_id' => null]);
 

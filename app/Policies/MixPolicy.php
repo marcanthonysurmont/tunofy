@@ -120,4 +120,10 @@ class MixPolicy
     {
         return $mix->session_code_expires_at > now();
     }
+
+    public function assignCoDJ(User $user, Mix $mix): bool
+    {
+        // Only the owner can assign a Co-DJ
+        return $user->id === $mix->user_id;
+    }
 }

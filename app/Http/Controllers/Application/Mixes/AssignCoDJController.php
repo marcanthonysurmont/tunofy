@@ -11,6 +11,8 @@ class AssignCoDJController extends Controller
 {
     public function __invoke(AssignCoDJRequest $request, Mix $mix): RedirectResponse
     {
+        $this->authorize('assignCoDJ', $mix);
+
         $validated = $request->validated();
 
         try {
