@@ -15,15 +15,23 @@ class JoinMixController extends Controller
     {
         $mix = Mix::validSessionCode($sessionCode)->first();
 
+        $user = Auth::user();
+
         if (!$mix) {
             throw ValidationException::withMessages([
                 'code' => 'Invalid or expired mix code.',
             ]);
         }
 
-        if ($mix->hasUserJoined(Auth::id())) {
+        if ($mix->hasUserJoined($user->id)) {
             throw ValidationException::withMessages([
                 'code' => 'You have already joined this mix.',
+            ]);
+        }
+
+        if($mix->user_id === $user->id) {
+            throw ValidationException::withMessages([
+                'code' => 'You cannot join your own mix.',
             ]);
         }
 
