@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class QueueSong extends Model
+class PlaybackSession extends Model
 {
     /**************************************/
     /*             Attributes             */
@@ -12,16 +12,9 @@ class QueueSong extends Model
 
     protected $fillable = [
         'mix_id',
-        'song_id',
-        'playback_session_id',
-        'status',
-        'is_killed',
-        'like_count',
-        'dislike_count',
-        'order',
-        'round_number',
-        'priority_boost',
-        'played_at',
+        'started_at',
+        'ended_at',
+        'is_active',
     ];
 
     /**************************************/
@@ -33,14 +26,9 @@ class QueueSong extends Model
         return $this->belongsTo(Mix::class);
     }
 
-    public function song()
+    public function queueSongs()
     {
-        return $this->belongsTo(Song::class);
-    }
-
-    public function playbackSession()
-    {
-        return $this->belongsTo(PlaybackSession::class);
+        return $this->hasMany(QueueSong::class);
     }
 
     /**************************************/

@@ -94,6 +94,7 @@
                     class="flex flex-row items-center justify-center flex-none gap-2"
                 >
                     <ChevronDoubleLeftIcon
+                        @click="previousSong"
                         class="size-6 text-spotify-green cursor-pointer"
                     />
                     <PauseCircleIcon
@@ -165,7 +166,9 @@
                         v-if="props.mix.authorized.isOwner"
                         class="flex flex-row items-center justify-center flex-none gap-2"
                     >
-                        <ChevronDoubleLeftIcon class="size-6 cursor-pointer" />
+                        <ChevronDoubleLeftIcon class="size-6 cursor-pointer" 
+                            @click="previousSong"
+                        />
                         <PlayCircleIcon
                             @click="resumeMix"
                             v-if="!isPlaying"
@@ -374,6 +377,18 @@ function skipSong() {
         })
         .catch(error => {
             console.error('Failed to skip song:', error);
+        });
+}
+
+function previousSong() {
+    axios.post(`/api/spotify/previous-song/${props.mix.id}`)
+        .then(response => {
+            if (response.data.success) {
+                console.log('Skipped to previous song successfully');
+            }
+        })
+        .catch(error => {
+            console.error('Failed to skip to previous song:', error);
         });
 }
 
