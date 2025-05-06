@@ -1,6 +1,6 @@
 <template>
     <div
-        class="fixed bottom-0 left-0 right-0 w-full z-50 bg-card-background/40 border-t-2 lg:border-2 backdrop-blur-xl border-card-stroke p-4 lg:fixed lg:bottom-5 lg:left-1/2 lg:-translate-x-1/2 lg:ml-[160px] lg:max-w-2xl lg:rounded-lg"
+        class="fixed bottom-0 left-0 right-0 w-full z-50 bg-card-background/40 border-t-2 lg:border-2 backdrop-blur-xl border-card-stroke p-4 lg:fixed lg:bottom-5 lg:left-1/2 lg:-translate-x-1/2 lg:ml-[160px] lg:max-w-2xl lg:rounded-lg xl:max-w-3xl"
     >
         <!-- top part of the player -->
         <div
