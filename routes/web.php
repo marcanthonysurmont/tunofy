@@ -29,6 +29,8 @@ use App\Http\Controllers\Application\Mixes\RemoveSessionCodeController;
 
 use App\Http\Controllers\Application\Mixes\UpdateSelectedPresetController;
 use App\Http\Controllers\Application\Spotify\RequestSpotifyPlayerStatusController;
+use App\Http\Controllers\Application\Mixes\AssignCoDJController;
+use App\Http\Controllers\Application\Mixes\RemoveCoDJController;
 
 Route::get('/', ShowLandingPageController::class)->name('landing');
 Route::get('/dpa', ShowDPAPageController::class);
@@ -49,6 +51,8 @@ Route::middleware('auth')->group(function () {
             Route::post('/generate-code/{mix}', GenerateMixCodeController::class)->name('generate-code');
             Route::post('/join/{session_code}', JoinMixController::class)->name('join');
             Route::post('/remove-session-code/{mix}', RemoveSessionCodeController::class)->name('remove-session-code');
+            Route::post('/assign-co-dj/{mix}', AssignCoDJController::class)->name('assign-co-dj');
+            Route::post('/remove-co-dj/{mix}', RemoveCoDJController::class)->name('remove-co-dj');
 
             // app/mix/presets (mix.presets)
             Route::prefix('/presets')->name('presets.')->group(function () {

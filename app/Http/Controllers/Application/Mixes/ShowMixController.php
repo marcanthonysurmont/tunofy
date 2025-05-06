@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Application\Mixes;
 
+use App\Http\Resources\UserResource;
 use App\Models\Mix;
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
@@ -17,11 +18,12 @@ class ShowMixController extends Controller
         
         $user = Auth::user();
 
-        $mix->load(['songs.user', 'presets', 'user']);
+        $mix->load(['songs.user', 'presets', 'user', 'collaborators']);
         $user->load(['mixes', 'accessibleMixes']);
 
         return Inertia::render('MixSlugPage', [
             'mix' => MixResource::make($mix)->jsonSerialize(),
+            'collaborators' => UserResource::collection($mix->collaborators)->jsonSerialize(),
             'presets' => $mix->all_presets,
             'your_mixes' => $user->mixes,
             'joined_mixes' => $user->accessibleMixes,

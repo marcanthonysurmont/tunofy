@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Http\Controllers\Application\Mixes;
+
+use App\Http\Controllers\Controller;
+use App\Models\Mix;
+use Illuminate\Http\RedirectResponse;
+
+class RemoveCoDJController extends Controller
+{
+    public function __invoke(Mix $mix): RedirectResponse
+    {
+        try {
+            $mix->update(['co_dj_id' => null]);
+
+            return redirect()->back()
+                ->with('success', 'Co-DJ removed successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('success', 'Co-DJ removed successfully.');
+        }
+    }
+}
