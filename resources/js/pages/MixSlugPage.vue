@@ -3,7 +3,7 @@
     <AppLayout>
         <TabNav :tabs="tabs" @tab-changed="setActiveTab" />
         <Transition name="fade-with-slide" appear mode="out-in">
-            <div :key="activeTab">
+            <div :key="activeTab" class="relative">
                 <OverviewSubPage v-if="activeTab === 'Overview'" />
                 <VotingSubPage v-else-if="activeTab === 'Voting'" />
                 <StatsSubPage v-else-if="activeTab === 'Stats'" />
