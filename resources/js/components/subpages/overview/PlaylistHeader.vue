@@ -12,7 +12,7 @@
                 class="flex flex-col justify-center items-center sm:items-start gap-3 flex-1 overflow-hidden min-w-0 py-2 text-center sm:text-left"
             >
                 <h1
-                    class="text-3xl sm:text-4xl md:text-5xl text-white font-normal mt-0 mb-0 leading-none truncate w-full"
+                    class="text-3xl sm:text-4xl md:text-5xl text-white font-normal mt-0 mb-0 leading-none truncate w-full sm:text-nowrap text-wrap"
                 >
                     {{ mix.name }}
                 </h1>
@@ -127,9 +127,12 @@
                             >
                         </button>
                     </MenuItem>
-                    <MenuItem 
+                    <MenuItem
                         v-slot="{ active }"
-                        v-if="authorization.isOwner && authorization.canCopySessionCode"
+                        v-if="
+                            authorization.isOwner &&
+                            authorization.canCopySessionCode
+                        "
                     >
                         <button
                             @click="copyCodeToClipboard"
@@ -206,8 +209,8 @@ const readableTime = computed(() => {
 
 const showMenuDropdown = computed(() => {
     return (
-        authorization.value.canUpdate || 
-        authorization.value.isOwner || 
+        authorization.value.canUpdate ||
+        authorization.value.isOwner ||
         authorization.value.canGenerateSessionCode ||
         (authorization.value.isOwner && authorization.value.canCopySessionCode)
     );
