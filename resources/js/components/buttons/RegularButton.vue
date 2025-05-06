@@ -6,7 +6,7 @@
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                 : '',
             type === 'secondary'
-                ? 'bg-gray-600 text-white hover:bg-gray-700'
+                ? 'bg-zinc-600 text-white hover:bg-zinc-700'
                 : '',
             block ? 'w-full' : '',
             rounded ? 'rounded-full' : 'rounded-md',

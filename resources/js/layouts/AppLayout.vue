@@ -254,6 +254,13 @@
         @close-modal="closeJoinMixModal"
     />
     <ToastList />
+    <DeleteConfirmationModal
+        :is-visible="storeConfirmationModal.isVisible"
+        :title="storeConfirmationModal.title"
+        :text="storeConfirmationModal.text"
+        @close-modal="storeConfirmationModal.cancel"
+        @confirm="storeConfirmationModal.accept"
+    />
 </template>
 
 <script setup>
@@ -278,6 +285,9 @@ import YourMixesList from "@/components/mixes/YourMixesList.vue";
 import ToastList from "@/components/toasts/ToastList.vue";
 import { usePage } from "@inertiajs/vue3";
 import JoinedMixesList from "../components/mixes/JoinedMixesList.vue";
+import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal.vue";
+import { StoreConfirmationModal } from "@/stores/StoreConfirmationModal";
+const storeConfirmationModal = StoreConfirmationModal();
 
 const page = usePage();
 const user = page.props.user;

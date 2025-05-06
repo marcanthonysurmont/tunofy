@@ -130,6 +130,30 @@
                     <MenuItem
                         v-slot="{ active }"
                         v-if="
+                            authorization.isOwner && mix.session_code !== null
+                        "
+                    >
+                        <button
+                            @click="deleteCurrentCode"
+                            :class="[
+                                active
+                                    ? 'bg-card-background-lighter text-dark-white cursor-pointer'
+                                    : 'text-white',
+                                'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                            ]"
+                        >
+                            <MinusCircleIcon
+                                class="mr-2 h-5 w-5 text-white"
+                                aria-hidden="true"
+                            />
+                            <span class="font-medium align-middle"
+                                >Delete current code</span
+                            >
+                        </button>
+                    </MenuItem>
+                    <MenuItem
+                        v-slot="{ active }"
+                        v-if="
                             authorization.isOwner &&
                             authorization.canCopySessionCode
                         "
@@ -179,6 +203,7 @@ import {
     LockClosedIcon,
     KeyIcon,
     ClipboardDocumentIcon,
+    MinusCircleIcon,
 } from "@heroicons/vue/24/outline";
 
 import MenuDropdown from "@/components/menus/MenuDropdown.vue";
@@ -187,6 +212,9 @@ import { router, usePage } from "@inertiajs/vue3";
 import { ref, computed } from "vue";
 import toast from "@/stores/StoreToast.js";
 import UpdateMixModal from "@/components/modals/mixes/UpdateMixModal.vue";
+import { StoreConfirmationModal } from "@/stores/StoreConfirmationModal";
+
+const storeConfirmationModal = StoreConfirmationModal();
 
 const page = usePage();
 const props = computed(() => page.props);
@@ -237,5 +265,26 @@ function copyCodeToClipboard() {
             type: "success",
         });
     });
+}
+
+async function deleteCurrentCode() {
+    const confirmed = await storeConfirmationModal.confirm({
+        title: "Delete this session code?",
+        text: "This code will be deleted and will become invalid. Are you sure?",
+    });
+
+    if (confirmed) {
+        router.post(
+            route("mix.remove-session-code", mix.value.id),
+            {},
+            { preserveScroll: true },
+            {
+                onFinish: () => {},
+                onError: (error) => {
+                    console.error("Error deleting session code:", error);
+                },
+            }
+        );
+    }
 }
 </script>

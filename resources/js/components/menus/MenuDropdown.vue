@@ -1,5 +1,5 @@
 <template>
-    <Menu as="div" class="relative inline-block text-left z-50">
+    <Menu as="div" class="relative inline-block text-left z-[100]">
         <div>
             <MenuButton
                 class="inline-flex w-full justify-center rounded-md text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75 cursor-pointer"
