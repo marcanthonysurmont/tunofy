@@ -97,10 +97,12 @@
                         class="size-6 text-spotify-green cursor-pointer"
                     />
                     <PauseCircleIcon
+                        @click="pauseMix"
                         v-if="isPlaying"
                         class="size-12 cursor-pointer"
                     />
                     <PlayCircleIcon
+                        @click="resumeMix"
                         v-if="!isPlaying"
                         class="size-12 text-spotify-green cursor-pointer"
                     />
@@ -164,10 +166,12 @@
                     >
                         <ChevronDoubleLeftIcon class="size-6 cursor-pointer" />
                         <PlayCircleIcon
+                            @click="resumeMix"
                             v-if="!isPlaying"
                             class="size-12 cursor-pointer"
                         />
                         <PauseCircleIcon
+                            @click="pauseMix"
                             v-if="isPlaying"
                             class="size-12 cursor-pointer"
                         />
@@ -332,6 +336,30 @@ function updatePlayerState(playbackData) {
 
     // Clear syncing state if we have track data
     if (currentTrack.value) clearSyncingState();
+}
+
+function pauseMix() {
+    axios.post(`/api/spotify/pause-mix/${props.mix.id}`)
+        .then(response => {
+            if (response.data.success) {
+                isPlaying.value = false;
+            }
+        })
+        .catch(error => {
+            console.error('Failed to pause playback:', error);
+        });
+}
+
+function resumeMix() {
+    axios.post(`/api/spotify/resume-mix/${props.mix.id}`)
+        .then(response => {
+            if (response.data.success) {
+                isPlaying.value = true;
+            }
+        })
+        .catch(error => {
+            console.error('Failed to resume playback:', error);
+        });
 }
 
 onMounted(() => {
