@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="mt-8 flow-root">
+        <div class="mt-8 flow-root mb-32">
             <div class="w-full">
                 <table class="w-full text-left table-fixed">
                     <thead>

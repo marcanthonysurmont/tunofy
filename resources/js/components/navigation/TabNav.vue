@@ -3,7 +3,10 @@
         <div
             class="flex md:items-center justify-between md:flex-row flex-col gap-6"
         >
-            <nav class="flex space-x-4 relative" aria-label="Tabs">
+            <nav
+                class="flex space-x-4 relative overflow-x-auto"
+                aria-label="Tabs"
+            >
                 <!-- The sliding background indicator -->
                 <div
                     ref="activeTabIndicator"

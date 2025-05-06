@@ -191,7 +191,10 @@
                             >
                                 <img
                                     class="size-10 border-regular-stroke border-2 rounded-full bg-zinc-700"
-                                    :src="user.avatar"
+                                    :src="
+                                        user.avatar ||
+                                        '/images/default-avatar.jpg'
+                                    "
                                     alt="User avatar of logged in user"
                                 />
                                 <span class="sr-only">Your profile</span>
@@ -223,17 +226,17 @@
                 <span class="sr-only">Open sidebar</span>
                 <Bars3Icon class="size-6" aria-hidden="true" />
             </button>
-            <div class="flex-1 text-sm/6 font-semibold text-white">
+            <!-- <div class="flex-1 text-sm/6 font-semibold text-white">
                 Dashboard
-            </div>
-            <a href="#">
+            </div> -->
+            <!-- <a href="#">
                 <span class="sr-only">Your profile</span>
                 <img
                     class="size-8 rounded-full bg-zinc-700"
                     :src="user.avatar"
                     alt="Avatar of logged in user"
                 />
-            </a>
+            </a> -->
         </div>
 
         <main class="py-10 lg:pl-80">
@@ -263,7 +266,6 @@ import {
 import {
     ArrowLeftEndOnRectangleIcon,
     Bars3Icon,
-    Cog8ToothIcon,
     PlusIcon,
     XMarkIcon,
 } from "@heroicons/vue/24/outline";
