@@ -1,6 +1,6 @@
 <template>
     <div>
-        <Combobox v-model="selectedSong">
+        <Combobox v-model="query">
             <div
                 class="relative"
                 @focusin="isFocused = true"
@@ -79,7 +79,6 @@
                             >
                                 <div
                                     class="flex items-center space-x-3 flex-1 min-w-0 overflow-hidden"
-                                    @click="selectedSong = song"
                                 >
                                     <img
                                         :src="song.album.images[0].url"
@@ -149,9 +148,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import axios from "axios";
 import { debounce } from "lodash";
+
 import {
     Combobox,
     ComboboxInput,
@@ -168,7 +168,6 @@ const props = page.props;
 const mix = props.mix;
 
 const query = ref("");
-const selectedSong = ref(null);
 const isFocused = ref(false);
 const isLoading = ref(false);
 const songs = ref([]);
@@ -181,12 +180,23 @@ const form = useForm({
     image_url: "",
 });
 
-const debouncedSearch = debounce(async (searchQuery) => {
-    if (!searchQuery || searchQuery.trim() === "") {
+const searchCancelled = ref(false);
+watch(
+    () => isFocused.value,
+    (newValue) => {
+        if (!newValue) {
+            searchCancelled.value = true;
+        } else {
+            searchCancelled.value = false;
+        }
+    }
+);
+
+async function searchSongs(searchQuery) {
+    if (searchCancelled.value || !searchQuery.trim()) {
         isLoading.value = false;
         return;
     }
-
     try {
         const response = await axios.post(route("api.spotify.search"), {
             query: searchQuery,
@@ -197,7 +207,9 @@ const debouncedSearch = debounce(async (searchQuery) => {
     } finally {
         isLoading.value = false;
     }
-}, 300);
+}
+
+const debouncedSearch = debounce(searchSongs, 300);
 
 //input handler
 function handleSearch(event) {
@@ -214,6 +226,7 @@ const filteredSongs = computed(() => {
 });
 
 function addToPlaylist(song) {
+    //if song is already added, return early
     if (addedSongs.value.has(song.id)) {
         return;
     }
@@ -225,8 +238,9 @@ function addToPlaylist(song) {
 
     form.post(route("mix.add-song", mix.id), {
         onSuccess: () => {
-            console.log("Song added successfully");
-            // Add the song ID to the addedSongs set
+            //add the song ID to the addedSongs set
+            //we do this because we want to track whichs songs have been added to avoid duplicate
+            //currently, this resets on reload but i will add a check to make sure it still shows a "checkmark" icon on songs that are in playlist
             addedSongs.value.add(song.id);
         },
         onError: (error) => {
