@@ -20,7 +20,6 @@
                     />
                     <ComboboxInput
                         class="w-full bg-transparent border-none text-dark-white placeholder-zinc-400 pl-4 pr-12 py-2 focus:outline-none"
-                        :displayValue="(song) => song?.name"
                         @input="handleSearch"
                         placeholder="Search songs..."
                         autocomplete="off"
@@ -61,21 +60,18 @@
                     leaveTo="opacity-0 translate-y-1"
                 >
                     <ComboboxOptions
-                        v-if="filteredSongs.length > 0"
-                        @click.stop
+                        v-if="filteredSongs.length > 0 && isFocused"
                         class="absolute z-50 mt-2 w-full bg-card-background rounded-md border border-card-stroke max-h-82 min-w-64 overflow-y-auto overflow-x-hidden shadow-lg pb-2 custom-scrollbar"
                     >
                         <ComboboxOption
                             v-for="song in filteredSongs"
                             :key="song.id"
                             :value="song"
-                            v-slot="{ active }"
                             as="template"
-                            :disabled="false"
                         >
                             <li
                                 class="group select-none px-4 py-2 flex items-center justify-between hover:bg-card-background-hover transition duration-200 overflow-hidden"
-                                :class="{ 'bg-card-background-hover': active }"
+                                @mousedown.prevent
                             >
                                 <div
                                     class="flex items-center space-x-3 flex-1 min-w-0 overflow-hidden"
@@ -111,11 +107,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div
-                                    @mousedown.stop
-                                    @click.stop
-                                    class="ml-2 flex-shrink-0"
-                                >
+                                <div class="ml-2 flex-shrink-0">
                                     <button
                                         class="lg:opacity-0 lg:group-hover:opacity-100 opacity-100 p-1 rounded-full transition-all duration-200"
                                         :class="
@@ -123,14 +115,17 @@
                                                 ? 'text-green-500 hover:text-green-400 hover:bg-zinc-700/30'
                                                 : 'text-zinc-400 hover:text-dark-white hover:bg-zinc-700/30'
                                         "
-                                        @mousedown.stop
-                                        @click.stop="addToPlaylist(song)"
+                                        @mousedown.prevent
+                                        @click.prevent.stop="
+                                            addToPlaylist(song)
+                                        "
                                         type="button"
-                                        :disabled="isSongAdded(song)"
                                     >
                                         <CheckIcon
                                             v-if="isSongAdded(song)"
-                                            class="size-4 cursor-pointer"
+                                            class="size-4 cursor-default"
+                                            @mousedown.prevent
+                                            @click.prevent.stop
                                         />
                                         <PlusIcon
                                             v-else
@@ -181,11 +176,16 @@ const form = useForm({
 });
 
 const searchCancelled = ref(false);
+
+//this watch is used to check if the search input field is focused or not
+//if it is not focused, we set the searchCancelled to true in order to cancel the search == performance improvement
 watch(
     () => isFocused.value,
     (newValue) => {
         if (!newValue) {
             searchCancelled.value = true;
+            query.value = "";
+            songs.value = [];
         } else {
             searchCancelled.value = false;
         }
@@ -209,11 +209,15 @@ async function searchSongs(searchQuery) {
     }
 }
 
+//this is runs the searchSongs function with debounce of 300ms
+//added to improve performance and avoid too many requests
 const debouncedSearch = debounce(searchSongs, 300);
 
 //input handler
 function handleSearch(event) {
+    //map the event value to the query (input value is a song name like 'Dark Thoughts')
     query.value = event.target.value;
+    //show loading spinner
     isLoading.value = true;
     debouncedSearch(query.value);
 }
