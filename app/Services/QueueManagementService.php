@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Mix;
 use App\Models\QueueSong;
 use App\Models\User;
+use App\Models\PlaybackSession;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -35,6 +36,23 @@ class QueueManagementService
         // Clean any existing queue items
         $this->clearQueue($mix->id);
 
+        // End any existing active sessions
+        PlaybackSession::where('mix_id', $mix->id)
+            ->where('is_active', true)
+            ->update([
+                'is_active' => false,
+                'ended_at' => now()
+            ]);
+
+        // Create a new session
+        $session = PlaybackSession::create([
+            'mix_id' => $mix->id,
+            'started_at' => now(),
+            'is_active' => true
+        ]);
+
+        Log::info("Created new playback session {$session->id} for mix {$mix->id}");
+
         // Generate the queue entries
         $order = 0;
         foreach ($mix->songs as $song) {
@@ -44,6 +62,7 @@ class QueueManagementService
                 'song_id' => $song->id,
                 'mix_id' => $mix->id,
                 'user_id' => Auth::id() ?? $mix->user_id,
+                'playback_session_id' => $session->id, // CHANGED FROM session_id
                 'round_number' => 1,
                 'order' => $order,
                 'status' => 'pending',
@@ -105,7 +124,6 @@ class QueueManagementService
 
         // First, try to pause Spotify playback
         try {
-            // This is likely missing in your current implementation
             $this->spotifyService->pausePlayback($user);
             Log::info("Paused Spotify playback for mix {$mixId}");
         } catch (\Exception $e) {
@@ -115,6 +133,14 @@ class QueueManagementService
 
         // Clear the queue
         $this->clearQueue($mixId);
+
+        // End active sessions
+        PlaybackSession::where('mix_id', $mixId)
+            ->where('is_active', true)
+            ->update([
+                'is_active' => false,
+                'ended_at' => now()
+            ]);
 
         return [
             'success' => true,
@@ -129,6 +155,21 @@ class QueueManagementService
     {
         Log::info("Adding song {$songId} to mix {$mixId} queue");
 
+        // Get the active session
+        $activeSession = PlaybackSession::where('mix_id', $mixId)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$activeSession) {
+            // Create a session if one doesn't exist
+            $activeSession = PlaybackSession::create([
+                'mix_id' => $mixId,
+                'started_at' => now(),
+                'is_active' => true
+            ]);
+            Log::info("Created new playback session {$activeSession->id} for mix {$mixId} during addSongToQueue");
+        }
+
         // Get highest order number in current round
         $maxOrder = QueueSong::where('mix_id', $mixId)
             ->where('round_number', 1)
@@ -139,6 +180,7 @@ class QueueManagementService
             'song_id' => $songId,
             'mix_id' => $mixId,
             'user_id' => $userId,
+            'playback_session_id' => $activeSession->id, // CHANGED FROM session_id
             'round_number' => 1,
             'order' => $maxOrder + 1,
             'status' => 'pending',

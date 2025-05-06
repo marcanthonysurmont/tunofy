@@ -44,6 +44,13 @@ class PollSpotifyMix implements ShouldQueue
     {
         $mixId = $this->mix->id;
 
+        if(Cache::has("mix:{$mixId}:paused")) {
+            Log::info("Mix {$mixId} is paused, skipping polling");
+
+            $this->scheduleNextPoll();
+            return;
+        }
+
         // Use a cache-based rate limiter
         $cacheKey = "mix_poll_{$mixId}_lastrun";
         $lastRun = Cache::get($cacheKey);
