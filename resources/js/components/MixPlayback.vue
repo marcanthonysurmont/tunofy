@@ -1,6 +1,6 @@
 <template>
     <div
-        class="fixed bottom-0 left-0 right-0 w-full z-50 bg-card-background border-t-2 border-card-stroke p-4 md:sticky md:bottom-6 md:w-full md:border-2 md:rounded-lg md:max-w-2xl lg:max-w-3xl md:mx-auto"
+        class="fixed bottom-0 left-0 right-0 w-full z-50 bg-card-background/40 border-t-2 lg:border-2 backdrop-blur-xl border-card-stroke p-4 lg:fixed lg:bottom-5 lg:left-1/2 lg:-translate-x-1/2 lg:ml-[160px] lg:max-w-2xl lg:rounded-lg"
     >
         <div v-if="props.mix.authorized.isOwner" class="text-center mb-4">
             <ToggleSwitchReadValue
@@ -15,7 +15,7 @@
             />
         </div>
         <!-- Loading states - Prioritize showing one at a time -->
-        <div v-if="isLoading" class="loading">Updating state...</div>
+        <div v-if="isLoading" class="loading"><p>Updating state...</p></div>
 
         <!-- Loading state while we're syncing with Spotify -->
         <div v-else-if="isSyncingWithSpotify" class="loading">
@@ -40,7 +40,7 @@
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                 </svg>
-                Syncing with Spotify...
+                <p>Syncing with Spotify...</p>
             </div>
         </div>
 
@@ -48,24 +48,13 @@
         <div v-else-if="queueCompleted === true" class="queue-completed">
             <div class="checkmark">✓</div>
             <div class="completion-message">
-                Queue completed! All songs have been played.
+                <p>Queue completed! All songs have been played.</p>
             </div>
         </div>
 
         <!-- Content based on active state - explicit Boolean check -->
         <div v-else-if="isMixActive === false" class="not-active">
-            Playback polling is inactive for this mix
-            <div v-if="props.mix.authorized.isOwner" class="mix-controls">
-                <RegularButton
-                    color="secondary"
-                    @click="toggleMixActive"
-                    :loading="isLoading"
-                >
-                    {{
-                        isMixActive ? "Deactivate Polling" : "Activate Polling"
-                    }}
-                </RegularButton>
-            </div>
+            <p>Playback polling is inactive for this mix</p>
         </div>
 
         <div v-else-if="!currentTrack" class="text-center py-2">
@@ -83,13 +72,19 @@
                         alt="Album Art"
                     />
                     <div class="text-info ml-2">
-                        <div class="track-name">{{ currentTrack.name }}</div>
+                        <div class="track-name">
+                            <p class="font-semibold">
+                                {{ currentTrack.name }}
+                            </p>
+                        </div>
                         <div class="artist-name">
-                            {{
-                                currentTrack.artists
-                                    ?.map((a) => a.name)
-                                    .join(", ")
-                            }}
+                            <p>
+                                {{
+                                    currentTrack.artists
+                                        ?.map((a) => a.name)
+                                        .join(", ")
+                                }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -146,13 +141,19 @@
                         alt="Album Art"
                     />
                     <div class="text-info ml-2">
-                        <div class="track-name">{{ currentTrack.name }}</div>
+                        <div class="track-name">
+                            <p class="font-semibold text-lg">
+                                {{ currentTrack.name }}
+                            </p>
+                        </div>
                         <div class="artist-name">
-                            {{
-                                currentTrack.artists
-                                    ?.map((a) => a.name)
-                                    .join(", ")
-                            }}
+                            <p class="text-sm text-zinc-400">
+                                {{
+                                    currentTrack.artists
+                                        ?.map((a) => a.name)
+                                        .join(", ")
+                                }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -394,6 +395,13 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.music-player {
+    position: fixed;
+    bottom: 20px; /* Distance from bottom */
+    left: calc(50% + 320 / 2); /* Center in the content area */
+    transform: translateX(-50%); /* Center the player itself */
+    width: 300px; /* Or whatever width you need */
+}
 /* .playback-container {
     background-color: #222;
     border-radius: 8px;

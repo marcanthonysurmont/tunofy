@@ -3,18 +3,23 @@
     <AppLayout>
         <TabNav :tabs="tabs" @tab-changed="setActiveTab" />
         <Transition name="fade-with-slide" appear mode="out-in">
-            <div :key="activeTab" class="relative">
+            <div
+                :key="activeTab"
+                class="relative"
+                :class="activeTab === 'Overview' ? 'mb-0' : 'mb-32'"
+            >
                 <OverviewSubPage v-if="activeTab === 'Overview'" />
                 <VotingSubPage v-else-if="activeTab === 'Voting'" />
                 <StatsSubPage v-else-if="activeTab === 'Stats'" />
                 <PresetsSubPage v-else-if="activeTab === 'Presets'" />
             </div>
         </Transition>
+        <MixPlayback :mix="mix" />
     </AppLayout>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
 import TabNav from "@/components/navigation/TabNav.vue";
 import { Head, usePage } from "@inertiajs/vue3";
@@ -22,6 +27,7 @@ import OverviewSubPage from "@/components/subpages/overview/OverviewSubPage.vue"
 import PresetsSubPage from "@/components/subpages/presets/PresetsSubPage.vue";
 import StatsSubPage from "@/components/subpages/stats/StatsSubPage.vue";
 import VotingSubPage from "@/components/subpages/voting/VotingSubPage.vue";
+import MixPlayback from "@/components/MixPlayback.vue";
 
 const tabs = ref([
     { name: "Overview", active: true },
@@ -32,6 +38,9 @@ const tabs = ref([
 
 const page = usePage();
 const nameOfMix = page.props.mix.name;
+const mix = computed(() => {
+    return page.props.mix || null;
+});
 
 const activeTab = ref("Overview");
 const setActiveTab = (tabName) => {
