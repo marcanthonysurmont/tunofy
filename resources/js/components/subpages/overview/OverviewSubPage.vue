@@ -1,7 +1,7 @@
 <template>
     <PlaylistHeader />
     <PlaylistContent />
-    <MixPlayback :mix="mix" />
+    <!-- <MixPlayback :mix="mix" /> -->
 </template>
 
 <script setup>
