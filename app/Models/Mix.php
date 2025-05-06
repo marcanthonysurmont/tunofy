@@ -81,6 +81,7 @@ class Mix extends Model
             'canManageCollaborators' => $user->can('manageCollaborators', $this),
             'canJoin' => $user->can('join', $this),
             'canGenerateSessionCode' => $user->can('generateSessionCode', $this),
+            'canCopySessionCode' => $user->can('copySessionCode', $this),
             'isOwner' => $user->id === $this->user_id,
         ]);
     }

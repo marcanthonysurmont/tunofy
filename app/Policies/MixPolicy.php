@@ -115,4 +115,9 @@ class MixPolicy
         // Only the owner can generate session codes
         return $user->id === $mix->user_id;
     }
+
+    public function copySessionCode(User $user, Mix $mix): bool
+    {
+        return $mix->session_code_expires_at > now();
+    }
 }
