@@ -81,12 +81,12 @@
             </div>
         </div>
 
-        <!-- Content based on active state - explicit Boolean check -->
+        <!-- Desktop player with no active queue -->
         <div v-else-if="isMixActive === false">
             <div class="flex-row items-center w-full hidden md:flex">
                 <div class="track-info flex items-center flex-1 gap-1">
                     <img
-                        src="/images/default-avatar.jpg"
+                        src="/images/default-song.png"
                         class="album-art"
                         alt="Album Art"
                     />
@@ -120,12 +120,13 @@
                     :is-sync-disabled="!isMixActive"
                 />
             </div>
+            <!-- Mobile playback with no active queue -->
             <div
                 class="flex flex-row items-center w-full md:hidden gap-2 sm:gap-0"
             >
                 <div class="track-info flex items-center flex-1">
                     <img
-                        src="/images/default-avatar.jpg"
+                        src="/images/default-song.png"
                         class="album-art"
                         alt="Album Art"
                     />
@@ -513,6 +514,9 @@ onUnmounted(() => {
     height: 60px;
     border-radius: 4px;
     margin-right: 0px;
+    /* Better rendering */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: auto;
 }
 
 .text-info {

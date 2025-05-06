@@ -8,14 +8,25 @@
                 'bg-red-900 text-red-400': isSyncDisabled,
             }"
         >
-            <div
-                class="size-2 rounded-full"
-                :class="{
-                    'bg-green-400': isPlaying && !isSyncDisabled,
-                    'bg-zinc-400': !isPlaying && !isSyncDisabled,
-                    'bg-red-400': isSyncDisabled,
-                }"
-            ></div>
+            <div class="relative w-2 h-2">
+                <div
+                    class="absolute inset-0 rounded-full animate-ping"
+                    :class="{
+                        'bg-green-400': isPlaying && !isSyncDisabled,
+                        'bg-zinc-400': !isPlaying && !isSyncDisabled,
+                        'bg-red-400': isSyncDisabled,
+                    }"
+                ></div>
+                <div
+                    class="w-2 h-2 rounded-full z-10"
+                    :class="{
+                        'bg-green-400': isPlaying && !isSyncDisabled,
+                        'bg-zinc-400': !isPlaying && !isSyncDisabled,
+                        'bg-red-400': isSyncDisabled,
+                    }"
+                ></div>
+            </div>
+
             {{
                 isSyncDisabled
                     ? "Sync Disabled"
