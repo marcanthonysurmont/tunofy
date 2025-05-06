@@ -10,7 +10,7 @@ class UpdateMixRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:50'],
             'is_public' => ['required', 'boolean'],
             // 'preset_id' => ['nullable', Rule::exists('presets', 'id')],
             'avatar' => ['nullable', 'image', 'max:2048'],

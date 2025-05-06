@@ -29,6 +29,11 @@ use App\Http\Controllers\Application\Mixes\RemoveSessionCodeController;
 
 use App\Http\Controllers\Application\Mixes\UpdateSelectedPresetController;
 use App\Http\Controllers\Application\Spotify\RequestSpotifyPlayerStatusController;
+use App\Http\Controllers\Application\Spotify\PauseMixPlaybackController;
+use App\Http\Controllers\Application\Spotify\ResumeMixPlaybackController;
+use App\Http\Controllers\Application\Spotify\PlayNextSongController;
+use App\Http\Controllers\Application\Spotify\PlayPreviousSongController;
+
 use App\Http\Controllers\Application\Mixes\AssignCoDJController;
 use App\Http\Controllers\Application\Mixes\RemoveCoDJController;
 
@@ -68,6 +73,10 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/request-status', RequestSpotifyPlayerStatusController::class)->name('request-status');
         Route::post('/set-mix-active', SetMixActiveController::class)->name('set-mix-active');
+        Route::post('/pause-mix/{mix}', PauseMixPlaybackController::class)->name('pause-mix');
+        Route::post('/resume-mix/{mix}', ResumeMixPlaybackController::class)->name('resume-mix');
+        Route::post('/skip-song/{mix}', PlayNextSongController::class)->name('skip-song');
+        Route::post('/previous-song/{mix}', PlayPreviousSongController::class)->name('previous-song');
     });
 
     Route::get('/logout', LogoutController::class)->name('logout');

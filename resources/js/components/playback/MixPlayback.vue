@@ -194,18 +194,22 @@
                     class="flex flex-row items-center justify-center flex-none gap-2"
                 >
                     <ChevronDoubleLeftIcon
+                        @click="previousSong"
                         class="size-6 text-spotify-green cursor-pointer"
                     />
                     <PauseCircleIcon
+                        @click="pauseMix"
                         v-if="isPlaying"
                         class="size-12 cursor-pointer"
                     />
                     <PlayCircleIcon
+                        @click="resumeMix"
                         v-if="!isPlaying"
                         class="size-12 text-spotify-green cursor-pointer"
                     />
                     <ChevronDoubleRightIcon
                         class="size-6 text-spotify-green cursor-pointer"
+                        @click="skipSong"
                     />
                 </div>
 
@@ -245,16 +249,22 @@
                         v-if="props.mix.authorized.isOwner"
                         class="flex flex-row items-center justify-center flex-none gap-2"
                     >
-                        <ChevronDoubleLeftIcon class="size-6 cursor-pointer" />
+                        <ChevronDoubleLeftIcon class="size-6 cursor-pointer" 
+                            @click="previousSong"
+                        />
                         <PlayCircleIcon
+                            @click="resumeMix"
                             v-if="!isPlaying"
                             class="size-12 cursor-pointer"
                         />
                         <PauseCircleIcon
+                            @click="pauseMix"
                             v-if="isPlaying"
                             class="size-12 cursor-pointer"
                         />
-                        <ChevronDoubleRightIcon class="size-6 cursor-pointer" />
+                        <ChevronDoubleRightIcon class="size-6 cursor-pointer" 
+                            @click="skipSong"
+                        />
                     </div>
                     <StatusIndicator :is-playing="isPlaying" v-else />
                 </div>
@@ -398,6 +408,54 @@ function updatePlayerState(playbackData) {
 
     // Clear syncing state if we have track data
     if (currentTrack.value) clearSyncingState();
+}
+
+function pauseMix() {
+    axios.post(`/api/spotify/pause-mix/${props.mix.id}`)
+        .then(response => {
+            if (response.data.success) {
+                isPlaying.value = false;
+            }
+        })
+        .catch(error => {
+            console.error('Failed to pause playback:', error);
+        });
+}
+
+function resumeMix() {
+    axios.post(`/api/spotify/resume-mix/${props.mix.id}`)
+        .then(response => {
+            if (response.data.success) {
+                isPlaying.value = true;
+            }
+        })
+        .catch(error => {
+            console.error('Failed to resume playback:', error);
+        });
+}
+
+function skipSong() {
+    axios.post(`/api/spotify/skip-song/${props.mix.id}`)
+        .then(response => {
+            if (response.data.success) {
+                console.log('Song skipped successfully');
+            }
+        })
+        .catch(error => {
+            console.error('Failed to skip song:', error);
+        });
+}
+
+function previousSong() {
+    axios.post(`/api/spotify/previous-song/${props.mix.id}`)
+        .then(response => {
+            if (response.data.success) {
+                console.log('Skipped to previous song successfully');
+            }
+        })
+        .catch(error => {
+            console.error('Failed to skip to previous song:', error);
+        });
 }
 
 onMounted(() => {
