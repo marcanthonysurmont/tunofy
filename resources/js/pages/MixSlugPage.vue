@@ -30,10 +30,10 @@ import VotingSubPage from "@/components/subpages/voting/VotingSubPage.vue";
 import MixPlayback from "@/components/MixPlayback.vue";
 
 const tabs = ref([
-    { name: "Overview", active: true },
-    { name: "Voting", active: false },
-    { name: "Stats", active: false },
-    { name: "Presets", active: false },
+    { name: "Overview", active: true, id: "overview" },
+    { name: "Voting", active: false, id: "voting" },
+    { name: "Stats", active: false, id: "stats" },
+    { name: "Presets", active: false, id: "presets" },
 ]);
 
 const page = usePage();
