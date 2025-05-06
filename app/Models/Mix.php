@@ -65,6 +65,11 @@ class Mix extends Model
             ->withTimestamps();
     }
 
+    public function queueSongs()
+    {
+        return $this->hasMany(QueueSong::class);
+    }
+
     public function mixAcceses()
     {
         return $this->hasMany(MixAccess::class);

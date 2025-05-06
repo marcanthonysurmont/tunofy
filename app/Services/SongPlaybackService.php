@@ -5,8 +5,10 @@ namespace App\Services;
 use App\Models\QueueSong;
 use App\Models\Mix;
 use App\Models\User;
+use App\Models\PlaybackSession;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class SongPlaybackService
 {
@@ -33,17 +35,42 @@ class SongPlaybackService
      */
     public function startPlayback(int $mixId): array
     {
+        // Get the mix
         $mix = Mix::findOrFail($mixId);
         $user = User::findOrFail($mix->user_id);
+
+        // Get the active session for this mix
+        $activeSession = PlaybackSession::where('mix_id', $mixId)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$activeSession) {
+            // Create a new session if none exists
+            $activeSession = PlaybackSession::create([
+                'mix_id' => $mixId,
+                'started_at' => now(),
+                'is_active' => true
+            ]);
+            Log::info("Created new playback session {$activeSession->id} for mix {$mixId}");
+        }
 
         // Check if there's a song currently playing
         $currentlyPlaying = QueueSong::where('mix_id', $mixId)
             ->where('status', 'playing')
-            ->with('song')
             ->first();
 
-        // If a song is already playing, just return it
         if ($currentlyPlaying) {
+            // If this song doesn't have a session, associate it now
+            if (!$currentlyPlaying->playback_session_id) {
+                $currentlyPlaying->update(['playback_session_id' => $activeSession->id]);
+                Log::info("Associated already playing song {$currentlyPlaying->id} with session {$activeSession->id}");
+            }
+
+            // Load relationship if not loaded
+            if (!$currentlyPlaying->relationLoaded('song')) {
+                $currentlyPlaying->load('song');
+            }
+
             return [
                 'success' => true,
                 'queue_song' => $currentlyPlaying,
@@ -60,16 +87,21 @@ class SongPlaybackService
             ];
         }
 
-        // Mark as playing and play on Spotify
-        $nextSong->update(['status' => 'playing']);
+        // Associate with session and mark as playing
+        $nextSong->update([
+            'playback_session_id' => $activeSession->id, // CHANGED FROM session_id
+            'status' => 'playing'
+        ]);
+
+        // Play on Spotify
         $playResult = $this->playSongOnSpotify($user, $nextSong);
 
         if (!$playResult['success']) {
-            $nextSong->update(['status' => 'pending']);
+            $nextSong->update(['status' => 'pending', 'playback_session_id' => null]);
             return $playResult;
         }
 
-        Log::info("Started playing song ID: {$nextSong->id} for mix {$mixId}");
+        Log::info("Started playing song ID: {$nextSong->id} for mix {$mixId} in session {$activeSession->id}");
         return [
             'success' => true,
             'queue_song' => $nextSong,
@@ -82,8 +114,17 @@ class SongPlaybackService
      */
     public function advanceToNextSong(int $mixId): array
     {
-        $mix = Mix::findOrFail($mixId);
-        $user = User::findOrFail($mix->user_id);
+        // Get the active session
+        $activeSession = PlaybackSession::where('mix_id', $mixId)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$activeSession) {
+            return [
+                'success' => false,
+                'message' => 'No active playback session'
+            ];
+        }
 
         // Get the currently playing song
         $currentSong = QueueSong::where('mix_id', $mixId)
@@ -100,8 +141,97 @@ class SongPlaybackService
             Log::info("Marked song {$currentSong->id} as finished");
         }
 
+        // IMPORTANT: Clear the paused flag to ensure polling resumes
+        Cache::forget("mix:{$mixId}:paused");
+
         // Get and play the next song
         return $this->startPlayback($mixId);
+    }
+
+    public function returnToPreviousSong(int $mixId): array
+    {
+        $mix = Mix::findOrFail($mixId);
+        $user = User::findOrFail($mix->user_id);
+
+        // Get the currently playing song
+        $currentSong = QueueSong::where('mix_id', $mixId)
+            ->where('status', 'playing')
+            ->first();
+
+        if (!$currentSong) {
+            return [
+                'success' => false,
+                'message' => 'No song is currently playing'
+            ];
+        }
+
+        // Find the active session for this mix
+        $activeSession = PlaybackSession::where('mix_id', $mixId)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$activeSession) {
+            return [
+                'success' => false,
+                'message' => 'No active playback session found'
+            ];
+        }
+
+        // Find the previous song in the SAME SESSION
+        $previousSong = QueueSong::where('mix_id', $mixId)
+            ->where('playback_session_id', $activeSession->id) // Use correct column name
+            ->where('status', 'finished')
+            ->where('order', '<', $currentSong->order)
+            ->orderBy('order', 'desc')
+            ->first();
+
+        if (!$previousSong) {
+            return [
+                'success' => false,
+                'message' => 'Already at the first song in this session'
+            ];
+        }
+
+        // Mark current song as pending
+        $currentSong->update([
+            'status' => 'pending',
+        ]);
+        Log::info("Marked current song {$currentSong->id} as pending for previous song operation");
+
+        // Mark previous song as playing
+        $previousSong->update([
+            'status' => 'playing',
+        ]);
+        Log::info("Marked song {$previousSong->id} as playing (previous song) [order: {$previousSong->order}]");
+
+        // Load the song relationship if needed
+        if (!$previousSong->relationLoaded('song')) {
+            $previousSong->load('song');
+        }
+
+        // Explicitly play this song on Spotify
+        $songUri = "spotify:track:{$previousSong->song->spotify_id}";
+        $playResult = $this->spotifyService->playSong($user, $songUri);
+
+        // IMPORTANT: Clear the paused flag to ensure polling resumes
+        Cache::forget("mix:{$mixId}:paused");
+
+        if (!$playResult) {
+            // Revert the status changes if we failed to play
+            $currentSong->update(['status' => 'playing']);
+            $previousSong->update(['status' => 'finished']);
+
+            return [
+                'success' => false,
+                'message' => 'Failed to play previous song on Spotify'
+            ];
+        }
+
+        return [
+            'success' => true,
+            'queue_song' => $previousSong,
+            'song' => $previousSong->song
+        ];
     }
 
     /**

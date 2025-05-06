@@ -64,15 +64,33 @@ class SpotifyService
     public function resumePlayback(User $user): bool
     {
         try {
-            $response = $this->spotifyRequest(
-                $user,
-                'PUT',
-                'https://api.spotify.com/v1/me/player/play'
-            );
+            // Get device info and activate if needed
+            $currentPlayback = $this->getCurrentPlayback($user);
+            if (!$currentPlayback && !$this->activateDevice($user)) {
+                Log::error("No active device available for playback");
+                return false;
+            }
+
+            // Build endpoint with device ID if available
+            $endpoint = 'https://api.spotify.com/v1/me/player/play';
+            if (isset($currentPlayback['device']['id'])) {
+                $endpoint .= '?device_id=' . $currentPlayback['device']['id'];
+            }
+
+            // Make request with empty object body
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->getAccessToken($user),
+                'Content-Type' => 'application/json'
+            ])->put($endpoint, (object)[]);
+
+            // Log result and return success status
+            Log::info($response->successful()
+                ? "Successfully resumed playback"
+                : "Failed to resume playback: " . $response->body());
 
             return $response->successful();
         } catch (\Exception $e) {
-            Log::error("Spotify resumePlayback error: " . $e->getMessage());
+            Log::error("Resume playback error: " . $e->getMessage());
             return false;
         }
     }
