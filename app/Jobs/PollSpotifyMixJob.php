@@ -13,7 +13,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
-class PollSpotifyMix implements ShouldQueue
+class PollSpotifyMixJob implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
