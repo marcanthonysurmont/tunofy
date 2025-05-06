@@ -108,6 +108,7 @@
                     />
                     <ChevronDoubleRightIcon
                         class="size-6 text-spotify-green cursor-pointer"
+                        @click="skipSong"
                     />
                 </div>
 
@@ -175,7 +176,9 @@
                             v-if="isPlaying"
                             class="size-12 cursor-pointer"
                         />
-                        <ChevronDoubleRightIcon class="size-6 cursor-pointer" />
+                        <ChevronDoubleRightIcon class="size-6 cursor-pointer" 
+                            @click="skipSong"
+                        />
                     </div>
                     <div v-else>
                         <span
@@ -359,6 +362,18 @@ function resumeMix() {
         })
         .catch(error => {
             console.error('Failed to resume playback:', error);
+        });
+}
+
+function skipSong() {
+    axios.post(`/api/spotify/skip-song/${props.mix.id}`)
+        .then(response => {
+            if (response.data.success) {
+                console.log('Song skipped successfully');
+            }
+        })
+        .catch(error => {
+            console.error('Failed to skip song:', error);
         });
 }
 
