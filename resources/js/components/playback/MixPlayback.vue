@@ -23,7 +23,7 @@
         <div v-if="isLoading" class="loading">
             <div class="flex items-center justify-center">
                 <svg
-                    class="animate-spin h-5 w-5 mr-2 text-spotify-green"
+                    class="animate-spin h-5 w-5 mr-2"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -50,7 +50,7 @@
         <div v-else-if="isSyncingWithSpotify" class="loading">
             <div class="flex items-center justify-center">
                 <svg
-                    class="animate-spin h-5 w-5 mr-2 text-spotify-green"
+                    class="animate-spin h-5 w-5 mr-2"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -105,13 +105,13 @@
                     class="flex flex-row items-center justify-center flex-none gap-2"
                 >
                     <ChevronDoubleLeftIcon
-                        class="size-6 text-spotify-green cursor-pointer"
+                        class="size-6 cursor-not-allowed opacity-50"
                     />
                     <PlayCircleIcon
-                        class="size-12 text-spotify-green cursor-pointer"
+                        class="size-12 cursor-not-allowed opacity-50"
                     />
                     <ChevronDoubleRightIcon
-                        class="size-6 text-spotify-green cursor-pointer"
+                        class="size-6 cursor-not-allowed opacity-50"
                     />
                 </div>
 
@@ -132,10 +132,10 @@
                     />
                     <div class="text-info ml-2">
                         <div class="track-name">
-                            <p class="font-semibold text-lg">Not found</p>
+                            <p class="font-semibold text-lg">No song playing</p>
                         </div>
                         <div class="artist-name">
-                            <p class="text-sm text-zinc-400">Not found</p>
+                            <p class="text-sm text-zinc-400">No song playing</p>
                         </div>
                     </div>
                 </div>
@@ -144,9 +144,9 @@
                         v-if="props.mix.authorized.isOwner"
                         class="flex flex-row items-center justify-center flex-none gap-2"
                     >
-                        <ChevronDoubleLeftIcon class="size-6 cursor-pointer" />
-                        <PlayCircleIcon class="size-12 cursor-pointer" />
-                        <ChevronDoubleRightIcon class="size-6 cursor-pointer" />
+                        <ChevronDoubleLeftIcon class="size-6 opacity-50" />
+                        <PlayCircleIcon class="size-12 opacity-50" />
+                        <ChevronDoubleRightIcon class="size-6 opacity-50" />
                     </div>
                     <StatusIndicator
                         :is-playing="isPlaying"
@@ -195,7 +195,7 @@
                 >
                     <ChevronDoubleLeftIcon
                         @click="previousSong"
-                        class="size-6 text-spotify-green cursor-pointer"
+                        class="size-6 cursor-pointer"
                     />
                     <PauseCircleIcon
                         @click="pauseMix"
@@ -205,10 +205,10 @@
                     <PlayCircleIcon
                         @click="resumeMix"
                         v-if="!isPlaying"
-                        class="size-12 text-spotify-green cursor-pointer"
+                        class="size-12 cursor-pointer"
                     />
                     <ChevronDoubleRightIcon
-                        class="size-6 text-spotify-green cursor-pointer"
+                        class="size-6 cursor-pointer"
                         @click="skipSong"
                     />
                 </div>
@@ -249,7 +249,8 @@
                         v-if="props.mix.authorized.isOwner"
                         class="flex flex-row items-center justify-center flex-none gap-2"
                     >
-                        <ChevronDoubleLeftIcon class="size-6 cursor-pointer" 
+                        <ChevronDoubleLeftIcon
+                            class="size-6 cursor-pointer"
                             @click="previousSong"
                         />
                         <PlayCircleIcon
@@ -262,7 +263,8 @@
                             v-if="isPlaying"
                             class="size-12 cursor-pointer"
                         />
-                        <ChevronDoubleRightIcon class="size-6 cursor-pointer" 
+                        <ChevronDoubleRightIcon
+                            class="size-6 cursor-pointer"
                             @click="skipSong"
                         />
                     </div>
@@ -411,50 +413,54 @@ function updatePlayerState(playbackData) {
 }
 
 function pauseMix() {
-    axios.post(`/api/spotify/pause-mix/${props.mix.id}`)
-        .then(response => {
+    axios
+        .post(`/api/spotify/pause-mix/${props.mix.id}`)
+        .then((response) => {
             if (response.data.success) {
                 isPlaying.value = false;
             }
         })
-        .catch(error => {
-            console.error('Failed to pause playback:', error);
+        .catch((error) => {
+            console.error("Failed to pause playback:", error);
         });
 }
 
 function resumeMix() {
-    axios.post(`/api/spotify/resume-mix/${props.mix.id}`)
-        .then(response => {
+    axios
+        .post(`/api/spotify/resume-mix/${props.mix.id}`)
+        .then((response) => {
             if (response.data.success) {
                 isPlaying.value = true;
             }
         })
-        .catch(error => {
-            console.error('Failed to resume playback:', error);
+        .catch((error) => {
+            console.error("Failed to resume playback:", error);
         });
 }
 
 function skipSong() {
-    axios.post(`/api/spotify/skip-song/${props.mix.id}`)
-        .then(response => {
+    axios
+        .post(`/api/spotify/skip-song/${props.mix.id}`)
+        .then((response) => {
             if (response.data.success) {
-                console.log('Song skipped successfully');
+                console.log("Song skipped successfully");
             }
         })
-        .catch(error => {
-            console.error('Failed to skip song:', error);
+        .catch((error) => {
+            console.error("Failed to skip song:", error);
         });
 }
 
 function previousSong() {
-    axios.post(`/api/spotify/previous-song/${props.mix.id}`)
-        .then(response => {
+    axios
+        .post(`/api/spotify/previous-song/${props.mix.id}`)
+        .then((response) => {
             if (response.data.success) {
-                console.log('Skipped to previous song successfully');
+                console.log("Skipped to previous song successfully");
             }
         })
-        .catch(error => {
-            console.error('Failed to skip to previous song:', error);
+        .catch((error) => {
+            console.error("Failed to skip to previous song:", error);
         });
 }
 
