@@ -17,11 +17,9 @@
             leave-to-class="transform scale-95 opacity-0"
         >
             <MenuItems
-                class="shadow-2xl z-[1000] absolute sm:left-0 right-0 mt-2 w-56 xs:max-h-36 md:max-h-64 overflow-y-auto custom-scrollbar origin-top-right divide-y divide-gray-100 rounded-md bg-card-background border-2 border-card-stroke ring-1 ring-black/5 focus:outline-none"
+                class="shadow-2xl z-[1000] absolute sm:left-0 right-0 mt-2 w-56 xs:max-h-36 md:max-h-64 overflow-y-auto custom-scrollbar origin-top-right divide-y-2 divide-card-stroke rounded-md bg-card-background border-2 border-card-stroke ring-1 ring-black/5 focus:outline-none"
             >
-                <div class="px-1.5 py-1.5">
-                    <slot></slot>
-                </div>
+                <slot></slot>
             </MenuItems>
         </transition>
     </Menu>
