@@ -39,6 +39,9 @@
                 <UserMinusIcon
                     class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
                 />
+                <ShieldExclamationIcon
+                    class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
+                />
                 <Cog8ToothIcon
                     class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
                 />
@@ -67,11 +70,72 @@
                                 >
                             </button>
                         </MenuItem>
+                    </div>
+                    <div
+                        class="px-1.5 py-1.5"
+                        v-if="
+                            authorization.canManageCollaborators &&
+                            collaborators.length > 0
+                        "
+                    >
                         <MenuItem
                             v-slot="{ active }"
                             v-if="authorization.isOwner"
                         >
                             <button
+                                @click="showAssignDJModal = true"
+                                :class="[
+                                    active
+                                        ? 'bg-card-background-lighter text-dark-white cursor-pointer'
+                                        : 'text-white',
+                                    'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                                ]"
+                            >
+                                <MusicalNoteIcon
+                                    :active="active"
+                                    class="mr-2 h-5 w-5 text-white"
+                                    aria-hidden="true"
+                                />
+                                <span class="font-medium align-middle"
+                                    >Assign a co-dj</span
+                                >
+                            </button>
+                        </MenuItem>
+                        <MenuItem
+                            v-slot="{ active }"
+                            v-if="
+                                authorization.isOwner &&
+                                collaborators.length > 0 &&
+                                mix.co_dj_id !== null
+                            "
+                        >
+                            <button
+                                @click="removeCurrentCoDJ"
+                                :class="[
+                                    active
+                                        ? 'bg-card-background-lighter text-dark-white cursor-pointer'
+                                        : 'text-white',
+                                    'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                                ]"
+                            >
+                                <XMarkIcon
+                                    :active="active"
+                                    class="mr-2 h-5 w-5 text-white"
+                                    aria-hidden="true"
+                                />
+                                <span class="font-medium align-middle"
+                                    >Remove current co-DJ</span
+                                >
+                            </button>
+                        </MenuItem>
+                    </div>
+                    <div class="px-1.5 py-1.5">
+                        <MenuItem
+                            v-slot="{ active }"
+                            v-if="authorization.isOwner"
+                        >
+                            <button
+                                @click="deleteMix"
                                 :class="[
                                     active
                                         ? 'bg-card-background-lighter text-dark-white cursor-pointer'
@@ -202,6 +266,10 @@
             :is-visible="showUpdateMixModal"
             @close-modal="showUpdateMixModal = false"
         />
+        <AssignDJModal
+            :is-visible="showAssignDJModal"
+            @close-modal="showAssignDJModal = false"
+        />
     </teleport>
 </template>
 
@@ -217,6 +285,9 @@ import {
     KeyIcon,
     ClipboardDocumentIcon,
     MinusCircleIcon,
+    MusicalNoteIcon,
+    ShieldCheckIcon,
+    ShieldExclamationIcon,
 } from "@heroicons/vue/24/outline";
 
 import MenuDropdown from "@/components/menus/MenuDropdown.vue";
@@ -226,6 +297,8 @@ import { ref, computed } from "vue";
 import toast from "@/stores/StoreToast.js";
 import UpdateMixModal from "@/components/modals/mixes/UpdateMixModal.vue";
 import { StoreConfirmationModal } from "@/stores/StoreConfirmationModal";
+import AssignDJModal from "@/components/modals/co-dj/AssignDJModal.vue";
+import { XMarkIcon } from "@heroicons/vue/24/solid";
 
 const storeConfirmationModal = StoreConfirmationModal();
 
@@ -234,9 +307,11 @@ const props = computed(() => page.props);
 const mix = computed(() => props.value.mix);
 const owner = computed(() => props.value.owner);
 const authorization = computed(() => page.props.mix.authorized);
+const collaborators = computed(() => page.props.collaborators);
 
 const showCreateSessionModal = ref(false);
 const showUpdateMixModal = ref(false);
+const showAssignDJModal = ref(false);
 
 const readableTime = computed(() => {
     const totalMs = mix.value.songs.reduce(
@@ -295,6 +370,27 @@ async function deleteCurrentCode() {
                 onFinish: () => {},
                 onError: (error) => {
                     console.error("Error deleting session code:", error);
+                },
+            }
+        );
+    }
+}
+
+async function removeCurrentCoDJ() {
+    const confirmed = await storeConfirmationModal.confirm({
+        title: "Remove current co-DJ?",
+        text: "This will remove the current co-DJ from this mix. Are you sure?",
+    });
+
+    if (confirmed) {
+        router.post(
+            route("mix.remove-co-dj", mix.value.id),
+            {},
+            { preserveScroll: true },
+            {
+                onFinish: () => {},
+                onError: (error) => {
+                    console.error("Error removing co-DJ:", error);
                 },
             }
         );
