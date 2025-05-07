@@ -62,11 +62,13 @@
                                 class="flex grow flex-col gap-y-5 overflow-y-auto bg-navbar-background px-6 pb-2 ring-1 ring-white/10"
                             >
                                 <div class="flex h-16 shrink-0 items-center">
-                                    <img
-                                        class="h-8 w-auto"
-                                        src="/images/logos/tunofy-logo-white.png"
-                                        alt="Tunofy"
-                                    />
+                                    <Link :href="route('app')">
+                                        <img
+                                            class="h-8 w-auto"
+                                            src="/images/logos/tunofy-logo-white.png"
+                                            alt="Tunofy"
+                                        />
+                                    </Link>
                                 </div>
                                 <nav class="flex flex-1 flex-col">
                                     <ul
@@ -136,11 +138,13 @@
                 class="flex grow flex-col gap-y-5 overflow-y-auto bg-navbar-background border-r-2 border-regular-stroke px-6"
             >
                 <div class="flex h-16 shrink-0 items-center">
-                    <img
-                        class="h-8 w-auto"
-                        src="/images/logos/tunofy-logo-white.png"
-                        alt="Tunofy"
-                    />
+                    <Link :href="route('app')">
+                        <img
+                            class="h-8 w-auto"
+                            src="/images/logos/tunofy-logo-white.png"
+                            alt="Tunofy"
+                        />
+                    </Link>
                 </div>
                 <nav class="flex flex-1 flex-col">
                     <ul role="list" class="flex flex-1 flex-col gap-y-7">
