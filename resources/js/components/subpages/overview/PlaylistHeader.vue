@@ -417,31 +417,31 @@ async function removeCurrentCoDJ() {
         );
     }
 }
-
 async function toggleVisibility() {
+    let confirmed = false;
+
     //if mix is public, then show confirmation modal to indicate that it will be made private
-    if (mix.value.is_public === true) {
-        const confirmed = await storeConfirmationModal.confirm({
+    if (mix.value.is_public === 1) {
+        confirmed = await storeConfirmationModal.confirm({
             title: "Make this mix private?",
-            text: "This will blablabla etc etc etc.",
+            text: "Non invited users won't be able to view this mix via the link anymore.",
+        });
+    } else {
+        confirmed = await storeConfirmationModal.confirm({
+            title: "Make this mix public?",
+            text: "Everyone with access to the link can view this mix.",
         });
     }
-
-    //if mix is private, then show confirmation modal to indicate that it will be made public
-    const confirmed = await storeConfirmationModal.confirm({
-        title: "Make this mix private?",
-        text: "This will blablabla etc etc etc.",
-    });
 
     if (confirmed) {
         router.post(
             route("mix.toggle-visibility", mix.value.id),
             {},
-            { preserveScroll: true },
             {
+                preserveScroll: true,
                 onFinish: () => {},
                 onError: (error) => {
-                    console.error("Error removing co-DJ:", error);
+                    console.error("Error toggling visibility:", error);
                 },
             }
         );
