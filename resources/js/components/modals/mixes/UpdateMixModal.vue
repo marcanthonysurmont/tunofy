@@ -23,14 +23,14 @@
                     :error="form.errors.name"
                 />
             </div>
-            <div class="mb-6">
+            <!-- <div class="mb-6">
                 <Checkbox
                     v-model="form.is_public"
                     label="Public Mix"
                     id="public-mix"
                     :error="form.errors.is_public"
                 />
-            </div>
+            </div> -->
             <div class="mb-6">
                 <ImageUpload
                     v-model="form.avatar"

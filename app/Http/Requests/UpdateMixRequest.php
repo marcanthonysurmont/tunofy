@@ -11,7 +11,7 @@ class UpdateMixRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:50'],
-            'is_public' => ['required', 'boolean'],
+            // 'is_public' => ['required', 'boolean'],
             // 'preset_id' => ['nullable', Rule::exists('presets', 'id')],
             'avatar' => ['nullable', 'image', 'max:2048'],
         ];
