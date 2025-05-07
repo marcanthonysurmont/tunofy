@@ -132,10 +132,10 @@
                     <div class="px-1.5 py-1.5">
                         <MenuItem
                             v-slot="{ active }"
-                            v-if="authorization.isOwner"
+                            v-if="authorization.isOwner && mix.is_public"
                         >
                             <button
-                                @click="deleteMix"
+                                @click="toggleVisibility"
                                 :class="[
                                     active
                                         ? 'bg-card-background-lighter text-dark-white cursor-pointer'
@@ -150,6 +150,26 @@
                                 />
                                 <span class="font-medium align-middle"
                                     >Make private</span
+                                >
+                            </button>
+                        </MenuItem>
+                        <MenuItem v-slot="{ active }" v-else>
+                            <button
+                                @click="toggleVisibility"
+                                :class="[
+                                    active
+                                        ? 'bg-card-background-lighter text-dark-white cursor-pointer'
+                                        : 'text-white',
+                                    'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                                ]"
+                            >
+                                <LockOpenIcon
+                                    :active="active"
+                                    class="mr-2 h-5 w-5 text-white"
+                                    aria-hidden="true"
+                                />
+                                <span class="font-medium align-middle"
+                                    >Make public</span
                                 >
                             </button>
                         </MenuItem>
@@ -287,6 +307,7 @@ import {
     MinusCircleIcon,
     MusicalNoteIcon,
     ShieldCheckIcon,
+    LockOpenIcon,
     ShieldExclamationIcon,
 } from "@heroicons/vue/24/outline";
 
@@ -385,6 +406,36 @@ async function removeCurrentCoDJ() {
     if (confirmed) {
         router.post(
             route("mix.remove-co-dj", mix.value.id),
+            {},
+            { preserveScroll: true },
+            {
+                onFinish: () => {},
+                onError: (error) => {
+                    console.error("Error removing co-DJ:", error);
+                },
+            }
+        );
+    }
+}
+
+async function toggleVisibility() {
+    //if mix is public, then show confirmation modal to indicate that it will be made private
+    if (mix.value.is_public === true) {
+        const confirmed = await storeConfirmationModal.confirm({
+            title: "Make this mix private?",
+            text: "This will blablabla etc etc etc.",
+        });
+    }
+
+    //if mix is private, then show confirmation modal to indicate that it will be made public
+    const confirmed = await storeConfirmationModal.confirm({
+        title: "Make this mix private?",
+        text: "This will blablabla etc etc etc.",
+    });
+
+    if (confirmed) {
+        router.post(
+            route("mix.toggle-visibility", mix.value.id),
             {},
             { preserveScroll: true },
             {

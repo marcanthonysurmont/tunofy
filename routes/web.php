@@ -36,6 +36,7 @@ use App\Http\Controllers\Application\Spotify\PlayPreviousSongController;
 
 use App\Http\Controllers\Application\Mixes\AssignCoDJController;
 use App\Http\Controllers\Application\Mixes\RemoveCoDJController;
+use App\Http\Controllers\Application\Mixes\ToggleIsPublicController;
 
 Route::get('/', ShowLandingPageController::class)->name('landing');
 Route::get('/dpa', ShowDPAPageController::class);
@@ -58,6 +59,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/remove-session-code/{mix}', RemoveSessionCodeController::class)->name('remove-session-code');
             Route::post('/assign-co-dj/{mix}', AssignCoDJController::class)->name('assign-co-dj');
             Route::post('/remove-co-dj/{mix}', RemoveCoDJController::class)->name('remove-co-dj');
+            Route::post('/toggle-visibility/{mix}', ToggleIsPublicController::class)->name('toggle-visibility');
 
             // app/mix/presets (mix.presets)
             Route::prefix('/presets')->name('presets.')->group(function () {
