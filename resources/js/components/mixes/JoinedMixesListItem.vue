@@ -18,7 +18,7 @@
                 class="flex flex-col justify-center gap-3 h-14 flex-1 overflow-hidden min-w-0 py-0"
             >
                 <h2
-                    class="text-xl font-body font-medium whitespace-nowrap overflow-hidden text-ellipsis mt-0 mb-0 leading-none"
+                    class="text-xl font-body font-medium whitespace-nowrap overflow-hidden text-ellipsis mt-0 mb-0 leading-none pt-0"
                     :class="{
                         'text-primary': isActive,
                     }"

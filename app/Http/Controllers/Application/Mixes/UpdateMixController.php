@@ -23,7 +23,7 @@ class UpdateMixController extends Controller
 
             $mix->update([
                 'name' => $validated['name'],
-                'is_public' => $validated['is_public'],
+                // 'is_public' => $validated['is_public'],
                 // 'preset_id' => $validated['preset_id'],
                 'avatar' => $avatarPath ?? $mix->avatar,
             ]);

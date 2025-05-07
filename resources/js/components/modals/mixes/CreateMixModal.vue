@@ -36,8 +36,9 @@
                     v-model="form.image"
                     label="Cover Photo (optional)"
                     id="cover-photo"
-                    :error="form.errors.image"
-                    helperText="PNG, JPG up to 5MB"
+                    :error="form.errors.image || imageError"
+                    @error="imageError = $event"
+                    helperText="PNG, JPG up to 2MB"
                     :maxSizeInMB="2"
                 />
             </div>
@@ -67,6 +68,10 @@ defineProps({
     isVisible: Boolean,
 });
 
+//holds the error msg from the image upload component
+//inside here can be an error message like file too big
+const imageError = ref("");
+//
 const form = useForm({
     name: null,
     is_public: false,
