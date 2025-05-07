@@ -28,19 +28,22 @@ class PauseMixPlaybackController extends Controller
             }
         }
 
-        // Get current playback data from cache
+        // Get FRESH playback data instead of using potentially stale cache
+        $freshPlaybackData = $spotifyService->getCurrentPlayback(Auth::user());
+        
+        // Use fresh data or fall back to cached if fresh is unavailable
         $cacheKey = "mix:playback:" . $mix->id;
-        $playbackData = Cache::get($cacheKey, []);
-
+        $playbackData = $freshPlaybackData ?: Cache::get($cacheKey, []);
+        
         // Set minimum required fields for a pause event
         $playbackData['is_playing'] = false;
         $playbackData['_timestamp'] = now()->timestamp;
 
-        // Broadcast the pause event
+        // Broadcast the pause event with fresh data
         Log::info("Broadcasting pause event for mix {$mix->id}");
         event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
-        // Update cache values
+        // Update cache with the fresh data 
         Cache::put($cacheKey, $playbackData);
         Cache::put("mix:{$mix->id}:paused", true);
         Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
