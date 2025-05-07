@@ -34,6 +34,7 @@ use App\Http\Controllers\Application\Spotify\PauseMixPlaybackController;
 use App\Http\Controllers\Application\Spotify\ResumeMixPlaybackController;
 use App\Http\Controllers\Application\Spotify\PlayNextSongController;
 use App\Http\Controllers\Application\Spotify\PlayPreviousSongController;
+use App\Http\Controllers\Application\Spotify\TransferPlaybackController;
 
 use App\Http\Controllers\Application\Mixes\AssignCoDJController;
 use App\Http\Controllers\Application\Mixes\RemoveCoDJController;
@@ -81,6 +82,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/skip-song/{mix}', PlayNextSongController::class)->name('skip-song');
         Route::post('/previous-song/{mix}', PlayPreviousSongController::class)->name('previous-song');
         Route::get('/devices', GetDevicesController::class)->name('devices');
+        Route::post('/transfer-playback/{mix}', TransferPlaybackController::class)->name('transfer-playback');
     });
 
     Route::get('/logout', LogoutController::class)->name('logout');

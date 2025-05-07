@@ -114,7 +114,7 @@
                 <!-- Device selector RIGHT ABOVE StatusIndicator -->
                 <div v-if="props.mix.authorized.isOwner" class="mr-4 relative" ref="deviceDropdownRef">
                     <button 
-                        @click="isDeviceDropdownOpen = !isDeviceDropdownOpen" 
+                        @click="toggleDeviceDropdown($event)" 
                         type="button" 
                         class="flex items-center gap-x-1 text-sm font-semibold leading-6 text-zinc-200 bg-card-background/80 px-3 py-1.5 rounded-md border border-zinc-700"
                     >
@@ -208,7 +208,7 @@
                     <!-- Device selector for mobile above status indicator -->
                     <div v-if="props.mix.authorized.isOwner" class="mb-2 relative" ref="deviceDropdownRefMobile">
                         <button 
-                            @click="isDeviceDropdownOpen = !isDeviceDropdownOpen" 
+                            @click="toggleDeviceDropdown($event)" 
                             type="button" 
                             class="flex items-center gap-x-1 text-sm font-semibold leading-6 text-zinc-200 bg-card-background/80 px-3 py-1.5 rounded-md border border-zinc-700"
                         >
@@ -285,7 +285,7 @@
                 <!-- Device selector above status indicator for active queue -->
                 <div v-if="props.mix.authorized.isOwner" class="mr-4 relative" ref="deviceDropdownRefActive">
                     <button 
-                        @click="isDeviceDropdownOpen = !isDeviceDropdownOpen" 
+                        @click="toggleDeviceDropdown($event)" 
                         type="button" 
                         class="flex items-center gap-x-1 text-sm font-semibold leading-6 text-zinc-200 bg-card-background/80 px-3 py-1.5 rounded-md border border-zinc-700"
                     >
@@ -295,6 +295,51 @@
                         </div>
                         <ChevronDownIcon class="h-5 w-5 text-zinc-400" aria-hidden="true" />
                     </button>
+                    
+                    <!-- This is the dropdown menu that was missing -->
+                    <div 
+                        v-if="isDeviceDropdownOpen" 
+                        class="absolute bottom-full mb-2 right-0 z-10 w-56 origin-bottom-right rounded-md bg-card-background shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                        role="menu"
+                    >
+                        <div v-if="isLoadingDevices" class="p-4 text-center">
+                            <svg class="animate-spin h-5 w-5 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p class="mt-2 text-sm text-zinc-400">Loading devices...</p>
+                        </div>
+                        
+                        <div v-else-if="devices.length === 0" class="p-4 text-center">
+                            <p class="text-sm text-zinc-400">No devices found</p>
+                            <p class="text-xs text-zinc-500 mt-1">Make sure Spotify is open on at least one device</p>
+                        </div>
+                        
+                        <div v-else class="py-1" role="none">
+                            <button
+                                v-for="device in devices" 
+                                :key="device.id"
+                                @click="selectDevice(device)"
+                                class="w-full text-left px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-700 hover:text-white flex items-center justify-between"
+                                :class="{'bg-zinc-800': selectedDevice && selectedDevice.id === device.id}"
+                                role="menuitem"
+                            >
+                                <span>{{ device.name }}</span>
+                                <CheckIcon v-if="selectedDevice && selectedDevice.id === device.id" class="h-4 w-4 text-primary" />
+                            </button>
+                        </div>
+                        
+                        <div class="border-t border-zinc-700 py-1">
+                            <button
+                                @click="refreshDevices"
+                                class="w-full text-left px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-700 hover:text-white flex items-center"
+                                role="menuitem"
+                            >
+                                <ArrowPathIcon class="mr-2 h-4 w-4" />
+                                Refresh devices
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <StatusIndicator :is-playing="isPlaying" />
@@ -402,15 +447,33 @@ const devices = ref(page.props.devices || []);
 const isDeviceDropdownOpen = ref(false);
 const isLoadingDevices = ref(false);
 const deviceDropdownRef = ref(null);
+const deviceDropdownRefActive = ref(null);
+const deviceDropdownRefMobile = ref(null);
 
 // Find initially active device from the devices array
 const selectedDevice = ref(devices.value.find(d => d.is_active) || null);
 
 // Handle click outside dropdown
 function handleClickOutside(event) {
-    if (deviceDropdownRef.value && !deviceDropdownRef.value.contains(event.target)) {
+    // First check if we have any active dropdown
+    if (!isDeviceDropdownOpen.value) return;
+    
+    // Check if the click was outside all possible dropdowns
+    const isOutsideAllDropdowns = 
+        (!deviceDropdownRef.value || !deviceDropdownRef.value.contains(event.target)) &&
+        (!deviceDropdownRefActive.value || !deviceDropdownRefActive.value.contains(event.target)) &&
+        (!deviceDropdownRefMobile.value || !deviceDropdownRefMobile.value.contains(event.target));
+    
+    // If clicked outside any dropdown, close it
+    if (isOutsideAllDropdowns) {
         isDeviceDropdownOpen.value = false;
     }
+}
+
+function toggleDeviceDropdown(event) {
+    // Stop propagation to prevent immediate closing
+    event.stopPropagation();
+    isDeviceDropdownOpen.value = !isDeviceDropdownOpen.value;
 }
 
 function skipSong() {
@@ -513,6 +576,48 @@ function selectDevice(device) {
     // If mix is active, transfer playback
     if (isMixActive.value) {
         transferPlayback(device.id);
+    }
+}
+
+async function transferPlayback(deviceId) {
+    try {
+        // Only proceed if the mix is active and a different device is selected
+        if (!isMixActive.value) {
+            console.log("Mix is not active, skipping device transfer");
+            return;
+        }
+        
+        // Check if we're selecting a different device than the current one
+        const currentDevice = devices.value.find(d => d.is_active);
+        if (currentDevice && currentDevice.id === deviceId) {
+            console.log("Same device selected, skipping transfer");
+            return;
+        }
+        
+        console.log(`Transferring playback to device: ${deviceId}`);
+        
+        // Show loading state
+        isLoadingDevices.value = true;
+        
+        // Call the API to transfer playback
+        const response = await axios.post(
+            `/api/spotify/transfer-playback/${props.mix.id}`,
+            { deviceId }
+        );
+        
+        if (response.data.success) {
+            console.log("Playback transferred successfully");
+            
+            // Update the selected device in the UI
+            selectedDevice.value = devices.value.find(d => d.id === deviceId);
+            
+            // Update devices list to reflect the active state
+            await refreshDevices();
+        }
+    } catch (error) {
+        console.error("Failed to transfer playback:", error);
+    } finally {
+        isLoadingDevices.value = false;
     }
 }
 
