@@ -54,6 +54,10 @@
     h5,
     h6 {
         font-family: var(--font-headings);
+        line-height: 1;
+        padding-top: 0.5rem;
+        padding-bottom: 0.3rem;
+        margin: 0;
     }
 
     p,
@@ -68,6 +72,13 @@
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
+    }
+
+    .header-font-middle-alignment {
+        line-height: 1;
+        padding-top: 0.5rem;
+        padding-bottom: 0.3rem;
+        margin: 0;
     }
 }
 

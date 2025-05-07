@@ -14,10 +14,10 @@
             music together.</p>
         <div class="flex flex-row gap-4 items-center justify-center mt-8">
             <a href=""
-                class="custom-item-hover font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center text-lg md:text-2xl">Join
+                class="custom-item-hover font-headings font-normal bg-primary rounded-md px-4 pb-2 pt-2.5 flex items-center justify-center text-lg md:text-2xl">Join
                 now</a>
             <a href="#key-features"
-                class="font-headings font-normal text-lg md:text-2xl flex items-center gap-2 custom-item-hover">View
+                class="font-headings font-normal text-lg md:text-2xl flex items-center gap-2 custom-item-hover pt-1">View
                 features<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                     stroke="currentColor" class="size-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />

@@ -20,13 +20,14 @@
             <div class="hidden lg:flex flex-row items-center gap-4 text-xl">
                 @auth
                     <a href="{{ route('app') }}"
-                        class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">Go
+                        class="font-headings font-normal bg-primary rounded-md px-4 pb-2 pt-2.5 flex items-center justify-center custom-item-hover">Go
                         to App</a>
                 @else
-                    <a href="{{ route('login') }}"
-                        class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">
-                        <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">Sign
-                        In</a>
+                    <div class="flex items-center flex-row bg-primary rounded-md px-4">
+                        <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">
+                        <a href="{{ route('login') }}" class="font-headings font-normal custom-item-hover pb-2 pt-2.5">Sign
+                            In</a>
+                    </div>
                 @endauth
             </div>
 
