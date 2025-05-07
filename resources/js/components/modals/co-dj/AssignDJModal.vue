@@ -25,7 +25,7 @@
                 class="w-full"
                 @click="assignDJ"
                 :loading="isLoading"
-                >Save changes
+                >Assign as co-DJ
             </RegularButton>
         </template>
     </CreateModalDefault>
