@@ -6,7 +6,7 @@
         enter-active-class="duration-500 transition-all"
         leave-active-class="duration-500 transitional-all absolute"
         move-class="duration-500 transition-all"
-        class="fixed bottom-6 right-8 z-50 w-full max-w-xs space-y-4"
+        class="fixed bottom-40 md:bottom-42 lg:bottom-6 right-4 z-[10000] w-full max-w-xs space-y-4"
     >
         <ToastListItem
             v-for="(item, index) in toast.items"
