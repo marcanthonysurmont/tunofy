@@ -114,7 +114,7 @@ class PollSpotifyMixJob implements ShouldQueue
         $interval = $this->intervalSeconds;
 
         // Create a new job with the fresh mix
-        PollSpotifyMix::dispatch($mixToUse, $this->maxIterations, $interval)
+        PollSpotifyMixJob::dispatch($mixToUse, $this->maxIterations, $interval)
             ->delay(now()->addSeconds($interval));
 
         Log::debug("Scheduling next poll for mix {$mixToUse->id} in {$interval} seconds");

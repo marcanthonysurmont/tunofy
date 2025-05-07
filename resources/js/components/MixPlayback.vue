@@ -335,13 +335,21 @@ function setSyncingState() {
 
 //update player with playback data
 function updatePlayerState(playbackData) {
+    console.log("Updating player state with:", playbackData);
+    
     if (!playbackData) return;
-
-    isPlaying.value = playbackData.is_playing === true;
-    currentTrack.value = playbackData.item;
-
-    // Clear syncing state if we have track data
-    if (currentTrack.value) clearSyncingState();
+    
+    // Update playing state if specified
+    if (playbackData.is_playing !== undefined) {
+        isPlaying.value = playbackData.is_playing;
+    }
+    
+    // Only update track info if we have actual track data with an ID
+    if (playbackData.item && playbackData.item.id) {
+        currentTrack.value = playbackData.item;
+        clearSyncingState();
+        console.log("Updated UI with real track data");
+    }
 }
 
 function pauseMix() {
@@ -420,22 +428,38 @@ onMounted(() => {
 
         //setup WebSocket listeners and listen for events
         Echo.channel(`mix.${props.mix.id}`)
-            .listen(".playback-data", (e) => {                
-                //ignore out-of-sequence events
-                const eventTime = e.timestamp || Date.now();
-                if (eventTime < lastEventTime.value) return;
-                lastEventTime.value = eventTime;
-
-                if (
-                    !isMixActive.value &&
-                    e.playback_data?.item &&
-                    e.playback_data.is_playing
-                ) {
-                    // console.log("Mix is active, updating state");
+            .listen(".playback-data", (e) => {
+                console.log("Received playback data event:", e);
+                
+                // Check for real track data and handle it specially
+                if (e.playback_data?.item?.id) {
+                    console.log("Real track data received via WebSocket", e.playback_data);
+                    
+                    // Always update with real track data regardless of timestamp
+                    currentTrack.value = e.playback_data.item;
+                    isPlaying.value = e.playback_data.is_playing === true;
                     isMixActive.value = true;
+                    clearSyncingState();
+                    return;
                 }
-
-                //update player
+                
+                // Handle initial activation placeholder data
+                if (e.playback_data?.is_initial_activation) {
+                    console.log("Initial activation data received");
+                    isMixActive.value = true;
+                    isPlaying.value = true;
+                    // Don't clear syncing yet - wait for real track data
+                }
+                
+                // Process normal events with timestamp check
+                const eventTime = e.timestamp || Date.now();
+                if (eventTime < lastEventTime.value) {
+                    console.log("Ignoring out-of-sequence event");
+                    return;
+                }
+                lastEventTime.value = eventTime;
+                
+                // Update player state for other events
                 updatePlayerState(e.playback_data);
             })
             .listen(".mix-status-changed", (e) => {

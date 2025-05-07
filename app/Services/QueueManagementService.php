@@ -99,9 +99,6 @@ class QueueManagementService
         // Before playing the song, ensure a device is active
         $this->spotifyService->activateDevice($user);
 
-        // Give Spotify a moment to register the device activation
-        sleep(1);
-
         // If resetQueue is true, ensure we start from the beginning
         if ($resetQueue) {
             // Reset the position to ensure we start from the first song
@@ -109,7 +106,23 @@ class QueueManagementService
             Log::info("Queue position reset to 0 for mix {$mixId} before playback");
         }
 
-        // Use the standard playback method - don't try to do it ourselves
+        // Send an IMMEDIATE simplified activation event to update UI faster
+        $simpleActivationData = [
+            'is_playing' => true,
+            'is_initial_activation' => true,
+            '_timestamp' => now()->timestamp,
+            'item' => [
+                'name' => 'Starting playback...',
+                'artists' => [['name' => 'Your mix is starting']],
+                'album' => ['images' => []]
+            ]
+        ];
+
+        // Broadcast this simple event immediately
+        Log::info("Broadcasting immediate activation signal for mix {$mixId}");
+        event(new PlaybackDataUpdatedEvent($mix, $simpleActivationData));
+
+        // Then use the standard playback method
         return $this->songPlaybackService->startPlayback($mixId);
     }
 
