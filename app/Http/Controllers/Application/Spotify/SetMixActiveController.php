@@ -35,35 +35,54 @@ class SetMixActiveController extends Controller
 
             // Queue the initialization process in the background
             dispatch(function () use ($mix, $resetQueue, $queueManagementService, $spotifyService) {
-                // Initialize queue first
-                $queueManagementService->initializeQueue($mix, $resetQueue);
+                $lock = Cache::lock("mix:{$mix->id}:state_change", 10);
 
-                // Start playback after initialization is complete
-                $queueManagementService->startPlayback($mix->id, $resetQueue);
+                try {
+                    if ($lock->get()) {
+                        // Clear any existing pause flags
+                        Cache::forget("mix:{$mix->id}:paused");
 
-                // Get current playback data to broadcast after a short delay
-                sleep(0.5);
+                        // Set the manual change flag (with a longer duration)
+                        Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(10));
 
-                $user = $mix->user;
-                $playbackData = $spotifyService->getCurrentPlayback($user);
+                        // Initialize queue first
+                        $queueManagementService->initializeQueue($mix, $resetQueue);
 
-                if ($playbackData) {
-                    $playbackData['_timestamp'] = now()->timestamp;
-                    $playbackData['is_initial_activation'] = true;
+                        // Start playback after initialization is complete
+                        $queueManagementService->startPlayback($mix->id, $resetQueue);
 
-                    // Set cache for future polls
-                    $cacheKey = "mix:playback:" . $mix->id;
-                    Cache::put($cacheKey, $playbackData);
+                        // Get current playback data to broadcast after a short delay
+                        sleep(0.5);
 
-                    // Broadcast playback data
-                    Log::info("Broadcasting initial playback data for newly activated mix {$mix->id}");
-                    event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+                        $user = $mix->user;
+                        $playbackData = $spotifyService->getCurrentPlayback($user);
 
-                    // Set manual change flag
-                    Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(10));
-                } else {
-                    Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
-                    Log::info("Unable to get immediate playback data for mix {$mix->id}, will rely on polling");
+                        if ($playbackData) {
+                            $playbackData['_timestamp'] = now()->timestamp;
+                            $playbackData['is_initial_activation'] = true;
+
+                            // Set cache for future polls
+                            $cacheKey = "mix:playback:" . $mix->id;
+                            Cache::put($cacheKey, $playbackData);
+
+                            // Broadcast playback data
+                            Log::info("Broadcasting initial playback data for newly activated mix {$mix->id}");
+                            event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+
+                            // Set manual change flag
+                            Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(10));
+                        } else {
+                            Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
+                            Log::info("Unable to get immediate playback data for mix {$mix->id}, will rely on polling");
+                        }
+                    }
+                    // Make sure to release the lock when done
+                    $lock->release();
+                } catch (\Exception $e) {
+                    if (isset($lock)) {
+                        $lock->release();
+                    }
+                    throw $e;
                 }
             })->afterResponse();
 
@@ -76,6 +95,16 @@ class SetMixActiveController extends Controller
         } else {
             // Deactivation - can be handled synchronously as it's faster
             $queueResult = $queueManagementService->stopPlayback($mix->id);
+
+            // When deactivating, clear ALL cache entries for this mix
+            Cache::forget("mix:{$mix->id}:paused");
+            Cache::forget("mix:playback:{$mix->id}");
+            Cache::forget("mix:{$mix->id}:manual_change");
+
+            // Additional cache keys you might be using
+            Cache::forget("mix_{$mix->id}_queue_position");
+
+            Log::info("Cleared all cache entries for mix {$mix->id} on deactivation");
 
             return response()->json([
                 'activation' => $result,
