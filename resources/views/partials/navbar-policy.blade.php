@@ -5,7 +5,7 @@
             <a class="flex flex-row items-center space-x-4" href="/">
                 <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Tunofy Logo"
                     class="md:w-10 md:h-10 h-8 w-8">
-                <p class="text-2xl md:text-3xl font-medium font-nohemi">Tunofy</p>
+                <p class="text-2xl md:text-3xl font-medium font-headings">Tunofy</p>
             </a>
 
             <div class="hidden lg:flex flex-row items-center gap-4 text-xl">
