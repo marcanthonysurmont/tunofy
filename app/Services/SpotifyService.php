@@ -230,6 +230,30 @@ class SpotifyService
         }
     }
 
+    /**
+     * Get user's available Spotify devices
+     */
+    public function getUserDevices(User $user): array
+    {
+        try {
+            $response = $this->spotifyRequest(
+                $user,
+                'GET',
+                'https://api.spotify.com/v1/me/player/devices'
+            );
+
+            if (!$response->successful()) {
+                Log::error("Failed to get Spotify devices: " . $response->status());
+                return [];
+            }
+
+            return $response->json()['devices'] ?? [];
+        } catch (\Exception $e) {
+            Log::error("Error fetching Spotify devices: " . $e->getMessage());
+            return [];
+        }
+    }
+
     public function setVolume(User $user, int $volumePercent): bool
     {
         try {

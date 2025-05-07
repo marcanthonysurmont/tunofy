@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Application\Spotify\GetDevicesController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LogoutController;
 
@@ -77,6 +78,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/resume-mix/{mix}', ResumeMixPlaybackController::class)->name('resume-mix');
         Route::post('/skip-song/{mix}', PlayNextSongController::class)->name('skip-song');
         Route::post('/previous-song/{mix}', PlayPreviousSongController::class)->name('previous-song');
+        Route::get('/devices', GetDevicesController::class)->name('devices');
     });
 
     Route::get('/logout', LogoutController::class)->name('logout');
