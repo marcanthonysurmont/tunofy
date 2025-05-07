@@ -393,6 +393,10 @@ const isPlaying = ref(false);
 const isSyncingWithSpotify = ref(false);
 const queueCompleted = ref(false);
 
+const lastEventTime = ref(0);
+const lastToggleTime = ref(0);
+let syncTimeoutId = null;
+
 // Device selection variables
 const devices = ref(page.props.devices || []);
 const isDeviceDropdownOpen = ref(false);
@@ -409,42 +413,73 @@ function handleClickOutside(event) {
     }
 }
 
-// Add and remove event listeners for click outside
-onMounted(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    
-    if (props.mix) {
-        // Only fetch devices if not provided in page props
-        if (devices.value.length === 0 && props.mix.authorized.isOwner) {
-            refreshDevices();
-        }
-        
-        // Rest of your onMounted code...
-        
-        // Add WebSocket listener for device changes
-        Echo.channel(`mix.${props.mix.id}`)
-            .listen(".device-changed", (e) => {
-                console.log("Device changed event:", e);
-                if (e.device) {
-                    // Look for device in current list or add it
-                    const existingDevice = devices.value.find(d => d.id === e.device.id);
-                    if (existingDevice) {
-                        selectedDevice.value = existingDevice;
-                    } else {
-                        // Add device to list and select it
-                        devices.value.push(e.device);
-                        selectedDevice.value = e.device;
-                    }
+function skipSong() {
+    axios.post(`/api/spotify/skip-song/${props.mix.id}`)
+        .then(response => {
+            if (response.data.success && response.data.song) {
+                // Transform the data to match the expected structure
+                currentTrack.value = {
+                    name: response.data.song.name,
+                    album: {
+                        images: [{ url: response.data.song.image_url }]
+                    },
+                    artists: [{ name: response.data.song.artist }],
+                    // Add any other required properties
+                    id: response.data.song.spotify_id,
+                    duration_ms: response.data.song.duration_ms
+                };
+                
+                // Update playing state if available
+                if (response.data.is_playing !== undefined) {
+                    isPlaying.value = response.data.is_playing;
                 }
-            });
-            
-        // Your existing Echo listeners...
-    }
-});
+                
+                console.log('Song skipped successfully');
+            }
+        })
+        .catch((error) => {
+            console.error("Failed to skip song:", error);
+        });
+}
 
-onUnmounted(() => {
-    document.removeEventListener('mousedown', handleClickOutside);
-});
+function previousSong() {
+    axios
+        .post(`/api/spotify/previous-song/${props.mix.id}`)
+        .then((response) => {
+            if (response.data.success) {
+                console.log("Skipped to previous song successfully");
+            }
+        })
+        .catch((error) => {
+            console.error("Failed to skip to previous song:", error);
+        });
+}
+
+function pauseMix() {
+    axios
+        .post(`/api/spotify/pause-mix/${props.mix.id}`)
+        .then((response) => {
+            if (response.data.success) {
+                isPlaying.value = false;
+            }
+        })
+        .catch((error) => {
+            console.error("Failed to pause playback:", error);
+        });
+}
+
+function resumeMix() {
+    axios
+        .post(`/api/spotify/resume-mix/${props.mix.id}`)
+        .then((response) => {
+            if (response.data.success) {
+                isPlaying.value = true;
+            }
+        })
+        .catch((error) => {
+            console.error("Failed to resume playback:", error);
+        });
+}
 
 // Device selection functions
 async function refreshDevices() {
@@ -481,22 +516,35 @@ function selectDevice(device) {
     }
 }
 
-async function transferPlayback(deviceId) {
+function clearSyncingState() {
+    isSyncingWithSpotify.value = false;
+    if (syncTimeoutId) {
+        clearTimeout(syncTimeoutId);
+        syncTimeoutId = null;
+    }
+}
+
+async function refreshMixState() {
     try {
-        isLoading.value = true;
-        
-        const response = await axios.post('/api/spotify/transfer-playback', {
-            mix_id: props.mix.id,
-            device_id: deviceId
+        const response = await axios.get("/api/spotify/request-status", {
+            params: { mix_id: props.mix.id },
         });
-        
-        if (!response.data.success) {
-            console.error('Failed to transfer playback');
+
+        // Update state from server
+        isMixActive.value = response.data.is_active;
+
+        // Handle playback data
+        if (response.data.playback_data) {
+            updatePlayerState(response.data.playback_data);
+        } else if (isMixActive.value) {
+            setSyncingState();
+        } else {
+            clearSyncingState();
+            currentTrack.value = null;
+            isPlaying.value = false;
         }
-    } catch (error) {
-        console.error('Error transferring playback:', error);
-    } finally {
-        isLoading.value = false;
+    } catch (err) {
+        console.error("Error refreshing mix state:", err);
     }
 }
 
@@ -561,7 +609,108 @@ async function toggleMixActive() {
     }
 }
 
-// Rest of your script remains the same...
+function setSyncingState() {
+    isSyncingWithSpotify.value = true;
+    if (syncTimeoutId) clearTimeout(syncTimeoutId);
+    // Auto-clear after 10s to prevent getting stuck
+    syncTimeoutId = setTimeout(
+        () => (isSyncingWithSpotify.value = false),
+        10000
+    );
+}
+
+function updatePlayerState(playbackData) {
+    console.log("Updating player state with:", playbackData);
+    
+    if (!playbackData) return;
+    
+    // Update playing state if specified
+    if (playbackData.is_playing !== undefined) {
+        isPlaying.value = playbackData.is_playing;
+    }
+    
+    // Only update track info if we have actual track data with an ID
+    if (playbackData.item && playbackData.item.id) {
+        currentTrack.value = playbackData.item;
+        clearSyncingState();
+        console.log("Updated UI with real track data");
+    }
+}
+
+onMounted(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    if (props.mix) {
+        // Initialize state
+        isMixActive.value = !!props.mix.is_active;
+        if (isMixActive.value) setSyncingState();
+
+        // Initial data load
+        refreshMixState();
+
+        //setup WebSocket listeners and listen for events
+        Echo.channel(`mix.${props.mix.id}`)
+            .listen(".playback-data", (e) => {
+                console.log("Received playback data event:", e);
+                
+                // Check for real track data and handle it specially
+                if (e.playback_data?.item?.id) {
+                    console.log("Real track data received via WebSocket", e.playback_data);
+                    
+                    // Always update with real track data regardless of timestamp
+                    currentTrack.value = e.playback_data.item;
+                    isPlaying.value = e.playback_data.is_playing === true;
+                    isMixActive.value = true;
+                    clearSyncingState();
+                    return;
+                }
+                
+                // Handle initial activation placeholder data
+                if (e.playback_data?.is_initial_activation) {
+                    console.log("Initial activation data received");
+                    isMixActive.value = true;
+                    isPlaying.value = true;
+                    // Don't clear syncing yet - wait for real track data
+                }
+                
+                // Process normal events with timestamp check
+                const eventTime = e.timestamp || Date.now();
+                if (eventTime < lastEventTime.value) {
+                    console.log("Ignoring out-of-sequence event");
+                    return;
+                }
+                lastEventTime.value = eventTime;
+                
+                // Update player state for other events
+                updatePlayerState(e.playback_data);
+            })
+            .listen(".mix-status-changed", (e) => {
+                //ignore out-of-sequence events
+                const eventTime = e.timestamp || Date.now();
+                if (eventTime < lastEventTime.value) return;
+                lastEventTime.value = eventTime;
+
+                //update active state
+                isMixActive.value = e.isActive;
+
+                //handle state changes
+                if (!e.isActive) {
+                    clearSyncingState();
+                    currentTrack.value = null;
+                    isPlaying.value = false;
+                    if (e.reason === "queue_completed")
+                        queueCompleted.value = true;
+                } else {
+                    setSyncingState();
+                    queueCompleted.value = false;
+                }
+            })
+    }
+});
+
+onUnmounted(() => {
+    document.removeEventListener('mousedown', handleClickOutside);
+});
 </script>
 
 <style scoped>
