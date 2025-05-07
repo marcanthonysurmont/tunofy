@@ -87,6 +87,26 @@
                     </MenuItem>
                     <MenuItem v-slot="{ active }" v-if="authorization.isOwner">
                         <button
+                            @click="showAssignDJModal = true"
+                            :class="[
+                                active
+                                    ? 'bg-card-background-lighter text-dark-white cursor-pointer'
+                                    : 'text-white',
+                                'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                            ]"
+                        >
+                            <MusicalNoteIcon
+                                :active="active"
+                                class="mr-2 h-5 w-5 text-white"
+                                aria-hidden="true"
+                            />
+                            <span class="font-medium align-middle"
+                                >Assign a co-dj</span
+                            >
+                        </button>
+                    </MenuItem>
+                    <MenuItem v-slot="{ active }" v-if="authorization.isOwner">
+                        <button
                             @click="deleteMix"
                             :class="[
                                 active
@@ -189,6 +209,10 @@
             :is-visible="showUpdateMixModal"
             @close-modal="showUpdateMixModal = false"
         />
+        <AssignDJModal
+            :is-visible="showAssignDJModal"
+            @close-modal="showAssignDJModal = false"
+        />
     </teleport>
 </template>
 
@@ -204,6 +228,7 @@ import {
     KeyIcon,
     ClipboardDocumentIcon,
     MinusCircleIcon,
+    MusicalNoteIcon,
 } from "@heroicons/vue/24/outline";
 
 import MenuDropdown from "@/components/menus/MenuDropdown.vue";
@@ -213,6 +238,7 @@ import { ref, computed } from "vue";
 import toast from "@/stores/StoreToast.js";
 import UpdateMixModal from "@/components/modals/mixes/UpdateMixModal.vue";
 import { StoreConfirmationModal } from "@/stores/StoreConfirmationModal";
+import AssignDJModal from "@/components/modals/co-dj/AssignDJModal.vue";
 
 const storeConfirmationModal = StoreConfirmationModal();
 
@@ -224,6 +250,7 @@ const authorization = computed(() => page.props.mix.authorized);
 
 const showCreateSessionModal = ref(false);
 const showUpdateMixModal = ref(false);
+const showAssignDJModal = ref(false);
 
 const readableTime = computed(() => {
     const totalMs = mix.value.songs.reduce(
