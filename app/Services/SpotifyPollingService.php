@@ -80,7 +80,7 @@ class SpotifyPollingService
             // Get the currently playing song according to our queue
             $currentQueueSong = $this->songPlaybackService->getCurrentlyPlayingSong($mix->id);
 
-            // Analyze the current playback state
+            // Analyze the current playback state - now with proper null handling
             $playerState = $this->analyzePlayerState($mix, $user, $currentQueueSong, $playbackData, $previousData);
 
             // When device mismatch is detected:
@@ -123,16 +123,23 @@ class SpotifyPollingService
     }
 
     /**
-     * Analyze the player state based on current and previous playback data
-     * Simplified version focusing on the most common scenarios
+     * Analyze the current player state
      */
-    private function analyzePlayerState(
-        Mix $mix,
-        User $user,
-        QueueSong $currentQueueSong,
-        ?array $playbackData,
-        ?array $previousData
-    ): string {
+    private function analyzePlayerState(Mix $mix, User $user, ?QueueSong $currentQueueSong, array $playbackData, ?array $previousData = null): string
+    {
+        // Handle the case when no song is marked as playing in our system
+        if (!$currentQueueSong) {
+            // But Spotify is playing something
+            if ($playbackData['is_playing'] ?? false) {
+                Log::warning("Spotify is playing a track but no song is marked as playing in our system");
+                return self::PLAYER_STATE_TRACK_MISMATCH;
+            }
+
+            // Nothing playing in Spotify either
+            return self::PLAYER_STATE_NO_PLAYBACK;
+        }
+
+        // Continue with your existing logic for when currentQueueSong exists
         // CASE 1: No active playback
         if (empty($playbackData) || !isset($playbackData['item'])) {
             return self::PLAYER_STATE_NO_PLAYBACK;
