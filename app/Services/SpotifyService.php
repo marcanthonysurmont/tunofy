@@ -26,34 +26,83 @@ class SpotifyService
         return response()->json(['error' => 'Spotify API request failed'], $response->status());
     }
 
-    public function playSong(User $user, string $uri): bool
+    /**
+     * Play a song
+     */
+    public function playSong(User $user, string $trackId, ?string $deviceId = null): bool
     {
         try {
-            // First check if there's active playback
-            $currentPlayback = $this->getCurrentPlayback($user);
-
-            // If no active playback, try to activate a device first
-            if (!$currentPlayback) {
-                Log::info("No active playback, attempting to activate device");
-                $activated = $this->activateDevice($user);
-
-                // Give Spotify a moment to register the device activation
-                if ($activated) {
-                    sleep(1);
-                }
+            // Ensure the URI is properly formatted
+            $uri = $trackId;
+            if (!str_starts_with($trackId, 'spotify:track:')) {
+                $uri = 'spotify:track:' . $trackId;
             }
 
-            // Now try to play the song
+            Log::info("Playing song with URI: {$uri} for user {$user->id}" . ($deviceId ? " on device {$deviceId}" : ""));
+
+            $endpoint = 'https://api.spotify.com/v1/me/player/play';
+            $queryParams = [];
+
+            // Add device ID to query params if provided
+            if ($deviceId) {
+                $queryParams['device_id'] = $deviceId;
+            }
+
             $response = $this->spotifyRequest(
                 $user,
                 'PUT',
-                'https://api.spotify.com/v1/me/player/play',
-                ['uris' => [$uri]]
+                $endpoint,
+                ['uris' => [$uri]],
+                $queryParams
             );
 
-            return $response->successful();
+            $success = $response->successful();
+
+            if (!$success) {
+                Log::error("Failed to play song: " . $response->status() . " - " . $response->body());
+            }
+
+            return $success;
         } catch (\Exception $e) {
-            Log::error("Spotify playSong error: " . $e->getMessage());
+            Log::error("Error playing song: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Play a track directly on a specific device, with maximum reliability
+     */
+    public function playTrackOnDevice(User $user, string $trackId, string $deviceId): bool
+    {
+        try {
+            // Step 1: Format the URI properly
+            $uri = $trackId;
+            if (!str_starts_with($trackId, 'spotify:track:')) {
+                $uri = 'spotify:track:' . $trackId;
+            }
+
+            Log::info("Playing song with URI: {$uri} directly on device {$deviceId} for user {$user->id}");
+
+            // Step 2: Transfer playback AND play in a single command when possible
+            $endpoint = 'https://api.spotify.com/v1/me/player/play';
+            $queryParams = ['device_id' => $deviceId];
+
+            $response = $this->spotifyRequest(
+                $user,
+                'PUT',
+                $endpoint,
+                ['uris' => [$uri]],
+                $queryParams
+            );
+
+            if (!$response->successful()) {
+                Log::error("Failed to play on device: " . $response->status() . " - " . $response->body());
+                return false;
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error("Error playing song on device: " . $e->getMessage());
             return false;
         }
     }
@@ -227,6 +276,78 @@ class SpotifyService
         } catch (\Exception $e) {
             Log::error("Spotify device activation error: " . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Activate a specific device and wait for it to become active
+     */
+    public function activateSpecificDevice(User $user, string $deviceId): bool
+    {
+        try {
+            Log::info("Explicitly activating device {$deviceId} for user {$user->id}");
+
+            $endpoint = 'https://api.spotify.com/v1/me/player';
+            $body = [
+                'device_ids' => [$deviceId],
+                'play' => false // Don't start playback yet
+            ];
+
+            $response = $this->spotifyRequest(
+                $user,
+                'PUT',
+                $endpoint,
+                $body
+            );
+
+            $success = $response->successful();
+
+            if (!$success) {
+                Log::error("Failed to activate device: " . $response->status() . " - " . $response->body());
+            } else {
+                // Short delay to ensure device activation takes effect
+                // Slightly increased for desktop clients which need more time
+                usleep(800000); // 800ms
+
+                // Verify device is now active by checking player state
+                $currentDevice = $this->getCurrentDevice($user);
+                if ($currentDevice && $currentDevice['id'] === $deviceId) {
+                    Log::info("Successfully verified device {$deviceId} is now active for user {$user->id}");
+                } else {
+                    Log::warning("Device activation may not have completed - proceeding anyway");
+                }
+
+                Log::info("Successfully activated Spotify device {$deviceId} for user {$user->id}");
+            }
+
+            return $success;
+        } catch (\Exception $e) {
+            Log::error("Error activating device: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get the current active device
+     */
+    private function getCurrentDevice(User $user): ?array
+    {
+        try {
+            $response = $this->spotifyRequest(
+                $user,
+                'GET',
+                'https://api.spotify.com/v1/me/player'
+            );
+
+            if ($response->successful() && !empty($response->json())) {
+                $data = $response->json();
+                return $data['device'] ?? null;
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            Log::error("Error getting current device: " . $e->getMessage());
+            return null;
         }
     }
 

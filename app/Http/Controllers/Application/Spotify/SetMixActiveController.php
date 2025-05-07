@@ -2,39 +2,58 @@
 
 namespace App\Http\Controllers\Application\Spotify;
 
+use App\Events\MixStatusChangedEvent;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\SetMixActiveRequest;
+use Illuminate\Http\Request;
 use App\Models\Mix;
-use App\Services\MixActivationService;
 use App\Services\QueueManagementService;
 use App\Services\SpotifyService;
 use Illuminate\Http\JsonResponse;
-use App\Events\PlaybackDataUpdatedEvent;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use App\Events\PlaybackDataUpdatedEvent;
+use App\Jobs\PollSpotifyMixJob;
 
 class SetMixActiveController extends Controller
 {
     public function __invoke(
-        SetMixActiveRequest $request,
-        MixActivationService $mixActivationService,
+        Request $request,
+        Mix $mix,
         QueueManagementService $queueManagementService,
         SpotifyService $spotifyService
     ): JsonResponse {
-        $validated = $request->validated();
-        $mix = Mix::findOrFail($validated['mix_id']);
-        $this->authorize('update', $mix);
+        // Get the deviceId from the request
+        $deviceId = $request->input('deviceId');
 
-        // Activation handling
-        $result = $mixActivationService->toggleMixActive($mix, $validated['active']);
+        // Validate request
+        $validated = $request->validate([
+            'active' => 'required|boolean',
+            'reset_queue' => 'sometimes|boolean',
+        ]);
+
+        // Log the device ID
+        if ($deviceId) {
+            Log::info("SetMixActiveController received deviceId: " . $deviceId);
+            // Store it even before queue initialization
+            Cache::put("mix:{$mix->id}:device_id", $deviceId, now()->addDay());
+        }
+
+        // Update the mix status
+        $result = $mix->update(['is_active' => $validated['active']]);
+
+        // Log status change
+        Log::info($validated['active'] ? "Mix {$mix->id} activated" : "Mix {$mix->id} deactivated");
 
         if ($validated['active'] === true) {
-            // When activating, return IMMEDIATELY with success
-            // But continue processing in the background
             $resetQueue = $request->input('reset_queue', true);
 
-            // Queue the initialization process in the background
-            dispatch(function () use ($mix, $resetQueue, $queueManagementService, $spotifyService) {
+            // IMPORTANT: Dispatch the polling job for active mixes
+            PollSpotifyMixJob::dispatch($mix)
+                ->delay(now()->addSeconds(2));
+            Log::info("Dispatched polling job for newly activated mix {$mix->id}");
+
+            // Pass the deviceId to the dispatch function for playback
+            dispatch(function () use ($mix, $resetQueue, $queueManagementService, $spotifyService, $deviceId) {
                 $lock = Cache::lock("mix:{$mix->id}:state_change", 10);
 
                 try {
@@ -48,8 +67,8 @@ class SetMixActiveController extends Controller
                         // Initialize queue first
                         $queueManagementService->initializeQueue($mix, $resetQueue);
 
-                        // Start playback after initialization is complete
-                        $queueManagementService->startPlayback($mix->id, $resetQueue);
+                        // Start playback after initialization is complete - PASS DEVICE ID!
+                        $queueManagementService->startPlayback($mix->id, $resetQueue, $deviceId);
 
                         // Get current playback data to broadcast after a short delay
                         sleep(0.5);
@@ -88,7 +107,9 @@ class SetMixActiveController extends Controller
 
             // Return quickly with success to update UI
             return response()->json([
-                'activation' => $result,
+                'activation' => [
+                    'success' => true
+                ],
                 'status' => 'activating',
                 'message' => 'Playback starting...'
             ]);
@@ -96,19 +117,18 @@ class SetMixActiveController extends Controller
             // Deactivation - can be handled synchronously as it's faster
             $queueResult = $queueManagementService->stopPlayback($mix->id);
 
-            // When deactivating, clear ALL cache entries for this mix
-            Cache::forget("mix:{$mix->id}:paused");
-            Cache::forget("mix:playback:{$mix->id}");
-            Cache::forget("mix:{$mix->id}:manual_change");
+            // Use the method that preserves device ID
+            $queueManagementService->clearMixCache($mix->id);
 
-            // Additional cache keys you might be using
-            Cache::forget("mix_{$mix->id}_queue_position");
-
-            Log::info("Cleared all cache entries for mix {$mix->id} on deactivation");
+            // IMPORTANT: Broadcast an event to notify other browsers about deactivation
+            event(new MixStatusChangedEvent($mix, false));
 
             return response()->json([
-                'activation' => $result,
-                'queue' => $queueResult
+                'activation' => [
+                    'success' => true
+                ],
+                'status' => 'deactivated',
+                'message' => 'Playback stopped'
             ]);
         }
     }

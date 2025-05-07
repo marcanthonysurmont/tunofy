@@ -31,9 +31,9 @@ class SongPlaybackService
     }
 
     /**
-     * Start playback for a mix (initial or next song)
+     * Start playback of the next song in the queue
      */
-    public function startPlayback(int $mixId): array
+    public function startPlayback(int $mixId, ?string $deviceId = null): array
     {
         // Get the mix
         $mix = Mix::findOrFail($mixId);
@@ -89,16 +89,37 @@ class SongPlaybackService
 
         // Associate with session and mark as playing
         $nextSong->update([
-            'playback_session_id' => $activeSession->id, // CHANGED FROM session_id
+            'playback_session_id' => $activeSession->id,
             'status' => 'playing'
         ]);
 
-        // Play on Spotify
-        $playResult = $this->playSongOnSpotify($user, $nextSong);
+        // Use the direct playback method if device is specified
+        $playResult = false;
+        if ($deviceId) {
+            $playResult = $this->spotifyService->playTrackOnDevice($user, $nextSong->song->spotify_id, $deviceId);
+        } else {
+            $playResult = $this->spotifyService->playSong($user, $nextSong->song->spotify_id);
+        }
 
-        if (!$playResult['success']) {
+        // Add error handling - fixed to check boolean instead of array
+        if (!$playResult) {
+            Log::error("Failed to start playback for mix {$mixId}");
             $nextSong->update(['status' => 'pending', 'playback_session_id' => null]);
-            return $playResult;
+            return [
+                'success' => false,
+                'message' => 'Failed to start playback'
+            ];
+        }
+
+        $playbackData = $this->spotifyService->getCurrentPlayback($user);
+
+        if (!$playbackData) {
+            Log::error("Failed to get current playback data for mix {$mixId}");
+            $nextSong->update(['status' => 'pending', 'playback_session_id' => null]);
+            return [
+                'success' => false,
+                'message' => 'Failed to get current playback'
+            ];
         }
 
         Log::info("Started playing song ID: {$nextSong->id} for mix {$mixId} in session {$activeSession->id}");
@@ -114,6 +135,11 @@ class SongPlaybackService
      */
     public function advanceToNextSong(int $mixId): array
     {
+        $mix = Mix::findOrFail($mixId);
+
+        // Retrieve the cached device ID if present
+        $deviceId = Cache::get("mix:{$mix->id}:device_id");
+
         // Get the active session
         $activeSession = PlaybackSession::where('mix_id', $mixId)
             ->where('is_active', true)
@@ -141,17 +167,23 @@ class SongPlaybackService
             Log::info("Marked song {$currentSong->id} as finished");
         }
 
+        // Set a flag indicating we're changing tracks to prevent false mismatch detection
+        Cache::put("mix:{$mixId}:device_changed", true, now()->addSeconds(5));
+
         // IMPORTANT: Clear the paused flag to ensure polling resumes
         Cache::forget("mix:{$mixId}:paused");
 
-        // Get and play the next song
-        return $this->startPlayback($mixId);
+        // Get and play the next song, passing the device ID
+        return $this->startPlayback($mixId, $deviceId);
     }
 
     public function returnToPreviousSong(int $mixId): array
     {
         $mix = Mix::findOrFail($mixId);
         $user = User::findOrFail($mix->user_id);
+
+        // Retrieve the cached device ID if present
+        $deviceId = Cache::get("mix:{$mix->id}:device_id");
 
         // Get the currently playing song
         $currentSong = QueueSong::where('mix_id', $mixId)
@@ -179,7 +211,7 @@ class SongPlaybackService
 
         // Find the previous song in the SAME SESSION
         $previousSong = QueueSong::where('mix_id', $mixId)
-            ->where('playback_session_id', $activeSession->id) // Use correct column name
+            ->where('playback_session_id', $activeSession->id)
             ->where('status', 'finished')
             ->where('order', '<', $currentSong->order)
             ->orderBy('order', 'desc')
@@ -209,9 +241,16 @@ class SongPlaybackService
             $previousSong->load('song');
         }
 
-        // Explicitly play this song on Spotify
-        $songUri = "spotify:track:{$previousSong->song->spotify_id}";
-        $playResult = $this->spotifyService->playSong($user, $songUri);
+        // Set a flag to indicate we're changing tracks to prevent false mismatch detection
+        Cache::put("mix:{$mixId}:device_changed", true, now()->addSeconds(5));
+
+        // Explicitly play this song on Spotify with the same device ID
+        $playResult = false;
+        if ($deviceId) {
+            $playResult = $this->spotifyService->playTrackOnDevice($user, $previousSong->song->spotify_id, $deviceId);
+        } else {
+            $playResult = $this->spotifyService->playSong($user, $previousSong->song->spotify_id);
+        }
 
         // IMPORTANT: Clear the paused flag to ensure polling resumes
         Cache::forget("mix:{$mixId}:paused");
@@ -334,13 +373,24 @@ class SongPlaybackService
     }
 
     /**
-     * Attempt to resume the currently intended track
-     * (useful when Spotify gets out of sync with the app's queue)
+     * Attempt to resume the intended track with maximum device reliability
      */
     public function resumeIntendedTrack(int $mixId): array
     {
         $mix = Mix::findOrFail($mixId);
         $user = User::findOrFail($mix->user_id);
+
+        // Try multiple ways to get device ID
+        $deviceId = Cache::get("mix:{$mix->id}:device_id");
+
+        if ($deviceId) {
+            Log::info("Resuming intended track for mix {$mixId} with device ID {$deviceId}");
+
+            // Set a flag to indicate we're using a specific device
+            Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(10));
+        } else {
+            Log::info("Resuming intended track for mix {$mixId} with no specific device");
+        }
 
         // Get what we think should be playing
         $currentQueueSong = QueueSong::where('mix_id', $mixId)
@@ -355,9 +405,13 @@ class SongPlaybackService
             ];
         }
 
-        // Attempt to play the correct song
-        $songUri = "spotify:track:{$currentQueueSong->song->spotify_id}";
-        $playResult = $this->spotifyService->playSong($user, $songUri);
+        // Force the next song to play on the correct device
+        $playResult = false;
+        if ($deviceId) {
+            $playResult = $this->spotifyService->playTrackOnDevice($user, $currentQueueSong->song->spotify_id, $deviceId);
+        } else {
+            $playResult = $this->spotifyService->playSong($user, $currentQueueSong->song->spotify_id);
+        }
 
         if (!$playResult) {
             Log::error("Failed to resume intended track {$currentQueueSong->song->spotify_id}");
@@ -367,7 +421,12 @@ class SongPlaybackService
             ];
         }
 
-        Log::info("Successfully resumed intended track {$currentQueueSong->song->spotify_id}");
+        // Cache the device ID again to ensure persistence
+        if ($deviceId) {
+            Cache::put("mix:{$mixId}:device_id", $deviceId, now()->addHours(1));
+        }
+
+        Log::info("Successfully resumed intended track {$currentQueueSong->song->spotify_id}" . ($deviceId ? " on device {$deviceId}" : ""));
         return [
             'success' => true,
             'queue_song' => $currentQueueSong,

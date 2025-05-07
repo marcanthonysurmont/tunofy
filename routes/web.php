@@ -73,7 +73,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/search', SearchSongController::class)->name('search');
 
         Route::get('/request-status', RequestSpotifyPlayerStatusController::class)->name('request-status');
-        Route::post('/set-mix-active', SetMixActiveController::class)->name('set-mix-active');
+        Route::post('/set-mix-active/{mix}', SetMixActiveController::class)->name('set-mix-active');
         Route::post('/pause-mix/{mix}', PauseMixPlaybackController::class)->name('pause-mix');
         Route::post('/resume-mix/{mix}', ResumeMixPlaybackController::class)->name('resume-mix');
         Route::post('/skip-song/{mix}', PlayNextSongController::class)->name('skip-song');

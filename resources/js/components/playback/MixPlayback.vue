@@ -551,61 +551,52 @@ async function refreshMixState() {
 // Update toggleMixActive to use selected device
 async function toggleMixActive() {
     try {
-        console.log("Toggling mix active state");
         // Prevent rapid toggling
         if (Date.now() - lastToggleTime.value < 1000) return;
         lastToggleTime.value = Date.now();
-
-        // Check if a device is selected when activating
-        if (!isMixActive.value && !selectedDevice.value) {
-            // If no device selected but devices exist, use the first one
-            if (devices.value.length > 0) {
-                selectedDevice.value = devices.value[0];
-            } else {
-                // Fetch devices if none available
-                await refreshDevices();
-                
-                if (devices.value.length === 0) {
-                    console.error("No Spotify devices available");
-                    return;
-                }
-                
-                selectedDevice.value = devices.value[0];
-            }
-        }
-
+        
         // Set loading state
         isLoading.value = true;
-
+        
         // Optimistically update UI
         const targetActive = !isMixActive.value;
-
-        // Update UI immediately
-        if (targetActive) {
-            setSyncingState();
-            currentTrack.value = null;
-            isPlaying.value = false;
-            queueCompleted.value = false;
-        } else {
-            clearSyncingState();
-            currentTrack.value = null;
-            isPlaying.value = false;
-        }
-
+        
+        // Prepare the device ID to send
+        const deviceIdToUse = selectedDevice.value ? selectedDevice.value.id : null;
+        console.log("Using device ID for toggle:", deviceIdToUse);
+        
         // Make API call with device ID
-        const response = await axios.post("/api/spotify/set-mix-active", {
-            mix_id: props.mix.id,
-            active: targetActive,
-            reset_queue: targetActive,
-            device_id: selectedDevice.value?.id
-        });
-
-        // Rest of your existing function...
-    } catch (err) {
-        console.error("Error toggling mix active status:", err);
-        clearSyncingState();
+        const response = await axios.post(
+            `/api/spotify/set-mix-active/${props.mix.id}`,
+            {
+                active: targetActive,
+                deviceId: deviceIdToUse, // Explicitly include device ID
+                reset_queue: true
+            }
+        );
+        
+        // Handle response as usual
+        console.log("Toggle response:", response.data);
+        
+        if (response.data.activation && response.data.activation.success) {
+            // IMPORTANT: Update the mix active state with the target value
+            isMixActive.value = targetActive;
+            
+            if (targetActive) {
+                // Mix was activated
+                setSyncingState();
+            } else {
+                // Mix was deactivated
+                clearSyncingState();
+                // Also clear the current track
+                currentTrack.value = null;
+                isPlaying.value = false;
+            }
+        }
+    } catch (error) {
+        console.error("Error toggling mix state:", error);
     } finally {
-        setTimeout(() => (isLoading.value = false), 500);
+        isLoading.value = false;
     }
 }
 
