@@ -21,10 +21,26 @@
                                 Time
                             </th>
                             <th
-                                class="py-3.5 pl-1 sm:pl-3 text-right w-8 sm:w-10"
-                            ></th>
+                                v-if="windowWidth >= 640"
+                                class="px-1 sm:px-3 py-3.5 text-left text-sm font-semibold text-zinc-200 w-16 sm:w-24"
+                            >
+                                Added by
+                            </th>
+                            <th
+                                v-if="windowWidth < 640"
+                                class="px-1 sm:px-3 py-3.5 text-left text-sm font-semibold text-zinc-200 w-12 sm:w-16"
+                            >
+                                By
+                            </th>
+                            <th
+                                v-if="authorization.canRemoveSong"
+                                class="px-1 sm:px-3 py-3.5 text-right text-sm font-semibold text-zinc-200 w-12 sm:w-16"
+                            >
+                                Actions
+                            </th>
                         </tr>
                     </thead>
+
                     <tbody v-if="songs.length > 0">
                         <tr v-for="(song, index) in songs" :key="song.id">
                             <td
@@ -42,7 +58,7 @@
                                         class="w-8 h-8 sm:w-10 sm:h-10 rounded flex-shrink-0"
                                     />
                                     <div
-                                        class="min-w-0 flex-1 max-w-[75%] sm:max-w-xs md: md:max-w-md lg:max-w-lg"
+                                        class="min-w-0 flex-1 max-w-[75%] sm:max-w-xs md:max-w-md lg:max-w-lg"
                                     >
                                         <div
                                             class="font-medium truncate text-sm"
@@ -62,11 +78,28 @@
                             >
                                 {{ msToMinutes(song.duration_ms) }}
                             </td>
-                            <td class="py-2 sm:py-4 pl-1 sm:pl-3 text-right">
+                            <td
+                                class="px-1 sm:px-3 py-2 sm:py-4 text-sm text-zinc-400"
+                            >
+                                <!-- {{ song.user.name }} -->
+                                <img
+                                    :src="
+                                        song.user.avatar === null
+                                            ? '/images/default-avatar.jpg'
+                                            : song.user.avatar
+                                    "
+                                    alt="cover"
+                                    class="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex-shrink-0"
+                                />
+                            </td>
+                            <!-- New Column -->
+                            <td
+                                class="py-2 sm:py-4 pl-1 sm:pl-3 text-right"
+                                v-if="authorization.canRemoveSong"
+                            >
                                 <button
                                     @click="deleteSong(song.id)"
                                     class="p-1 sm:p-2 cursor-pointer"
-                                    v-if="authorization.canRemoveSong"
                                 >
                                     <TrashIcon
                                         class="h-4 w-4 sm:h-5 sm:w-5 text-red-500 hover:text-red-700"
@@ -93,7 +126,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { usePage, router } from "@inertiajs/vue3";
 import { TrashIcon } from "@heroicons/vue/24/outline";
 
@@ -101,6 +134,8 @@ const page = usePage();
 const props = computed(() => page.props);
 const songs = computed(() => props.value.mix.songs);
 const authorization = computed(() => page.props.mix.authorized);
+
+const windowWidth = ref(window.innerWidth);
 
 function getImageUrl(song) {
     return song.avatar === null
@@ -132,4 +167,16 @@ function deleteSong(id) {
         }
     );
 }
+
+function updateWindowWidth() {
+    windowWidth.value = window.innerWidth;
+}
+
+onMounted(() => {
+    window.addEventListener("resize", updateWindowWidth);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener("resize", updateWindowWidth);
+});
 </script>
