@@ -1,44 +1,16 @@
-<html lang="en" class="dark">
+@extends('layouts.landing')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Data Processing Agreement | Tunofy</title>
-    <!-- SEO Meta -->
-    <meta name="description"
-        content="Read Tunofy's Data Processing Agreement to understand how we comply with GDPR and process personal data securely and transparently.">
+@section('title', 'Data Processing Agreement | Tunofy')
+@section('meta_description',
+    "Read Tunofy's Data Processing Agreement to understand how we comply with GDPR and process
+    personal data securely and transparently.")
+@section('og_url', url('/dpa'))
+{{-- @section('og_image', asset('images/social-preview.jpg'))
+@section('twitter_image', asset('images/twitter-preview.jpg')) --}}
+@section('page_id', 'dpa')
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="Data Processing Agreement | Tunofy">
-    <meta property="og:description" content="Details on how Tunofy handles personal data under GDPR.">
-    <meta property="og:url" content="https://tunofy.com/dpa">
-    {{-- <meta property="og:image" content="https://yourdomain.com/path-to-image.jpg"> --}}
-
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Data Processing Agreement | Tunofy">
-    <meta name="twitter:description" content="Learn how Tunofy processes data under GDPR compliance.">
-
-    <link rel="canonical" href="https://tunofy.com/dpa">
-
-    @vite(['resources/js/landingpage.js'])
-
-    {{-- fonts for headers --}}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
-        rel="stylesheet">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicons/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicons/favicon-16x16.png') }}">
-    <link rel="manifest" href=" {{ asset('site.webmanifest') }}" />
-</head>
-
-<body class="bg-background-page text-dark-white mx-auto" data-page="gdpr">
-
+@section('content')
     @include('partials.navbar-policy')
-
     <section class="w-full max-w-[1728px] mt-44 md:mt-48 mx-auto flex-col flex mb-32 px-4">
         <div class="flex flex-col gap-2 mb-8 text-left">
             <h1 class="font-medium text-4xl md:text-5xl">Data Processing Agreement (WIP)</h1>
@@ -111,4 +83,4 @@
         </div>
     </section>
     @include('partials.footer')
-</body>
+@endsection

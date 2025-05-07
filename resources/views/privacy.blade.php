@@ -1,45 +1,13 @@
-<html lang="en" class="dark">
+@extends('layouts.landing')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+@section('title', 'Privacy Policy | Tunofy')
+@section('meta_description', 'Learn how Tunofy collects and uses your data in compliance with privacy regulations.')
+@section('og_url', url('/privacy'))
+{{-- @section('og_image', asset('images/social-preview.jpg'))
+@section('twitter_image', asset('images/twitter-preview.jpg')) --}}
+@section('page_id', 'privacy')
 
-    <title>Privacy Policy | Tunofy</title>
-
-    <meta name="description"
-        content="Read Tunofy's Privacy Policy to learn how we collect, use, and protect your personal data. We value your privacy and ensure transparency.">
-
-    <!-- Open Graph -->
-    <meta property="og:title" content="Privacy Policy | Tunofy">
-    <meta property="og:description"
-        content="Learn how Tunofy collects and uses your data in compliance with privacy regulations.">
-    <meta property="og:url" content="https://tunofy.com/privacy">
-
-    <!-- Twitter Card -->
-    <meta name="twitter:title" content="Privacy Policy | Tunofy">
-    <meta name="twitter:description"
-        content="Understand how Tunofy protects your personal data and respects your privacy.">
-
-    <!-- Canonical -->
-    <link rel="canonical" href="https://tunofy.com/privacy">
-
-    @vite(['resources/js/landingpage.js'])
-
-    {{-- fonts for headers --}}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
-        rel="stylesheet">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicons/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicons/favicon-16x16.png') }}">
-    <link rel="manifest" href=" {{ asset('site.webmanifest') }}" />
-
-</head>
-
-<body class="bg-background-page text-dark-white mx-auto" data-page="gdpr">
+@section('content')
     @include('partials.navbar-policy')
     <section class="w-full max-w-[1728px] mt-44 md:mt-48 mx-auto flex-col flex mb-32 px-4">
         <div class="flex flex-col gap-2 mb-8 text-left">
@@ -112,25 +80,5 @@
                 making them PII, however, we never use technical data to identify you as an individual.</p>
         </div>
     </section>
-
-    <footer class="bg-footer-background w-full flex flex-col justify-between max-h-[277px] h-full py-8 md:px-16 px-8">
-        <div class="max-w-[380px]">
-            <div class="flex flex-row gap-4 items-center mb-4">
-                <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Tunofy Logo" class="w-12 h-12">
-                <h1 class="text-5xl font-medium font-nohemi">Tunofy</h1>
-            </div>
-            <p class="font-light text-xl">Tunofy enhances your spotify experience by combining music and voting.</p>
-        </div>
-        <div class="flex flex-row justify-between mt-auto text-sm text-[#666666] items-center flex-wrap gap-4">
-            <div class="flex flex-row gap-4 mr-8">
-                <a href="/terms-of-use">Terms of use</a>
-                <a href="/privacy">Privacy Policy</a>
-                <a href="/dpa">GDPR</a>
-            </div>
-            <div class="flex flex-row items-center">
-                <p class="text-sm font-light">© 2025 Tunofy - All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-</body>
+    @include('partials.footer')
+@endsection
