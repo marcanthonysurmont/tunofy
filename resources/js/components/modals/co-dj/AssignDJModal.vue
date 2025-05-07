@@ -1,7 +1,10 @@
 <template>
     <CreateModalDefault
         :is-visible="isVisible"
-        @close-modal="emits('closeModal')"
+        @close-modal="
+            emits('closeModal');
+            selectedPerson = null;
+        "
         @submit-from-enter="assignDJ"
     >
         <template #title>
@@ -52,6 +55,10 @@ const selectedPerson = ref(
     people.value.find((person) => person.id === mix.value.co_dj_id) || null
 );
 
+const form = useForm({
+    user_id: null,
+});
+
 //emit to close modal
 const emits = defineEmits(["closeModal"]);
 
@@ -65,6 +72,18 @@ function assignDJ() {
 
     isLoading.value = true;
 
-    //
+    form.user_id = selectedPerson.value.id;
+    form.post(route("mix.assign-co-dj", mix.value.id), {
+        onFinish: () => {
+            isLoading.value = false;
+        },
+        onSuccess: () => {
+            isLoading.value = false;
+            emits("closeModal");
+        },
+        onError: () => {
+            isLoading.value = false;
+        },
+    });
 }
 </script>
