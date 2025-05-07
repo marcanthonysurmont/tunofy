@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use App\Events\PlaybackDataUpdatedEvent;
 
 class PauseMixPlaybackController extends Controller
 {
@@ -16,15 +17,35 @@ class PauseMixPlaybackController extends Controller
     {
         $this->authorize('update', $mix);
 
-        $pauseResult = $spotifyService->pausePlayback(Auth::user());
+        // Check if already paused to avoid unnecessary API calls
+        $alreadyPaused = Cache::has("mix:{$mix->id}:paused");
 
-        if (!$pauseResult) {
-            return response()->json(['error' => 'Failed to pause playback'], 500);
+        // Only call the Spotify API if not already paused
+        if (!$alreadyPaused) {
+            $pauseResult = $spotifyService->pausePlayback(Auth::user());
+            if (!$pauseResult) {
+                return response()->json(['error' => 'Failed to pause playback'], 500);
+            }
         }
 
-        Cache::put("mix:{$mix->id}:paused", true);
+        // Get current playback data from cache
+        $cacheKey = "mix:playback:" . $mix->id;
+        $playbackData = Cache::get($cacheKey, []);
 
-        Log::info("Playback paused for mix {$mix->id} and polling suspended");
+        // Set minimum required fields for a pause event
+        $playbackData['is_playing'] = false;
+        $playbackData['_timestamp'] = now()->timestamp;
+
+        // Broadcast the pause event
+        Log::info("Broadcasting pause event for mix {$mix->id}");
+        event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+
+        // Update cache values
+        Cache::put($cacheKey, $playbackData);
+        Cache::put("mix:{$mix->id}:paused", true);
+        Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
+
+        Log::info("Playback paused for mix {$mix->id}");
 
         return response()->json([
             'success' => true,
