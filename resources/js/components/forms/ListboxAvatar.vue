@@ -23,7 +23,7 @@
                         <span class="block truncate">{{ selected.name }}</span>
                     </template>
                     <template v-else>
-                        <span class="block truncate">{{
+                        <span class="block truncate text-zinc-400">{{
                             placeholderText
                         }}</span>
                     </template>

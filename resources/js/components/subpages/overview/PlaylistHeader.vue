@@ -39,6 +39,9 @@
                 <UserMinusIcon
                     class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
                 />
+                <ShieldExclamationIcon
+                    class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
+                />
                 <Cog8ToothIcon
                     class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
                 />
@@ -68,7 +71,13 @@
                             </button>
                         </MenuItem>
                     </div>
-                    <div class="px-1.5 py-1.5">
+                    <div
+                        class="px-1.5 py-1.5"
+                        v-if="
+                            authorization.canManageCollaborators &&
+                            collaborators.length > 0
+                        "
+                    >
                         <MenuItem
                             v-slot="{ active }"
                             v-if="authorization.isOwner"
@@ -250,6 +259,8 @@ import {
     ClipboardDocumentIcon,
     MinusCircleIcon,
     MusicalNoteIcon,
+    ShieldCheckIcon,
+    ShieldExclamationIcon,
 } from "@heroicons/vue/24/outline";
 
 import MenuDropdown from "@/components/menus/MenuDropdown.vue";
@@ -268,6 +279,7 @@ const props = computed(() => page.props);
 const mix = computed(() => props.value.mix);
 const owner = computed(() => props.value.owner);
 const authorization = computed(() => page.props.mix.authorized);
+const collaborators = computed(() => page.props.collaborators);
 
 const showCreateSessionModal = ref(false);
 const showUpdateMixModal = ref(false);
