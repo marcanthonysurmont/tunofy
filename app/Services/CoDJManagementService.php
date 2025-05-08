@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Events\CoDJUpdatedEvent;
 use App\Events\PlaybackDataUpdatedEvent;
+use App\Events\MixStatusChangedEvent;
 use App\Models\Mix;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
@@ -46,6 +47,9 @@ class CoDJManagementService
         // Notify the removed co-DJ
         if ($coDJ) {
             CoDJUpdatedEvent::dispatch($coDJ);
+
+            // Add this line to broadcast the mix status change to all listeners
+            event(new MixStatusChangedEvent($mix, false, 'co_dj_left'));
         }
 
         // Prepare queue for user switch
