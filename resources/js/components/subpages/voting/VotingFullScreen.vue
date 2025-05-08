@@ -6,8 +6,7 @@
             leave-to-class="transform scale-95 opacity-0">
             <div v-if="isVisible"
                 class="fixed left-0 top-0 z-[9999] flex h-full w-full items-center justify-center gap-8 bg-black/85 backdrop-blur-md shadow-2xl">
-                <span class="absolute right-0 top-0 cursor-pointer p-4 text-xl z-[10000]" @click="isVisible = false"
-                    v-if="!hasClickedContinue">
+                <span class="absolute right-0 top-0 cursor-pointer p-4 text-xl z-[10000]" @click="isVisible = false">
                     <XMarkIcon class="size-10 text-white" />
                 </span>
                 <Transition name="fade-with-slide" mode="out-in">
