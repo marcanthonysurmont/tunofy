@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="max-w-lg mb-2">
         <div
             class="relative mb-4"
             @focusin="isFocused = true"
@@ -70,6 +70,7 @@ const performSearch = debounce(searchUsers, 300);
 
 function searchUsers() {
     console.log("performing search...");
+    isLoading.value = true;
 }
 
 watch(query, (newQuery) => {
