@@ -28,6 +28,26 @@ class ResumeMixPlaybackController extends Controller
             Log::info("Using device ID {$deviceId} to resume playback for mix {$mix->id}");
         }
 
+        // Check if this was a regular user pause (not a co-DJ change pause)
+        $wasUserPaused = Cache::has("mix:{$mix->id}:user_paused");
+
+        // If it was a regular pause, use resumePlayback instead of trying to play a specific track
+        if ($wasUserPaused) {
+            Cache::forget("mix:{$mix->id}:user_paused");
+
+            // Just resume whatever was playing
+            $resumeResult = $spotifyService->resumePlayback(Auth::user(), $deviceId);
+            if (!$resumeResult) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Failed to resume playback'
+                ], 500);
+            }
+
+            // Skip to the rest of the code that handles the cache and events
+            goto resume_playback_complete;
+        }
+
         // Get the current playing song from the queue
         $currentSong = QueueSong::where('mix_id', $mix->id)
             ->where('status', 'playing')
@@ -82,6 +102,9 @@ class ResumeMixPlaybackController extends Controller
                 }
             }
         }
+
+        // Add a label at the end of your method before the return:
+        resume_playback_complete:
 
         // Remove paused flag
         Cache::forget("mix:{$mix->id}:paused");

@@ -46,7 +46,7 @@ class PauseMixPlaybackController extends Controller
         // Update cache with the fresh data 
         Cache::put($cacheKey, $playbackData);
         Cache::put("mix:{$mix->id}:paused", true);
-        Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
+        Cache::put("mix:{$mix->id}:user_paused", true, now()->addSeconds(60));
 
         Log::info("Playback paused for mix {$mix->id}");
 
