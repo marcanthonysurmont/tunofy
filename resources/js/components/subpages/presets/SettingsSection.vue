@@ -141,7 +141,7 @@ const templatesStore = useTemplatesStore();
 
 const page = usePage();
 const mixId = computed(() => page.props.mix.id);
-const presetId = computed(() => page.props.mix.presets[0].id);
+const presetId = computed(() => page.props.mix.preset_id);
 const authorization = computed(() => page.props.mix.authorized);
 
 const settingsForm = useForm({
