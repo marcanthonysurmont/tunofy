@@ -115,27 +115,48 @@ class SpotifyService
     /**
      * Resume playback on the user's active device
      */
-    public function resumePlayback(User $user): bool
+    public function resumePlayback(User $user, ?string $deviceId = null): bool
     {
         try {
-            // Get device info and activate if needed
+            // If deviceId is provided, use it directly
+            if ($deviceId) {
+                Log::info("Resuming playback for user {$user->id} on specified device {$deviceId}");
+
+                // Make direct HTTP request instead of using spotifyRequest
+                // This ensures we send a proper empty JSON object {} not an array []
+                $response = Http::withToken($this->getAccessToken($user))
+                    ->put("https://api.spotify.com/v1/me/player/play?device_id={$deviceId}", (object)[]);
+
+                if ($response->successful()) {
+                    Log::info("Successfully resumed playback on device {$deviceId}");
+                    return true;
+                } else {
+                    Log::error("Failed to resume playback on device {$deviceId}: " . $response->body());
+                    return false;
+                }
+            }
+
+            // If no deviceId provided, use existing logic
             $currentPlayback = $this->getCurrentPlayback($user);
             if (!$currentPlayback && !$this->activateDevice($user)) {
                 Log::error("No active device available for playback");
                 return false;
             }
 
-            // Build endpoint with device ID if available
-            $endpoint = 'https://api.spotify.com/v1/me/player/play';
+            // Build params with device ID if available
+            $params = [];
             if (isset($currentPlayback['device']['id'])) {
-                $endpoint .= '?device_id=' . $currentPlayback['device']['id'];
+                $params['device_id'] = $currentPlayback['device']['id'];
             }
 
-            // Make request with empty object body
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->getAccessToken($user),
-                'Content-Type' => 'application/json'
-            ])->put($endpoint, (object)[]);
+            // Make request using the spotifyRequest method
+            $response = $this->spotifyRequest(
+                $user,
+                'PUT',
+                'https://api.spotify.com/v1/me/player/play',
+                (object)[], // Empty body
+                $params
+            );
 
             // Log result and return success status
             Log::info($response->successful()
@@ -236,19 +257,6 @@ class SpotifyService
     public function activateDevice(User $user, ?string $deviceId = null): bool
     {
         try {
-            if (!$deviceId) {
-                // If no device ID is provided, try to use any available device
-                $devices = $this->getDevices($user);
-                if (empty($devices)) {
-                    Log::error("No devices available for activation");
-                    return false;
-                }
-
-                // Use the first active device or the first available device
-                $activeDevice = collect($devices)->firstWhere('is_active', true);
-                $deviceId = $activeDevice ? $activeDevice['id'] : $devices[0]['id'];
-            }
-
             Log::info("Explicitly activating device {$deviceId} for user {$user->id}");
 
             // Transfer playback to the specified device

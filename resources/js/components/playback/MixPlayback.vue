@@ -531,17 +531,31 @@ function pauseMix() {
         });
 }
 
-function resumeMix() {
-    axios
-        .post(`/api/spotify/resume-mix/${props.mix.id}`)
-        .then((response) => {
-            if (response.data.success) {
-                isPlaying.value = true;
+async function resumeMix() {
+    try {
+        const payload = {};
+        
+        // Add device_id to payload if we have a selected device
+        if (selectedDevice.value) {
+            payload.device_id = selectedDevice.value.id;
+        }
+        
+        const response = await axios.post(`/api/spotify/resume-mix/${props.mix.id}`, payload);
+        
+        if (response.data.success) {
+            isPlaying.value = true;
+        }
+    } catch (error) {
+        console.error("Failed to resume playback:", error);
+        
+        // If error suggests no device, refresh devices and show dropdown
+        if (error.response?.status === 500) {
+            await refreshDevices();
+            if (devices.value.length > 0) {
+                isDeviceDropdownOpen.value = true;
             }
-        })
-        .catch((error) => {
-            console.error("Failed to resume playback:", error);
-        });
+        }
+    }
 }
 
 // Device selection functions
@@ -574,7 +588,7 @@ function selectDevice(device) {
     selectedDevice.value = device;
     
     // If mix is active, transfer playback
-    if (isMixActive.value) {
+    if (isMixActive.value && isPlaying.value) {
         transferPlayback(device.id);
     }
 }
@@ -803,7 +817,9 @@ onMounted(() => {
             })
 
         Echo.private('user.' + page.props.user.id)
-            .listen('.co-dj-updated', () => {
+            .listen('.co-dj-updated', async () => {
+                await refreshDevices();
+
                 router.reload({ only: ['mix'] });
             })
     }

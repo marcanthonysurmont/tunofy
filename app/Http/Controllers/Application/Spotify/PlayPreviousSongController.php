@@ -18,8 +18,9 @@ class PlayPreviousSongController extends Controller
 
         $result = $songPlaybackService->returnToPreviousSong($mix->id);
 
-        if ($result) {
-            // Ensure identical data structure
+        if ($result['success']) {
+            // Update playback data in cache with the previous track
+            $cacheKey = "mix:playback:" . $mix->id;
             $playbackData = [
                 'is_playing' => true,
                 'item' => [
@@ -34,11 +35,16 @@ class PlayPreviousSongController extends Controller
                 '_timestamp' => now()->timestamp
             ];
 
-            // Debug log to see what's being sent
-            Log::info("Broadcasting manual previous for mix {$mix->id}", ['data' => $playbackData]);
+            // Update the cache with the previous track data BEFORE broadcasting
+            Cache::put($cacheKey, $playbackData);
 
+            // Debug log to see what's being sent
+            Log::info("Broadcasting manual previous for mix {$mix->id} " . json_encode($playbackData));
+
+            // Then broadcast the event with this updated data
             event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
+            // Flag as manual change to prevent immediate polling
             Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
         }
 

@@ -5,48 +5,96 @@ namespace App\Http\Controllers\Application\Spotify;
 use App\Http\Controllers\Controller;
 use App\Services\SpotifyService;
 use App\Models\Mix;
+use App\Models\QueueSong;
 use App\Events\PlaybackDataUpdatedEvent;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class ResumeMixPlaybackController extends Controller
 {
-    public function __invoke(Mix $mix, SpotifyService $spotifyService): JsonResponse
+    public function __invoke(Mix $mix, SpotifyService $spotifyService, Request $request): JsonResponse
     {
         $this->authorize('update', $mix);
 
-        // Check if already playing to avoid unnecessary API calls
-        $isPaused = Cache::has("mix:{$mix->id}:paused");
+        // Get device_id from request if provided
+        $deviceId = $request->input('device_id');
 
-        // Only call the Spotify API if currently paused
-        if ($isPaused) {
-            $resumeResult = $spotifyService->resumePlayback(Auth::user());
-            if (!$resumeResult) {
+        // If device ID was provided, store it in cache
+        if ($deviceId) {
+            Cache::put("mix:{$mix->id}:device_id", $deviceId, now()->addHours(12));
+            Log::info("Using device ID {$deviceId} to resume playback for mix {$mix->id}");
+        }
+
+        // Get the current playing song from the queue
+        $currentSong = QueueSong::where('mix_id', $mix->id)
+            ->where('status', 'playing')
+            ->first();
+
+        if ($currentSong) {
+            // If we have a song that should be playing, play it specifically
+            Log::info("Playing specific track {$currentSong->song->spotify_id} for mix {$mix->id}");
+
+            $spotifyUri = "spotify:track:{$currentSong->song->spotify_id}";
+            $playResult = $spotifyService->playSong(Auth::user(), $spotifyUri, $deviceId);
+
+            if (!$playResult) {
+                Log::error("Failed to play specific track");
                 return response()->json([
                     'success' => false,
-                    'error' => 'Failed to resume playback'
+                    'error' => 'Failed to play track'
                 ], 500);
+            }
+        } else {
+            // If no song is currently playing, try to get the next song in queue
+            $nextSong = QueueSong::where('mix_id', $mix->id)
+                ->where('status', 'pending')
+                ->orderBy('order') // Using 'order' column instead
+                ->first();
+
+            if ($nextSong) {
+                // Update status to playing
+                $nextSong->update(['status' => 'playing']);
+
+                // Play this song
+                Log::info("Playing next track {$nextSong->song->spotify_id} for mix {$mix->id}");
+
+                $spotifyUri = "spotify:track:{$nextSong->song->spotify_id}";
+                $playResult = $spotifyService->playSong(Auth::user(), $spotifyUri, $deviceId);
+
+                if (!$playResult) {
+                    Log::error("Failed to play next track");
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Failed to play next track'
+                    ], 500);
+                }
+            } else {
+                // No songs in queue, just resume whatever was playing
+                $resumeResult = $spotifyService->resumePlayback(Auth::user(), $deviceId);
+                if (!$resumeResult) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Failed to resume playback'
+                    ], 500);
+                }
             }
         }
 
         // Remove paused flag
         Cache::forget("mix:{$mix->id}:paused");
 
-        // Get current playback data from cache
+        // Update playback data in cache and broadcast
         $cacheKey = "mix:playback:" . $mix->id;
         $playbackData = Cache::get($cacheKey, []);
-
-        // Set minimum required fields for a resume event
         $playbackData['is_playing'] = true;
         $playbackData['_timestamp'] = now()->timestamp;
 
-        // Broadcast the resume event
         Log::info("Broadcasting resume event for mix {$mix->id}");
         event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
-        // Update cache values
         Cache::put($cacheKey, $playbackData);
         Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
 

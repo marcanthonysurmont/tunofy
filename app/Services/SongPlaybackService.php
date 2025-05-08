@@ -438,4 +438,15 @@ class SongPlaybackService
             'song' => $currentQueueSong->song
         ];
     }
+
+    public function prepareQueueForUserSwitch(int $mixId): void
+    {
+        // Clear any queue state that's specific to a user
+        // but maintain the overall queue structure
+        QueueSong::where('mix_id', $mixId)
+            ->where('status', 'playing')
+            ->update(['status' => 'pending']);
+            
+        Log::info("Reset queue state for user switch on mix {$mixId}");
+    }
 }
