@@ -2,7 +2,9 @@
     <Head title="Tunofy | App" />
     <AppLayout>
         <div class="w-full h-full flex justify-center items-center">
-            <h1 class="text-5xl">Empty for now.</h1>
+            <Transition name="fade-with-slide" appear mode="out-in">
+                <h1 class="text-5xl">Empty for now.</h1>
+            </Transition>
         </div>
     </AppLayout>
 </template>

@@ -30,6 +30,7 @@ class StoreMixController extends Controller
 
             Preset::create([
                 'name' => 'Custom',
+                'description' => 'Tailor the settings of your mix according to your preferences and needs.',
                 'mix_id' => $mix->id,
                 'is_system' => false,
                 'batch_size' => 1,

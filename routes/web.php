@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Application\Spotify\GetDevicesController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LogoutController;
 
@@ -33,9 +34,11 @@ use App\Http\Controllers\Application\Spotify\PauseMixPlaybackController;
 use App\Http\Controllers\Application\Spotify\ResumeMixPlaybackController;
 use App\Http\Controllers\Application\Spotify\PlayNextSongController;
 use App\Http\Controllers\Application\Spotify\PlayPreviousSongController;
+use App\Http\Controllers\Application\Spotify\TransferPlaybackController;
 
 use App\Http\Controllers\Application\Mixes\AssignCoDJController;
 use App\Http\Controllers\Application\Mixes\RemoveCoDJController;
+use App\Http\Controllers\Application\Mixes\ToggleIsPublicController;
 
 Route::get('/', ShowLandingPageController::class)->name('landing');
 Route::get('/dpa', ShowDPAPageController::class);
@@ -58,6 +61,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/remove-session-code/{mix}', RemoveSessionCodeController::class)->name('remove-session-code');
             Route::post('/assign-co-dj/{mix}', AssignCoDJController::class)->name('assign-co-dj');
             Route::post('/remove-co-dj/{mix}', RemoveCoDJController::class)->name('remove-co-dj');
+            Route::post('/toggle-visibility/{mix}', ToggleIsPublicController::class)->name('toggle-visibility');
 
             // app/mix/presets (mix.presets)
             Route::prefix('/presets')->name('presets.')->group(function () {
@@ -72,11 +76,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/search', SearchSongController::class)->name('search');
 
         Route::get('/request-status', RequestSpotifyPlayerStatusController::class)->name('request-status');
-        Route::post('/set-mix-active', SetMixActiveController::class)->name('set-mix-active');
+        Route::post('/set-mix-active/{mix}', SetMixActiveController::class)->name('set-mix-active');
         Route::post('/pause-mix/{mix}', PauseMixPlaybackController::class)->name('pause-mix');
         Route::post('/resume-mix/{mix}', ResumeMixPlaybackController::class)->name('resume-mix');
         Route::post('/skip-song/{mix}', PlayNextSongController::class)->name('skip-song');
         Route::post('/previous-song/{mix}', PlayPreviousSongController::class)->name('previous-song');
+        Route::get('/devices', GetDevicesController::class)->name('devices');
+        Route::post('/transfer-playback/{mix}', TransferPlaybackController::class)->name('transfer-playback');
     });
 
     Route::get('/logout', LogoutController::class)->name('logout');

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\PlaybackDataUpdatedEvent;
 use App\Models\Mix;
 use App\Models\QueueSong;
 use App\Models\User;
@@ -87,19 +88,40 @@ class QueueManagementService
     /**
      * Start or resume queue playback
      */
-    public function startPlayback(int $mixId, bool $resetQueue = false): array
+    public function startPlayback(int $mixId, bool $resetQueue = false, ?string $deviceId = null): array
     {
-        Log::info("Starting playback for mix {$mixId}, resetQueue: " . ($resetQueue ? 'true' : 'false'));
+        Log::info("Starting playback for mix {$mixId}, resetQueue: " . ($resetQueue ? 'true' : 'false') .
+                  ($deviceId ? ", deviceId: {$deviceId}" : ""));
 
         // Get the mix and user
         $mix = Mix::findOrFail($mixId);
         $user = User::findOrFail(Auth::id() ?? $mix->user_id);
 
-        // Before playing the song, ensure a device is active
-        $this->spotifyService->activateDevice($user);
+        // If device ID is provided, store it
+        if ($deviceId) {
+            // Make sure this key format matches what you're checking in SpotifyPollingService
+            Cache::put("mix:{$mix->id}:device_id", $deviceId, now()->addHours(1));
 
-        // Give Spotify a moment to register the device activation
-        sleep(1);
+            // Set the device changed flag
+            Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(5));
+        }
+
+        // If device ID is provided, activate it FIRST
+        if ($deviceId) {
+            // Activate the device via the SpotifyService and make sure it's fully ready
+            // This is the key change - force the device activation to complete before playing
+            $activated = $this->spotifyService->activateSpecificDevice($user, $deviceId);
+
+            // Add a small extra delay for desktop clients
+            usleep(200000); // 200ms extra delay
+
+            if (!$activated) {
+                Log::warning("Device activation failed, falling back to default device");
+            }
+        } else {
+            // No specific device, use default behavior
+            $this->spotifyService->activateDevice($user);
+        }
 
         // If resetQueue is true, ensure we start from the beginning
         if ($resetQueue) {
@@ -108,8 +130,24 @@ class QueueManagementService
             Log::info("Queue position reset to 0 for mix {$mixId} before playback");
         }
 
-        // Use the standard playback method - don't try to do it ourselves
-        return $this->songPlaybackService->startPlayback($mixId);
+        // Send an IMMEDIATE simplified activation event to update UI faster
+        $simpleActivationData = [
+            'is_playing' => true,
+            'is_initial_activation' => true,
+            '_timestamp' => now()->timestamp,
+            'item' => [
+                'name' => 'Starting playback...',
+                'artists' => [['name' => 'Your mix is starting']],
+                'album' => ['images' => []]
+            ]
+        ];
+
+        // Broadcast this simple event immediately
+        Log::info("Broadcasting immediate activation signal for mix {$mixId}");
+        event(new PlaybackDataUpdatedEvent($mix, $simpleActivationData));
+
+        // Then use the standard playback method, passing the deviceId
+        return $this->songPlaybackService->startPlayback($mixId, $deviceId);
     }
 
     /**
@@ -353,5 +391,34 @@ class QueueManagementService
             Log::error("Failed to activate Spotify device: " . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Clear all cache for a mix except for device selection
+     */
+    public function clearMixCache(int $mixId): void
+    {
+        // Remember the device ID before clearing cache
+        $deviceId = Cache::get("mix:{$mixId}:device_id");
+
+        // Clear specific prefixed keys without relying on patterns
+        $keysToForget = [
+            "mix:{$mixId}:paused",
+            "mix:{$mixId}:device_changed",
+            "mix:{$mixId}:device_mismatch",
+            "mix_{$mixId}_queue_position"
+        ];
+
+        foreach ($keysToForget as $key) {
+            Cache::forget($key);
+        }
+
+        // IMPORTANT: Restore the device ID if it existed
+        if ($deviceId) {
+            Cache::put("mix:{$mixId}:device_id", $deviceId, now()->addDay());
+            Log::info("Preserved device ID {$deviceId} for mix {$mixId} during cache clearing");
+        }
+
+        Log::info("Cleared cache entries for mix {$mixId} while preserving device selection");
     }
 }

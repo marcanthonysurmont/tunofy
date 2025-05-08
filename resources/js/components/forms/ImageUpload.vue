@@ -107,7 +107,7 @@
                         </p>
                     </div>
                     <p class="text-xs/5 text-zinc-400 mt-2">
-                        {{ helperText || "PNG, JPG, GIF up to 10MB" }}
+                        {{ helperText || "PNG or JPG" }}
                     </p>
                 </div>
             </div>
@@ -135,7 +135,7 @@ const props = defineProps({
     },
     type: {
         type: String,
-        default: "cover", // 'profile' or 'cover'
+        default: "cover",
         validator: (value) => ["profile", "cover"].includes(value),
     },
     acceptedFileTypes: {
@@ -159,7 +159,7 @@ const hasError = computed(() => !!props.error);
 const isDragging = ref(false);
 const imagePreview = ref(null);
 
-// Handle existing image (from modelValue)
+//handle existing image (from modelValue) via watcher
 watch(
     () => props.modelValue,
     (newValue) => {
@@ -174,31 +174,41 @@ watch(
     { immediate: true }
 );
 
-// File handling functions
-const handleFileUpload = (event) => {
+//file handling functions
+function handleFileUpload(event) {
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) {
+        return;
+    }
 
-    if (!validateFile(file)) return;
+    //clear any existing error when attempting to upload a new file
+    clearError();
+
+    if (!validateFile(file)) {
+        return;
+    }
 
     createPreview(file);
     emit("update:modelValue", file);
-};
+}
 
-const onDrop = (event) => {
+function onDrop(event) {
     isDragging.value = false;
 
     const file = event.dataTransfer.files[0];
     if (!file) return;
 
+    //clear any existing error when attempting to upload a new file
+    clearError();
+
     if (!validateFile(file)) return;
 
     createPreview(file);
     emit("update:modelValue", file);
-};
+}
 
-const validateFile = (file) => {
-    // Check file type
+function validateFile(file) {
+    //check file type
     const fileTypes = props.acceptedFileTypes
         .split(",")
         .map((type) => type.trim());
@@ -210,7 +220,7 @@ const validateFile = (file) => {
         return false;
     }
 
-    // Check file size
+    //check file size
     const maxSizeInBytes = props.maxSizeInMB * 1024 * 1024;
     if (file.size > maxSizeInBytes) {
         emit(
@@ -221,18 +231,26 @@ const validateFile = (file) => {
     }
 
     return true;
-};
+}
 
-const createPreview = (file) => {
+function createPreview(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
         imagePreview.value = e.target.result;
     };
     reader.readAsDataURL(file);
-};
+}
 
-const removeImage = () => {
+function removeImage() {
     imagePreview.value = null;
     emit("update:modelValue", null);
-};
+    clearError();
+}
+
+//function to clear errors
+function clearError() {
+    if (props.error) {
+        emit("error", "");
+    }
+}
 </script>

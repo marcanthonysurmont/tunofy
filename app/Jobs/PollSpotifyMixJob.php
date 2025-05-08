@@ -13,7 +13,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
-class PollSpotifyMix implements ShouldQueue
+class PollSpotifyMixJob implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
@@ -46,6 +46,14 @@ class PollSpotifyMix implements ShouldQueue
 
         if(Cache::has("mix:{$mixId}:paused")) {
             Log::info("Mix {$mixId} is paused, skipping polling");
+
+            $this->scheduleNextPoll();
+            return;
+        }
+
+        if (Cache::has("mix:{$mixId}:manual_change")) {
+            Log::info("Mix {$mixId} was just manually changed, skipping this poll");
+            Cache::forget("mix:{$mixId}:manual_change");
 
             $this->scheduleNextPoll();
             return;
@@ -106,7 +114,7 @@ class PollSpotifyMix implements ShouldQueue
         $interval = $this->intervalSeconds;
 
         // Create a new job with the fresh mix
-        PollSpotifyMix::dispatch($mixToUse, $this->maxIterations, $interval)
+        PollSpotifyMixJob::dispatch($mixToUse, $this->maxIterations, $interval)
             ->delay(now()->addSeconds($interval));
 
         Log::debug("Scheduling next poll for mix {$mixToUse->id} in {$interval} seconds");

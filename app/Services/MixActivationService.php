@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Mix;
 use App\Events\MixStatusChangedEvent;
 use Illuminate\Support\Facades\Log;
-use App\Jobs\PollSpotifyMix;
+use App\Jobs\PollSpotifyMixJob;
 
 class MixActivationService
 {
@@ -39,7 +39,7 @@ class MixActivationService
         event(new MixStatusChangedEvent($mix, true));
 
         // Start polling directly (no longer relies on QueueService to do this)
-        dispatch(new PollSpotifyMix($mix));
+        dispatch(new PollSpotifyMixJob($mix));
 
         return [
             'success' => true,

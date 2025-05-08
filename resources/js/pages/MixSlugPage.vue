@@ -12,6 +12,7 @@
                 <VotingSubPage v-else-if="activeTab === 'Voting'" />
                 <StatsSubPage v-else-if="activeTab === 'Stats'" />
                 <PresetsSubPage v-else-if="activeTab === 'Presets'" />
+                <ManageSubPage v-else-if="activeTab === 'Manage'" />
             </div>
         </Transition>
         <MixPlayback :mix="mix" />
@@ -28,12 +29,14 @@ import PresetsSubPage from "@/components/subpages/presets/PresetsSubPage.vue";
 import StatsSubPage from "@/components/subpages/stats/StatsSubPage.vue";
 import VotingSubPage from "@/components/subpages/voting/VotingSubPage.vue";
 import MixPlayback from "@/components/playback/MixPlayback.vue";
+import ManageSubPage from "@/components/subpages/manage/ManageSubPage.vue";
 
 const tabs = ref([
     { name: "Overview", active: true, id: "overview" },
     { name: "Voting", active: false, id: "voting" },
     { name: "Stats", active: false, id: "stats" },
     { name: "Presets", active: false, id: "presets" },
+    { name: "Manage", active: false, id: "manage" },
 ]);
 
 const page = usePage();
