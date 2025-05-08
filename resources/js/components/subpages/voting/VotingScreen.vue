@@ -37,7 +37,10 @@
             <div
                 class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700"
             >
-                <button @click="swipeLeft">
+                <button
+                    @click="swipeLeft"
+                    :class="{ bounce: bounceState.left }"
+                >
                     <XMarkIcon
                         class="size-8 text-[#e95a6c] stroke-2 stroke-[#e95a6c]"
                     />
@@ -46,7 +49,11 @@
             <div
                 class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700"
             >
-                <button @click="kill" class="text-white font-bold">
+                <button
+                    @click="kill"
+                    :class="{ bounce: bounceState.kill }"
+                    class="text-white font-bold"
+                >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 512 512"
@@ -62,7 +69,10 @@
             <div
                 class="w-16 h-16 rounded-full bg-zinc-800 border-1 border-zinc-700 flex items-center justify-center"
             >
-                <button @click="swipeRight">
+                <button
+                    @click="swipeRight"
+                    :class="{ bounce: bounceState.right }"
+                >
                     <HeartIcon class="size-8 text-[#74e3b8]" />
                 </button>
             </div>
@@ -73,6 +83,18 @@
 <script setup>
 import { HeartIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { ref } from "vue";
+
+const bounceState = ref({
+    left: false,
+    right: false,
+    kill: false,
+});
+function bounceButton(button) {
+    bounceState.value[button] = true;
+    setTimeout(() => {
+        bounceState.value[button] = false;
+    }, 300);
+}
 
 const currentIndex = ref(0);
 const resetSwipe = ref(false);
@@ -164,14 +186,17 @@ function getClientX(event) {
 
 function swipeLeft() {
     nextSong();
+    bounceButton("left");
 }
 
 function swipeRight() {
     nextSong();
+    bounceButton("right");
 }
 
 function kill() {
     nextSong();
+    bounceButton("kill");
 }
 
 function nextSong() {
@@ -231,5 +256,27 @@ const songs = ref([
     background: linear-gradient(to top, rgb(0, 0, 0) 25%, transparent 100%);
     opacity: 1;
     z-index: 0;
+}
+
+.bounce {
+    animation: bounceEffect 0.3s ease;
+}
+
+@keyframes bounceEffect {
+    0% {
+        transform: scale(1);
+    }
+    30% {
+        transform: scale(0.9);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    70% {
+        transform: scale(0.95);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
 </style>
