@@ -7,7 +7,10 @@
             :class="[
                 'w-[300px] h-[400px] rounded-2xl shadow-lg flex flex-col justify-end mb-4 bg-cover bg-center relative border-2 border-card-stroke overflow-hidden',
                 resetSwipe || transitionToNext
-                    ? 'transition-transform duration-300 ease-in-out'
+                    ? 'transition-transform duration-200 ease-in-out'
+                    : '',
+                isNewCardAnimating && index === currentIndex
+                    ? 'card-enter'
                     : '',
             ]"
             :style="{
@@ -143,6 +146,7 @@ const startX = ref(0);
 const dragDirection = ref(null);
 const skullAnimation = ref(false);
 const skullAnimationFading = ref(false);
+const isNewCardAnimating = ref(false);
 
 const emit = defineEmits(["endVoting"]);
 
@@ -224,6 +228,38 @@ function getClientX(event) {
     }
 }
 
+function fakeSwipe(direction) {
+    let progress = 0;
+    const duration = 300;
+    const maxDistance = 300;
+    const multiplier = direction === "left" ? -1 : 1;
+    const startTime = performance.now();
+
+    const animate = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        progress = Math.min(elapsed / duration, 1);
+
+        //stars fast, eases at the end
+        const eased = 1 - Math.pow(1 - progress, 3);
+
+        swipeLengthX.value = multiplier * (maxDistance * eased);
+
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            transitionToNext.value = true;
+            setTimeout(() => {
+                if (direction === "left") swipeLeft();
+                else swipeRight();
+                swipeLengthX.value = 0;
+                transitionToNext.value = false;
+            }, 200);
+        }
+    };
+
+    requestAnimationFrame(animate);
+}
+
 function swipeLeft() {
     bounceButton("left");
     nextSong();
@@ -231,10 +267,7 @@ function swipeLeft() {
 
 function clickLeft() {
     bounceButton("left");
-    swipeAndAnimate(-75);
-    setTimeout(() => {
-        nextSong();
-    }, 300);
+    fakeSwipe("left");
 }
 
 function swipeRight() {
@@ -244,10 +277,7 @@ function swipeRight() {
 
 function clickRight() {
     bounceButton("right");
-    swipeAndAnimate(75);
-    setTimeout(() => {
-        nextSong();
-    }, 300);
+    fakeSwipe("right");
 }
 
 function kill() {
@@ -267,12 +297,12 @@ function kill() {
         if (shakeIteration >= shakeCount) {
             clearInterval(shakeInterval);
 
-            // Start fade out animation after shake
+            //start fade out animation after shake
             setTimeout(() => {
                 nextSong();
                 skullAnimationFading.value = true;
 
-                // Reset position and transition to next card
+                //reset position and transition to next card
                 swipeLengthX.value = 0;
                 transitionToNext.value = true;
 
@@ -286,19 +316,25 @@ function kill() {
     }, shakeDuration);
 }
 
-function swipeAndAnimate(offset) {
-    swipeLengthX.value = offset;
-    transitionToNext.value = true;
+// function swipeAndAnimate(offset) {
+//     swipeLengthX.value = offset;
+//     transitionToNext.value = true;
 
-    setTimeout(() => {
-        swipeLengthX.value = 0;
-        transitionToNext.value = false;
-    }, 300);
-}
+//     setTimeout(() => {
+//         swipeLengthX.value = 0;
+//         transitionToNext.value = false;
+//     }, 300);
+// }
 
 function nextSong() {
     if (currentIndex.value < songs.value.length - 1) {
         currentIndex.value++;
+        isNewCardAnimating.value = true;
+
+        //reset animation flag after animation completes
+        setTimeout(() => {
+            isNewCardAnimating.value = false;
+        }, 500);
     } else {
         emit("endVoting");
     }
@@ -378,6 +414,22 @@ const songs = ref([
     }
     100% {
         transform: scale(1);
+    }
+}
+
+.card-enter {
+    animation: cardEnterAnimation 0.3s ease-out forwards;
+    transform-origin: center;
+}
+
+@keyframes cardEnterAnimation {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
     }
 }
 
