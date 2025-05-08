@@ -5,11 +5,17 @@
             song
             and swipe <strong>right</strong> to
             dislike a song. We've also added a "kill" option, which you can click.</p>
-        <RegularButton color="blue" class="w-full max-w-sm" @click="confirm">Start voting!
+        <RegularButton color="blue" class="w-full max-w-sm" @click="startVoting">Start voting!
         </RegularButton>
     </div>
 </template>
 
 <script setup>
 import RegularButton from "@/components/buttons/RegularButton.vue";
+
+
+const emit = defineEmits(["startVoting"]);
+function startVoting() {
+    emit("startVoting");
+}
 </script>
