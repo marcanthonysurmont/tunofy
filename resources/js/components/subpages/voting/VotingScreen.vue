@@ -47,6 +47,18 @@
                 <h2 class="text-2xl font-semibold">{{ song.name }}</h2>
                 <p class="text-zinc-300">{{ song.artist }}</p>
             </div>
+            <div
+                :style="{ opacity: likeOpacity }"
+                class="absolute z-10 text-[#74e3b8] text-left px-4 pt-2 pb-5 top-0 right-0"
+            >
+                <h1 class="font-semibold text-2xl">LIKE</h1>
+            </div>
+            <div
+                :style="{ opacity: dislikeOpacity }"
+                class="absolute z-10 text-[#e95a6c] text-left px-4 pt-2 pb-5 top-0 left-0"
+            >
+                <h1 class="font-semibold text-2xl">DISLIKE</h1>
+            </div>
         </div>
 
         <!-- action buttons -->
@@ -99,7 +111,16 @@
 
 <script setup>
 import { HeartIcon, XMarkIcon } from "@heroicons/vue/24/solid";
-import { ref } from "vue";
+import { ref, computed } from "vue";
+
+const likeOpacity = computed(() => {
+    return swipeLengthX.value > 0 ? Math.min(swipeLengthX.value / 100, 1) : 0;
+});
+const dislikeOpacity = computed(() => {
+    return swipeLengthX.value < 0
+        ? Math.min(Math.abs(swipeLengthX.value) / 100, 1)
+        : 0;
+});
 
 const bounceState = ref({
     left: false,
