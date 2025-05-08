@@ -93,6 +93,7 @@ class Mix extends Model
             'canJoin' => $user->can('join', $this),
             'canGenerateSessionCode' => $user->can('generateSessionCode', $this),
             'canCopySessionCode' => $user->can('copySessionCode', $this),
+            'canControlPlayback' => $user->can('controlPlayback', $this),
             'isOwner' => $user->id === $this->user_id,
         ]);
     }

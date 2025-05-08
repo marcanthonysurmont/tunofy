@@ -4,7 +4,7 @@
     >
         <!-- top part of the player -->
         <div
-            v-if="props.mix.authorized.isOwner"
+            v-if="props.mix.authorized.canControlPlayback"
             class="mb-4 flex flex-row justify-between items-center"
         >
             <ToggleSwitchReadValue
@@ -97,7 +97,7 @@
                 </div>
 
                 <div
-                    v-if="props.mix.authorized.isOwner"
+                    v-if="props.mix.authorized.canControlPlayback"
                     class="flex flex-row items-center justify-center flex-none gap-2"
                 >
                     <ChevronDoubleLeftIcon
@@ -112,7 +112,7 @@
                 </div>
 
                 <!-- Device selector RIGHT ABOVE StatusIndicator -->
-                <div v-if="props.mix.authorized.isOwner" class="mr-4 relative" ref="deviceDropdownRef">
+                <div v-if="props.mix.authorized.canControlPlayback" class="mr-4 relative" ref="deviceDropdownRef">
                     <button 
                         @click="toggleDeviceDropdown($event)" 
                         type="button" 
@@ -197,7 +197,7 @@
                 </div>
                 <div class="flex flex-col gap-3">
                     <div
-                        v-if="props.mix.authorized.isOwner"
+                        v-if="props.mix.authorized.canControlPlayback"
                         class="flex flex-row items-center justify-center flex-none gap-2"
                     >
                         <ChevronDoubleLeftIcon class="size-6 opacity-50" />
@@ -206,7 +206,7 @@
                     </div>
                     
                     <!-- Device selector for mobile above status indicator -->
-                    <div v-if="props.mix.authorized.isOwner" class="mb-2 relative" ref="deviceDropdownRefMobile">
+                    <div v-if="props.mix.authorized.canControlPlayback" class="mb-2 relative" ref="deviceDropdownRefMobile">
                         <button 
                             @click="toggleDeviceDropdown($event)" 
                             type="button" 
@@ -259,7 +259,7 @@
                 </div>
 
                 <div
-                    v-if="props.mix.authorized.isOwner"
+                    v-if="props.mix.authorized.canControlPlayback"
                     class="flex flex-row items-center justify-center flex-none gap-2"
                 >
                     <ChevronDoubleLeftIcon
@@ -283,7 +283,7 @@
                 </div>
 
                 <!-- Device selector above status indicator for active queue -->
-                <div v-if="props.mix.authorized.isOwner" class="mr-4 relative" ref="deviceDropdownRefActive">
+                <div v-if="props.mix.authorized.canControlPlayback" class="mr-4 relative" ref="deviceDropdownRefActive">
                     <button 
                         @click="toggleDeviceDropdown($event)" 
                         type="button" 
@@ -375,7 +375,7 @@
                 </div>
                 <div class="flex flex-col gap-3">
                     <div
-                        v-if="props.mix.authorized.isOwner"
+                        v-if="props.mix.authorized.canControlPlayback"
                         class="flex flex-row items-center justify-center flex-none gap-2"
                     >
                         <ChevronDoubleLeftIcon
