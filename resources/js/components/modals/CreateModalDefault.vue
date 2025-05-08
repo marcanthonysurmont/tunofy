@@ -1,37 +1,39 @@
 <template>
-    <transition
-        enter-active-class="transition duration-100 ease-out"
-        enter-from-class="transform scale-95 opacity-0"
-        enter-to-class="transform scale-100 opacity-100"
-        leave-active-class="transition duration-75 ease-in"
-        leave-from-class="transform scale-100 opacity-100"
-        leave-to-class="transform scale-95 opacity-0"
-    >
-        <div
-            v-if="isVisible"
-            class="fixed left-0 top-0 z-[999] flex h-full w-full items-center justify-center gap-8 bg-black/25 backdrop-blur-md shadow-2xl"
-            @click.self="closeModal"
+    <Teleport to="body">
+        <transition
+            enter-active-class="transition duration-100 ease-out"
+            enter-from-class="transform scale-95 opacity-0"
+            enter-to-class="transform scale-100 opacity-100"
+            leave-active-class="transition duration-75 ease-in"
+            leave-from-class="transform scale-100 opacity-100"
+            leave-to-class="transform scale-95 opacity-0"
         >
             <div
-                class="modern-border relative m-auto flex w-4/5 max-w-xl flex-col justify-center gap-4 overflow-hidden rounded-xl bg-modal-background border-2 border-modal-stroke p-8"
+                v-if="isVisible"
+                class="fixed left-0 top-0 z-[9999] flex h-full w-full items-center justify-center gap-8 bg-black/25 backdrop-blur-md shadow-2xl"
+                @click.self="closeModal"
             >
-                <header class="mb-6">
-                    <slot name="title"></slot>
-                </header>
-                <main>
-                    <slot name="body"></slot>
-                </main>
-                <footer>
-                    <slot name="footer"></slot>
-                </footer>
-                <span
-                    class="absolute right-2 top-0 cursor-pointer p-4 text-xl"
-                    @click="closeModal"
-                    ><XMarkIcon class="size-5"
-                /></span>
+                <div
+                    class="modern-border relative m-auto flex w-4/5 max-w-xl flex-col justify-center gap-4 overflow-hidden rounded-xl bg-modal-background border-2 border-modal-stroke p-8"
+                >
+                    <header class="mb-6">
+                        <slot name="title"></slot>
+                    </header>
+                    <main>
+                        <slot name="body"></slot>
+                    </main>
+                    <footer>
+                        <slot name="footer"></slot>
+                    </footer>
+                    <span
+                        class="absolute right-2 top-0 cursor-pointer p-4 text-xl"
+                        @click="closeModal"
+                        ><XMarkIcon class="size-5"
+                    /></span>
+                </div>
             </div>
-        </div>
-    </transition>
+        </transition>
+    </Teleport>
 </template>
 
 <script setup>

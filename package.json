@@ -17,6 +17,7 @@
     },
     "dependencies": {
         "@formkit/auto-animate": "^0.8.2",
+        "@headlessui-float/vue": "^0.15.0",
         "@headlessui/vue": "^1.7.23",
         "@heroicons/vue": "^2.2.0",
         "@inertiajs/inertia": "^0.11.1",

@@ -22,7 +22,7 @@
                             </th>
                             <th
                                 v-if="windowWidth >= 640"
-                                class="px-1 sm:px-3 py-3.5 text-left text-sm font-semibold text-zinc-200 w-16 sm:w-24"
+                                class="px-1 sm:px-3 py-3.5 text-right text-sm font-semibold text-zinc-200 w-24"
                             >
                                 Added by
                             </th>
@@ -81,30 +81,40 @@
                             <td
                                 class="px-1 sm:px-3 py-2 sm:py-4 text-sm text-zinc-400"
                             >
-                                <!-- {{ song.user.name }} -->
-                                <img
-                                    :src="
-                                        song.user.avatar === null
-                                            ? '/images/default-avatar.jpg'
-                                            : song.user.avatar
+                                <div
+                                    class="flex items-center"
+                                    :class="
+                                        windowWidth < 640
+                                            ? 'justify-start'
+                                            : 'justify-end'
                                     "
-                                    alt="cover"
-                                    class="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex-shrink-0"
-                                />
+                                >
+                                    <img
+                                        :src="
+                                            song.user.avatar === null
+                                                ? '/images/default-avatar.jpg'
+                                                : song.user.avatar
+                                        "
+                                        alt="cover"
+                                        class="size-6 sm:size-7 rounded-full flex-shrink-0"
+                                    />
+                                </div>
                             </td>
-                            <!-- New Column -->
+
                             <td
                                 class="py-2 sm:py-4 pl-1 sm:pl-3 text-right"
                                 v-if="authorization.canRemoveSong"
                             >
-                                <button
-                                    @click="deleteSong(song.id)"
-                                    class="p-1 sm:p-2 cursor-pointer"
-                                >
-                                    <TrashIcon
-                                        class="h-4 w-4 sm:h-5 sm:w-5 text-red-500 hover:text-red-700"
-                                    />
-                                </button>
+                                <div class="flex items-center justify-end">
+                                    <button
+                                        @click="deleteSong(song.id)"
+                                        class="pl-1 sm:px-2 cursor-pointer"
+                                    >
+                                        <TrashIcon
+                                            class="size-5 sm:size-6 text-zinc-400 hover:text-zinc-500"
+                                        />
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>

@@ -15,7 +15,7 @@
                 ]"
             />
         </div>
-        <SwitchLabel as="span" class="ml-3 text-sm text-zinc-100">
+        <SwitchLabel as="span" class="ml-3 text-sm text-zinc-100" @click.stop>
             <span
                 class="font-medium transition-all duration-200 ease-in-out"
                 :class="disabled ? 'opacity-40' : ''"

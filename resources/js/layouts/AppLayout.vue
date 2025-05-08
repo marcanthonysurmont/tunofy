@@ -243,8 +243,8 @@
             </a> -->
         </div>
 
-        <main class="py-10 lg:pl-80">
-            <div class="px-4 sm:px-6 lg:px-8">
+        <main class="py-10 lg:pl-80 max-w-[1955px] mx-auto">
+            <div class="px-4 sm:px-6 lg:px-8 xl:px-12">
                 <slot />
             </div>
         </main>
