@@ -23,9 +23,9 @@
                         class="font-headings font-normal bg-primary rounded-md px-4 pb-2 pt-2.5 flex items-center justify-center custom-item-hover">Go
                         to App</a>
                 @else
-                    <div class="flex items-center flex-row bg-primary rounded-md px-4">
+                    <div class="flex items-center flex-row bg-primary rounded-md px-4 custom-item-hover">
                         <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">
-                        <a href="{{ route('login') }}" class="font-headings font-normal custom-item-hover pb-2 pt-2.5">Sign
+                        <a href="{{ route('login') }}" class="font-headings font-normal pb-2 pt-2.5">Sign
                             In</a>
                     </div>
                 @endauth
