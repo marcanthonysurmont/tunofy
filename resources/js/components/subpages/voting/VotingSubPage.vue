@@ -1,5 +1,7 @@
 <template>
-    <p>This is the voting subpage</p>
+    <VotingFullScreen />
 </template>
 
-<script setup></script>
+<script setup>
+import VotingFullScreen from "./VotingFullScreen.vue";
+</script>
