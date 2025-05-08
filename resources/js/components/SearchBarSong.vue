@@ -19,7 +19,7 @@
                         aria-hidden="true"
                     />
                     <ComboboxInput
-                        class="w-full bg-transparent border-2 border-card-stroke text-dark-white placeholder-zinc-400 pl-4 pr-12 py-2 focus:outline-none"
+                        class="w-full bg-transparent text-dark-white placeholder-zinc-400 pl-4 pr-12 py-2 focus:outline-none"
                         @input="handleSearch"
                         placeholder="Search songs..."
                         autocomplete="off"
