@@ -8,7 +8,7 @@
             >
                 <div
                     :class="[
-                        'flex items-center w-full bg-card-background border border-card-stroke rounded-xl transition-all duration-300 overflow-hidden relative',
+                        'flex items-center w-full bg-card-background border border-zinc-800 rounded-xl transition-all duration-300 overflow-hidden relative',
                         isFocused ? 'shadow-md ring-1 ring-zinc-600' : '',
                     ]"
                     class=""
