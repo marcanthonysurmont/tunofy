@@ -29,7 +29,9 @@
                     </span>
                 </div>
                 <Menu as="div" class="relative flex-none">
-                    <MenuButton class="-m-2.5 block p-2.5 text-zinc-400">
+                    <MenuButton
+                        class="-m-2.5 block p-2.5 text-zinc-400 cursor-pointer"
+                    >
                         <span class="sr-only">Open options</span>
                         <EllipsisVerticalIcon
                             class="size-5"
