@@ -1,16 +1,23 @@
 <template>
     <div class="flex flex-col items-center">
         <div
+            ref="cardContainer"
             v-for="(song, index) in songs"
             :key="song.id"
-            class="w-[300px] h-[400px] rounded-2xl shadow-lg flex flex-col justify-end mb-4 bg-cover bg-center relative border-2 border-card-stroke overflow-hidden"
+            :class="[
+                'w-[300px] h-[400px] rounded-2xl shadow-lg flex flex-col justify-end mb-4 bg-cover bg-center relative border-2 border-card-stroke overflow-hidden',
+                resetSwipe || transitionToNext
+                    ? 'transition-transform duration-300 ease-in-out'
+                    : '',
+            ]"
             :style="{
                 backgroundImage: `url(${song.cover})`,
+                transform: cardTransform(index),
+                opacity: cardOpacity(index),
             }"
             v-show="index === currentIndex"
         >
             <div class="gradient-bg"></div>
-
             <div class="relative z-10 text-white text-left px-4 pt-2 pb-5">
                 <h2 class="text-2xl font-semibold">{{ song.name }}</h2>
                 <p class="text-zinc-300">{{ song.artist }}</p>
@@ -56,7 +63,89 @@
 
 <script setup>
 import { HeartIcon, XMarkIcon } from "@heroicons/vue/24/solid";
-import { ref } from "vue";
+import { ref, computed, watch } from "vue";
+import { useSwipe } from "@vueuse/core";
+
+const cardContainer = ref(null);
+const currentIndex = ref(0);
+const resetSwipe = ref(false);
+const transitionToNext = ref(false);
+const swipeLengthX = ref(0);
+
+const { isSwiping, direction, lengthX } = useSwipe(cardContainer, {
+    threshold: 0,
+    onSwipe: ({ delta }) => {
+        swipeLengthX.value = delta.x;
+    },
+});
+const SWIPE_THRESHOLD = 100;
+
+watch(lengthX, (newLength) => {
+    if (isSwiping.value) {
+        swipeLengthX.value = newLength;
+    }
+});
+
+watch(isSwiping, (swiping) => {
+    if (!swiping) {
+        if (Math.abs(swipeLengthX.value) > SWIPE_THRESHOLD) {
+            const moveDirection = swipeLengthX.value < 0 ? -1 : 1;
+            const targetX = moveDirection * 300;
+            swipeLengthX.value = targetX;
+            transitionToNext.value = true;
+
+            setTimeout(() => {
+                if (direction.value === "left") swipeLeft();
+                else if (direction.value === "right") swipeRight();
+                transitionToNext.value = false;
+                swipeLengthX.value = 0;
+            }, 200);
+        } else {
+            resetSwipe.value = true;
+            swipeLengthX.value = 0;
+            setTimeout(() => {
+                resetSwipe.value = false;
+            }, 300);
+        }
+    }
+});
+
+function swipeLeft() {
+    nextSong();
+}
+
+function swipeRight() {
+    nextSong();
+}
+
+function kill() {
+    nextSong();
+}
+
+function nextSong() {
+    if (currentIndex.value < songs.value.length - 1) {
+        currentIndex.value++;
+    } else {
+        console.log("No more songs");
+    }
+}
+
+function cardTransform(index) {
+    if (index !== currentIndex.value) return "scale(0.9)";
+    if (
+        resetSwipe.value ||
+        (transitionToNext.value && swipeLengthX.value === 0)
+    )
+        return "translateX(0px) rotate(0deg)";
+    return `translateX(${-swipeLengthX.value}px) rotate(${
+        -swipeLengthX.value / 10
+    }deg)`;
+}
+
+function cardOpacity(index) {
+    if (index !== currentIndex.value) return 1;
+    return 1 - Math.abs(swipeLengthX.value) / 300;
+}
 
 const songs = ref([
     {
@@ -77,32 +166,13 @@ const songs = ref([
         artist: "Travis Scott",
         cover: "https://i.scdn.co/image/ab67616d0000b2734f0fd9dad63977146e685700",
     },
-    { id: 4, name: "None", artist: "None", cover: "/images/default-song.png" },
+    {
+        id: 4,
+        name: "None",
+        artist: "None",
+        cover: "/images/default-song.png",
+    },
 ]);
-
-const currentIndex = ref(0);
-const swipeLeft = () => {
-    console.log("Disliked:", songs.value[currentIndex.value]);
-    nextSong();
-};
-const swipeRight = () => {
-    console.log("Liked:", songs.value[currentIndex.value]);
-    nextSong();
-};
-const kill = () => {
-    console.log("Killed:", songs.value[currentIndex.value]);
-    nextSong();
-};
-const nextSong = () => {
-    if (currentIndex.value < songs.value.length - 1) {
-        currentIndex.value++;
-    } else {
-        console.log("No more songs");
-    }
-};
-
-const startDrag = (e) => {};
-const endDrag = (e) => {};
 </script>
 
 <style scoped>
