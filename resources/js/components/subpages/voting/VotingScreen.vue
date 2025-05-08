@@ -26,6 +26,23 @@
             @touchend.passive="endDrag"
         >
             <div class="gradient-bg"></div>
+            <div
+                v-if="skullAnimation"
+                class="absolute inset-0 z-20 bg-black bg-opacity-70 flex items-center justify-center"
+                :class="{ 'fade-out': skullAnimationFading }"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 512 512"
+                    class="w-32 h-32 text-white animate-pulse"
+                    :class="{ 'scale-up': skullAnimation }"
+                >
+                    <path
+                        fill="currentColor"
+                        d="M416 398.9c58.5-41.1 96-104.1 96-174.9C512 100.3 397.4 0 256 0S0 100.3 0 224c0 70.7 37.5 133.8 96 174.9c0 .4 0 .7 0 1.1l0 64c0 26.5 21.5 48 48 48l48 0 0-48c0-8.8 7.2-16 16-16s16 7.2 16 16l0 48 64 0 0-48c0-8.8 7.2-16 16-16s16 7.2 16 16l0 48 48 0c26.5 0 48-21.5 48-48l0-64c0-.4 0-.7 0-1.1zM96 256a64 64 0 1 1 128 0A64 64 0 1 1 96 256zm256-64a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"
+                    />
+                </svg>
+            </div>
             <div class="relative z-10 text-white text-left px-4 pt-2 pb-5">
                 <h2 class="text-2xl font-semibold">{{ song.name }}</h2>
                 <p class="text-zinc-300">{{ song.artist }}</p>
@@ -38,7 +55,7 @@
                 class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700"
             >
                 <button
-                    @click="swipeLeft"
+                    @click="clickLeft"
                     :class="{ bounce: bounceState.left }"
                 >
                     <XMarkIcon
@@ -70,7 +87,7 @@
                 class="w-16 h-16 rounded-full bg-zinc-800 border-1 border-zinc-700 flex items-center justify-center"
             >
                 <button
-                    @click="swipeRight"
+                    @click="clickRight"
                     :class="{ bounce: bounceState.right }"
                 >
                     <HeartIcon class="size-8 text-[#74e3b8]" />
@@ -103,6 +120,8 @@ const swipeLengthX = ref(0);
 const isDragging = ref(false);
 const startX = ref(0);
 const dragDirection = ref(null);
+const skullAnimation = ref(false);
+const skullAnimationFading = ref(false);
 
 const emit = defineEmits(["endVoting"]);
 
@@ -189,21 +208,77 @@ function swipeLeft() {
     nextSong();
 }
 
+function clickLeft() {
+    bounceButton("left");
+    swipeAndAnimate(-75);
+    setTimeout(() => {
+        nextSong();
+    }, 300);
+}
+
 function swipeRight() {
     bounceButton("right");
     nextSong();
 }
 
+function clickRight() {
+    bounceButton("right");
+    swipeAndAnimate(75);
+    setTimeout(() => {
+        nextSong();
+    }, 300);
+}
+
 function kill() {
     bounceButton("kill");
-    nextSong();
+    skullAnimation.value = true;
+
+    const shakeIntensity = 10;
+    const shakeDuration = 50;
+    const shakeCount = 5;
+
+    let shakeIteration = 0;
+    const shakeInterval = setInterval(() => {
+        swipeLengthX.value =
+            Math.random() * shakeIntensity * 2 - shakeIntensity;
+
+        shakeIteration++;
+        if (shakeIteration >= shakeCount) {
+            clearInterval(shakeInterval);
+
+            // Start fade out animation after shake
+            setTimeout(() => {
+                nextSong();
+                skullAnimationFading.value = true;
+
+                // Reset position and transition to next card
+                swipeLengthX.value = 0;
+                transitionToNext.value = true;
+
+                setTimeout(() => {
+                    transitionToNext.value = false;
+                    skullAnimation.value = false;
+                    skullAnimationFading.value = false;
+                }, 300);
+            }, 600);
+        }
+    }, shakeDuration);
+}
+
+function swipeAndAnimate(offset) {
+    swipeLengthX.value = offset;
+    transitionToNext.value = true;
+
+    setTimeout(() => {
+        swipeLengthX.value = 0;
+        transitionToNext.value = false;
+    }, 300);
 }
 
 function nextSong() {
     if (currentIndex.value < songs.value.length - 1) {
         currentIndex.value++;
     } else {
-        console.log("End of the list");
         emit("endVoting");
     }
 }
@@ -224,6 +299,11 @@ function cardOpacity(index) {
     if (index !== currentIndex.value) {
         return 1;
     }
+
+    if (skullAnimation.value) {
+        return 1;
+    }
+
     return 1 - Math.abs(swipeLengthX.value) / 300;
 }
 
@@ -277,6 +357,34 @@ const songs = ref([
     }
     100% {
         transform: scale(1);
+    }
+}
+
+.scale-up {
+    animation: scaleUp 0.5s ease-in-out;
+}
+
+@keyframes scaleUp {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.fade-out {
+    animation: fadeOut 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
     }
 }
 </style>
