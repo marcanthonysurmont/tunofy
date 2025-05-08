@@ -16,11 +16,9 @@
                     <EllipsisHorizontalIcon class="size-9" />
                 </MenuButton>
                 <MenuItems
-                    class="shadow-2xl z-[10000] mt-2 w-56 xs:max-h-36 md:max-h-64 overflow-y-auto custom-scrollbar origin-top-right divide-y divide-gray-100 rounded-md bg-card-background border-2 border-card-stroke ring-1 ring-black/5 focus:outline-none"
+                    class="shadow-2xl z-[1000] mt-2 w-56 overflow-y-auto custom-scrollbar origin-top-right divide-y-2 divide-card-stroke rounded-md bg-card-background border-2 border-card-stroke ring-1 ring-black/5 focus:outline-none"
                 >
-                    <div class="px-1.5 py-1.5">
-                        <slot></slot>
-                    </div>
+                    <slot></slot>
                 </MenuItems>
             </Float>
         </div>
