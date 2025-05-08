@@ -9,6 +9,9 @@ use App\Models\PlaybackSession;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use App\Events\MixStatusChangedEvent;
+use App\Services\SpotifyService;
+use Illuminate\Support\Facades\Auth;
 
 class SongPlaybackService
 {
@@ -176,13 +179,45 @@ class SongPlaybackService
         Cache::forget("mix:{$mixId}:paused");
 
         // Get and play the next song, passing the device ID
-        return $this->startPlayback($mixId, $deviceId);
+        $result = $this->startPlayback($mixId, $deviceId);
+
+        // Add this check to handle the end of queue correctly
+        if (!$result['success'] && isset($result['message']) && $result['message'] === 'No songs in queue') {
+            // This is normal end of queue, don't mark everything as finished
+            // Just broadcast a queue completed event
+            event(new MixStatusChangedEvent(
+                $mix,         // First argument: the Mix model
+                true,         // Second argument: boolean isActive
+                'queue_completed'  // Third argument: string reason
+            ));
+
+            // Don't change any other song statuses
+            Log::info("Queue completed for mix {$mixId}, no more songs to play");
+
+            // Set a cache flag to indicate the queue is completed - increase time to 10 minutes
+            Cache::put("mix:{$mixId}:queue_completed", true, now()->addMinutes(10));
+
+            // IMPORTANT: Also try to pause Spotify playback to prevent continuous playing
+            try {
+                $this->spotifyService->pausePlayback(Auth::user());
+            } catch (\Exception $e) {
+                Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
+            }
+
+            return [
+                'success' => false,
+                'message' => 'Queue completed',
+                'queue_completed' => true
+            ];
+        }
+
+        return $result;
     }
 
     public function returnToPreviousSong(int $mixId): array
     {
         $mix = Mix::findOrFail($mixId);
-        
+
         $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
 
@@ -382,7 +417,7 @@ class SongPlaybackService
     public function resumeIntendedTrack(int $mixId): array
     {
         $mix = Mix::findOrFail($mixId);
-        
+
         $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
         // Try multiple ways to get device ID
@@ -441,12 +476,14 @@ class SongPlaybackService
 
     public function prepareQueueForUserSwitch(int $mixId): void
     {
-        // Clear any queue state that's specific to a user
-        // but maintain the overall queue structure
+        // Only reset songs that are currently playing, NOT finished ones
         QueueSong::where('mix_id', $mixId)
             ->where('status', 'playing')
             ->update(['status' => 'pending']);
-            
-        Log::info("Reset queue state for user switch on mix {$mixId}");
+
+        // Important: don't touch 'finished' songs
+
+        // Add debug log to trace ownership transition
+        Log::info("Reset queue state for user switch on mix {$mixId} - only changed 'playing' to 'pending'");
     }
 }

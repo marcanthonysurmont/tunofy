@@ -61,6 +61,9 @@ class SetMixActiveController extends Controller
                         // Clear any existing pause flags
                         Cache::forget("mix:{$mix->id}:paused");
 
+                        // IMPORTANT: Clear the queue completed flag when activating
+                        Cache::forget("mix:{$mix->id}:queue_completed");
+
                         // Set the manual change flag (with a longer duration)
                         Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(10));
 
@@ -74,7 +77,7 @@ class SetMixActiveController extends Controller
                         sleep(0.5);
 
                         $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
-                        
+
                         $playbackData = $spotifyService->getCurrentPlayback($user);
 
                         if ($playbackData) {
@@ -94,6 +97,21 @@ class SetMixActiveController extends Controller
                         } else {
                             Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
                             Log::info("Unable to get immediate playback data for mix {$mix->id}, will rely on polling");
+                        }
+
+                        // After removing co-DJ
+                        // Force a full state refresh
+                        $playbackData = $spotifyService->getCurrentPlayback($mix->user);
+                        if ($playbackData) {
+                            $playbackData['_ownership_changed'] = true;
+                            $playbackData['_timestamp'] = now()->timestamp;
+
+                            // Update cache
+                            $cacheKey = "mix:playback:" . $mix->id;
+                            Cache::put($cacheKey, $playbackData);
+
+                            // Force broadcast
+                            event(new PlaybackDataUpdatedEvent($mix, $playbackData));
                         }
                     }
                     // Make sure to release the lock when done

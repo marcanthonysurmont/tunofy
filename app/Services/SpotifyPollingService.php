@@ -46,6 +46,12 @@ class SpotifyPollingService
         $cacheKey = self::CACHE_PREFIX_PLAYBACK . $mix->id;
 
         try {
+            // Check if the queue has been completed - skip polling entirely
+            if (Cache::has("mix:{$mix->id}:queue_completed")) {
+                Log::info("Mix {$mix->id} queue completed, skipping polling");
+                return;
+            }
+
             // Get the mix owner
             // Determine which user to use for playback
             $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
@@ -358,6 +364,25 @@ class SpotifyPollingService
         // Check for track change
         if (($previous['item']['id'] ?? null) !== ($current['item']['id'] ?? null)) {
             $this->changeReason = "track changed";
+            return true;
+        }
+
+        // Check for device change
+        if (($previous['device']['id'] ?? null) !== ($current['device']['id'] ?? null)) {
+            $this->changeReason = "device changed";
+            return true;
+        }
+
+        // Check for ownership change flag
+        if (($current['_ownership_changed'] ?? false)) {
+            $this->changeReason = "ownership changed";
+            return true;
+        }
+
+        // Progress change of more than 3 seconds
+        if (isset($previous['progress_ms']) && isset($current['progress_ms']) &&
+            abs($current['progress_ms'] - $previous['progress_ms']) > 3000) {
+            $this->changeReason = "significant progress change";
             return true;
         }
 

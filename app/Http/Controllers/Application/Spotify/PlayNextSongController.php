@@ -7,6 +7,7 @@ use App\Models\Mix;
 use App\Services\SongPlaybackService;
 use Illuminate\Http\JsonResponse;
 use App\Events\PlaybackDataUpdatedEvent;
+use App\Events\MixStatusChangedEvent;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -17,6 +18,22 @@ class PlayNextSongController extends Controller
         $this->authorize('update', $mix);
 
         $result = $songPlaybackService->advanceToNextSong($mix->id);
+
+        // Check for queue completion
+        if (isset($result['queue_completed']) && $result['queue_completed']) {
+            // Broadcast a clear and explicit event for queue completion
+            event(new MixStatusChangedEvent(
+                $mix,
+                true,  // Mix is still active
+                'queue_completed'
+            ));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Queue completed',
+                'queue_completed' => true
+            ]);
+        }
 
         if ($result['success']) {
             // Update playback data in cache with the new track

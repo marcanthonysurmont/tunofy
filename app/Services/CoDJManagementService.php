@@ -7,6 +7,7 @@ use App\Events\PlaybackDataUpdatedEvent;
 use App\Events\MixStatusChangedEvent;
 use App\Models\Mix;
 use App\Models\User;
+use App\Models\QueueSong;
 use Illuminate\Support\Facades\Cache;
 
 class CoDJManagementService
@@ -17,14 +18,27 @@ class CoDJManagementService
 
     public function assignCoDJ(Mix $mix, User $user): void
     {
+        // Capture current playing track before switch
+        $currentlyPlaying = QueueSong::where('mix_id', $mix->id)
+                            ->where('status', 'playing')
+                            ->with('song')
+                            ->first();
+
         // Update the mix
         $mix->update(['co_dj_id' => $user->id]);
 
         // Prepare queue for user switch
         $this->songPlaybackService->prepareQueueForUserSwitch($mix->id);
 
-        // Dispatch event for the new co-DJ
-        CoDJUpdatedEvent::dispatch($user);
+        // If there was a playing song, ensure it's correctly set after transition
+        if ($currentlyPlaying) {
+            Cache::put("mix:{$mix->id}:transition_track", $currentlyPlaying->song->spotify_id, now()->addMinutes(1));
+        }
+
+        // Dispatch event with more complete state
+        CoDJUpdatedEvent::dispatch($user, [
+            'playing_track' => $currentlyPlaying ? $currentlyPlaying->song->spotify_id : null,
+        ]);
 
         // Clear device from cache
         Cache::forget("mix:{$mix->id}:device_id");

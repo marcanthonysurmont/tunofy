@@ -69,12 +69,21 @@
             </div>
         </div>
 
-        <!-- Add queue completion state - explicit Boolean check -->
-        <div v-else-if="queueCompleted === true" class="queue-completed">
-            <div class="checkmark">✓</div>
-            <div class="completion-message">
-                <p>Queue completed! All songs have been played.</p>
+        <!-- Add queue completion state -->
+        <div v-else-if="queueCompleted && isMixActive" class="queue-completed">
+            <div class="flex justify-center items-center mb-3">
+                <div class="checkmark flex justify-center items-center">
+                    <i class="fas fa-check"></i>
+                </div>
             </div>
+            <h3 class="completion-message">Queue Completed</h3>
+            <p class="text-sm text-gray-500 mb-4">Add more songs to keep the mix going!</p>
+            <button 
+                @click="resetQueue" 
+                class="px-4 py-2 bg-spotify-green text-white rounded-full text-sm hover:bg-opacity-80 transition"
+            >
+                Add Songs
+            </button>
         </div>
 
         <!-- Desktop player with no active queue -->
@@ -581,6 +590,14 @@ function skipSong() {
     axios
         .post(`/api/spotify/skip-song/${props.mix.id}`)
         .then((response) => {
+            // Check for queue completion explicitly
+            if (response.data.queue_completed) {
+                console.log("Queue completed after skipping last song");
+                queueCompleted.value = true;
+                clearSyncingState(); // Important to clear the loading state
+                return;
+            }
+            
             if (response.data.success && response.data.song) {
                 // Transform the data to match the expected structure
                 currentTrack.value = {
@@ -604,6 +621,7 @@ function skipSong() {
         })
         .catch((error) => {
             console.error("Failed to skip song:", error);
+            clearSyncingState(); // Always clear syncing state on error
         });
 }
 
@@ -781,6 +799,11 @@ async function toggleMixActive() {
 
         // Optimistically update UI
         const targetActive = !isMixActive.value;
+        
+        // Always clear queue completed state when toggling, especially when deactivating
+        if (!targetActive || queueCompleted.value) {
+            queueCompleted.value = false;
+        }
 
         // Prepare the device ID to send
         const deviceIdToUse = selectedDevice.value
@@ -808,6 +831,8 @@ async function toggleMixActive() {
             if (targetActive) {
                 // Mix was activated
                 setSyncingState();
+                // Clear queue completed flag when activating
+                queueCompleted.value = false;
             } else {
                 // Mix was deactivated
                 clearSyncingState();
@@ -917,6 +942,11 @@ onMounted(() => {
                     isPlaying.value = false;
                     if (e.reason === "queue_completed")
                         queueCompleted.value = true;
+                } else if (e.reason === "queue_completed") {
+                    // Handle active but queue completed
+                    clearSyncingState(); // Make sure this is called
+                    queueCompleted.value = true;
+                    console.log("Queue completed but mix remains active");
                 } else {
                     setSyncingState();
                     queueCompleted.value = false;
