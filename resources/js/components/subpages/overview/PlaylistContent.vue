@@ -22,7 +22,7 @@
                             </th>
                             <th
                                 v-if="windowWidth >= 640"
-                                class="px-1 sm:px-3 py-3.5 text-left text-sm font-semibold text-zinc-200 w-16 sm:w-24"
+                                class="px-1 sm:px-3 py-3.5 text-right text-sm font-semibold text-zinc-200 w-16 sm:w-24"
                             >
                                 Added by
                             </th>
@@ -79,9 +79,13 @@
                                 {{ msToMinutes(song.duration_ms) }}
                             </td>
                             <td
-                                class="px-1 sm:px-3 py-2 sm:py-4 text-sm text-zinc-400"
+                                class="px-1 sm:px-3 py-2 sm:py-4 text-sm text-zinc-400 flex"
+                                :class="
+                                    windowWidth < 640
+                                        ? 'justify-start'
+                                        : 'justify-end'
+                                "
                             >
-                                <!-- {{ song.user.name }} -->
                                 <img
                                     :src="
                                         song.user.avatar === null
