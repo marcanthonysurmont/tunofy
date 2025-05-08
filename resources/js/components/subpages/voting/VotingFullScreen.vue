@@ -19,11 +19,19 @@
                     <XMarkIcon class="size-10 text-white" />
                 </span>
                 <Transition name="fade-with-slide" mode="out-in">
-                    <IntroductionScreen
-                        v-if="!hasClickedContinue"
-                        @start-voting="handleStartVotingEvent"
-                    />
-                    <VotingScreen v-else-if="hasClickedContinue" />
+                    <div v-if="finishedVoting" key="finished">
+                        <FinishedScreen
+                            @close-window="handleCloseWindowEvent"
+                        />
+                    </div>
+                    <div v-else-if="hasClickedContinue" key="voting">
+                        <VotingScreen @end-voting="handleEndVotingEvent" />
+                    </div>
+                    <div v-else key="intro">
+                        <IntroductionScreen
+                            @start-voting="handleStartVotingEvent"
+                        />
+                    </div>
                 </Transition>
             </div>
         </transition>
@@ -35,6 +43,7 @@ import { XMarkIcon } from "@heroicons/vue/24/outline";
 import { onMounted, ref } from "vue";
 import IntroductionScreen from "./IntroductionScreen.vue";
 import VotingScreen from "./VotingScreen.vue";
+import FinishedScreen from "./FinishedScreen.vue";
 
 const isVisible = ref(false);
 
@@ -45,10 +54,19 @@ onMounted(() => {
 });
 
 const hasClickedContinue = ref(false);
-
 function handleStartVotingEvent() {
     hasClickedContinue.value = true;
 }
-</script>
 
-<style scoped></style>
+const finishedVoting = ref(false);
+function handleEndVotingEvent() {
+    console.log("Finished voting");
+    finishedVoting.value = true;
+}
+
+function handleCloseWindowEvent() {
+    isVisible.value = false;
+    finishedVoting.value = false;
+    hasClickedContinue.value = false;
+}
+</script>
