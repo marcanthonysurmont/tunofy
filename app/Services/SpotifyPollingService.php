@@ -47,7 +47,8 @@ class SpotifyPollingService
 
         try {
             // Get the mix owner
-            $user = User::find($mix->user_id);
+            // Determine which user to use for playback
+            $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
             // Check if we recently changed devices - if so, skip this poll cycle
             if (Cache::has("mix:{$mix->id}:device_changed")) {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Application\Mixes;
 
+use App\Events\CoDJUpdatedEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AssignCoDJRequest;
 use App\Models\Mix;
@@ -17,6 +18,8 @@ class AssignCoDJController extends Controller
 
         try {
             $mix->update(['co_dj_id' => $validated['user_id']]);
+
+            CoDJUpdatedEvent::dispatch($mix->coDJ);
 
             return redirect()->back()
                 ->with('success', 'Co-DJ assigned successfully.');

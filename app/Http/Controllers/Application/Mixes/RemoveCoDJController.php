@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Application\Mixes;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use Illuminate\Http\RedirectResponse;
+use App\Events\CoDJUpdatedEvent;
 
 class RemoveCoDJController extends Controller
 {
@@ -13,6 +14,8 @@ class RemoveCoDJController extends Controller
         $this->authorize('assignCoDJ', $mix);
 
         try {
+            CoDJUpdatedEvent::dispatch($mix->coDJ);
+
             $mix->update(['co_dj_id' => null]);
 
             return redirect()->back()

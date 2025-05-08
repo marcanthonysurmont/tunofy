@@ -73,7 +73,8 @@ class SetMixActiveController extends Controller
                         // Get current playback data to broadcast after a short delay
                         sleep(0.5);
 
-                        $user = $mix->user;
+                        $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+                        
                         $playbackData = $spotifyService->getCurrentPlayback($user);
 
                         if ($playbackData) {

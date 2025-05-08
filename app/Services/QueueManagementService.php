@@ -156,7 +156,9 @@ class QueueManagementService
     public function stopPlayback(int $mixId): array
     {
         $mix = Mix::findOrFail($mixId);
-        $user = User::findOrFail($mix->user_id);
+        
+        // Determine which user to use for playback
+        $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
         Log::info("Stopping playback for mix {$mixId}");
 

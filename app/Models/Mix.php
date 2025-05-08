@@ -75,6 +75,11 @@ class Mix extends Model
         return $this->hasMany(MixAccess::class);
     }
 
+    public function coDJ()
+    {
+        return $this->belongsTo(User::class, 'co_dj_id');
+    }
+
     /**************************************/
     /*       Accessors / Mutators         */
     /**************************************/

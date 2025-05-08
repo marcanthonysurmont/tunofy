@@ -37,7 +37,9 @@ class SongPlaybackService
     {
         // Get the mix
         $mix = Mix::findOrFail($mixId);
-        $user = User::findOrFail($mix->user_id);
+
+        // Determine which user to use for playback
+        $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
         // Get the active session for this mix
         $activeSession = PlaybackSession::where('mix_id', $mixId)
@@ -180,7 +182,9 @@ class SongPlaybackService
     public function returnToPreviousSong(int $mixId): array
     {
         $mix = Mix::findOrFail($mixId);
-        $user = User::findOrFail($mix->user_id);
+        
+        $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+
 
         // Retrieve the cached device ID if present
         $deviceId = Cache::get("mix:{$mix->id}:device_id");
@@ -378,7 +382,8 @@ class SongPlaybackService
     public function resumeIntendedTrack(int $mixId): array
     {
         $mix = Mix::findOrFail($mixId);
-        $user = User::findOrFail($mix->user_id);
+        
+        $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
         // Try multiple ways to get device ID
         $deviceId = Cache::get("mix:{$mix->id}:device_id");

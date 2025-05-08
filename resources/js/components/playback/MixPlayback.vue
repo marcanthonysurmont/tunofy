@@ -407,7 +407,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import axios from "axios";
-import { usePage } from '@inertiajs/vue3'; // Import usePage
+import { router, usePage } from '@inertiajs/vue3'; // Import usePage
 import { ChevronDoubleLeftIcon } from "@heroicons/vue/16/solid";
 import { ChevronDoubleRightIcon } from "@heroicons/vue/16/solid";
 import { 
@@ -801,11 +801,19 @@ onMounted(() => {
                     queueCompleted.value = false;
                 }
             })
+
+        Echo.private('user.' + page.props.user.id)
+            .listen('.co-dj-updated', () => {
+                router.reload({ only: ['mix'] });
+            })
     }
 });
 
 onUnmounted(() => {
     document.removeEventListener('mousedown', handleClickOutside);
+
+    Echo.leave(`mix.${props.mix.id}`);
+    Echo.leave(`user.${page.props.user.id}`);
 });
 </script>
 
