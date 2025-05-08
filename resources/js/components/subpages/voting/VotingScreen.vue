@@ -1,32 +1,34 @@
 <template>
-    <div class="swipe-container flex flex-col items-center">
+    <div class="flex flex-col items-center">
         <div
             v-for="(song, index) in songs"
             :key="song.id"
+            class="w-[300px] h-[400px] rounded-2xl shadow-lg flex flex-col justify-end mb-4 bg-cover bg-center relative border-2 border-card-stroke overflow-hidden"
+            :style="{
+                backgroundImage: `url(${song.cover})`,
+            }"
             v-show="index === currentIndex"
-            class="w-[300px] h-[400px] rounded-2xl shadow-lg flex flex-col items-center justify-center"
-            @mousedown="startDrag"
-            @mouseup="endDrag"
         >
-            <img
-                :src="song.cover"
-                alt="cover"
-                class="w-[200px] h-[200px] object-cover rounded-lg"
-            />
-            <h2 class="text-2xl font-semibold">{{ song.name }}</h2>
-            <p class="">{{ song.artist }}</p>
+            <div class="gradient-bg"></div>
+
+            <div class="relative z-10 text-white text-left px-4 pt-2 pb-5">
+                <h2 class="text-2xl font-semibold">{{ song.name }}</h2>
+                <p class="text-zinc-300">{{ song.artist }}</p>
+            </div>
         </div>
 
         <div class="mt-5 flex gap-6">
             <div
-                class="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center"
+                class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700"
             >
                 <button @click="swipeLeft">
-                    <XMarkIcon class="size-8 text-white" />
+                    <XMarkIcon
+                        class="size-8 text-[#e95a6c] stroke-2 stroke-[#e95a6c]"
+                    />
                 </button>
             </div>
             <div
-                class="w-16 h-16 rounded-full bg-gray-500 flex items-center justify-center"
+                class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700"
             >
                 <button @click="kill" class="text-white font-bold">
                     <svg
@@ -42,10 +44,10 @@
                 </button>
             </div>
             <div
-                class="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center"
+                class="w-16 h-16 rounded-full bg-zinc-800 border-1 border-zinc-700 flex items-center justify-center"
             >
                 <button @click="swipeRight">
-                    <HeartIcon class="size-8 text-white" />
+                    <HeartIcon class="size-8 text-[#74e3b8]" />
                 </button>
             </div>
         </div>
@@ -67,13 +69,13 @@ const songs = ref([
         id: 2,
         name: "FE!N",
         artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b273f54b99bf27cda88f4a7403ce",
+        cover: "https://i.scdn.co/image/ab67616d0000b273cc392813bfd8f63d4d5f4a95",
     },
     {
         id: 3,
         name: "Pornography",
         artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b273f54b99bf27cda88f4a7403ce",
+        cover: "https://i.scdn.co/image/ab67616d0000b2734f0fd9dad63977146e685700",
     },
     { id: 4, name: "None", artist: "None", cover: "/images/default-song.png" },
 ]);
@@ -103,4 +105,12 @@ const startDrag = (e) => {};
 const endDrag = (e) => {};
 </script>
 
-<style scoped></style>
+<style scoped>
+.gradient-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(0, 0, 0) 25%, transparent 100%);
+    opacity: 1;
+    z-index: 0;
+}
+</style>
