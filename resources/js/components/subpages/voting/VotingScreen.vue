@@ -185,18 +185,18 @@ function getClientX(event) {
 }
 
 function swipeLeft() {
-    nextSong();
     bounceButton("left");
+    nextSong();
 }
 
 function swipeRight() {
-    nextSong();
     bounceButton("right");
+    nextSong();
 }
 
 function kill() {
-    nextSong();
     bounceButton("kill");
+    nextSong();
 }
 
 function nextSong() {
