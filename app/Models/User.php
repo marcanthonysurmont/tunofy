@@ -19,6 +19,7 @@ class User extends Authenticatable
         'name',
         'email',
         'avatar',
+        'type',
         'access_token',
         'refresh_token',
         'token_expires_at',

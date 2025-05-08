@@ -26,6 +26,7 @@ class SpotifyCallbackController extends Controller
                 'name' => $spotifyUser->getName() ?? 'User',
                 'email' => $spotifyUser->getEmail(),
                 'avatar' => $spotifyUser->getAvatar(),
+                'type' => $spotifyUser->user['product'],
                 'access_token' => $spotifyUser->token,
                 'refresh_token' => $spotifyUser->refreshToken,
                 'token_expires_at' => $expiresAt,

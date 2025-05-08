@@ -130,7 +130,7 @@ class MixPolicy
     public function controlPlayback(User $user, Mix $mix): bool
     {
         // If co_dj_id is set, only the co-DJ can control playback
-        if ($mix->co_dj_id) {
+        if ($mix->co_dj_id && $user->type === 'premium') {
             return $user->id === $mix->co_dj_id;
         }
         
