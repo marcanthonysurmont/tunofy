@@ -132,9 +132,6 @@
                         class="size-6 cursor-not-allowed opacity-50"
                     />
                 </div>
-
-                <!-- Status indicator StatusIndicator -->
-
                 <StatusIndicator
                     :is-playing="isPlaying"
                     :is-sync-disabled="!isMixActive"
@@ -215,20 +212,40 @@
                     class="flex flex-row items-center justify-center flex-none gap-2"
                 >
                     <ChevronDoubleLeftIcon
+                        :class="[
+                            devices.length === 0 || selectedDevice === null
+                                ? 'opacity-50 !cursor-not-allowed'
+                                : '',
+                        ]"
                         @click="previousSong"
                         class="size-6 cursor-pointer"
                     />
                     <PauseCircleIcon
+                        :class="[
+                            devices.length === 0 || selectedDevice === null
+                                ? 'opacity-50 !cursor-not-allowed'
+                                : '',
+                        ]"
                         @click="pauseMix"
                         v-if="isPlaying"
                         class="size-12 cursor-pointer"
                     />
                     <PlayCircleIcon
+                        :class="[
+                            devices.length === 0 || selectedDevice === null
+                                ? 'opacity-50 !cursor-not-allowed'
+                                : '',
+                        ]"
                         @click="resumeMix"
                         v-if="!isPlaying"
                         class="size-12 cursor-pointer"
                     />
                     <ChevronDoubleRightIcon
+                        :class="[
+                            devices.length === 0 || selectedDevice === null
+                                ? 'opacity-50 !cursor-not-allowed'
+                                : '',
+                        ]"
                         class="size-6 cursor-pointer"
                         @click="skipSong"
                     />
@@ -298,7 +315,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import axios from "axios";
 import { router, usePage } from "@inertiajs/vue3";
 import { ChevronDoubleLeftIcon } from "@heroicons/vue/16/solid";
@@ -333,42 +350,41 @@ let syncTimeoutId = null;
 
 // Device selection variables
 const devices = ref(page.props.devices || []);
-const isDeviceDropdownOpen = ref(false);
+const noDeviceSelectedError = ref(false);
 const isLoadingDevices = ref(false);
-const deviceDropdownRef = ref(null);
-const deviceDropdownRefActive = ref(null);
-const deviceDropdownRefMobile = ref(null);
+
+const authorization = computed(() => page.props.mix.authorized);
+
+watch(
+    () => isPlaying.value,
+    async (newValue) => {
+        if (!newValue && authorization.value.canControlPlayback) {
+            await refreshDevices();
+            // if (selectedDevice.value === null) {
+            //     noDeviceSelectedError.value = true;
+            // } else {
+            //     noDeviceSelectedError.value = false;
+            // }
+        }
+    }
+);
 
 // Find initially active device from the devices array
 const selectedDevice = ref(devices.value.find((d) => d.is_active) || null);
 
-// Handle click outside dropdown
-function handleClickOutside(event) {
-    // First check if we have any active dropdown
-    if (!isDeviceDropdownOpen.value) return;
-
-    // Check if the click was outside all possible dropdowns
-    const isOutsideAllDropdowns =
-        (!deviceDropdownRef.value ||
-            !deviceDropdownRef.value.contains(event.target)) &&
-        (!deviceDropdownRefActive.value ||
-            !deviceDropdownRefActive.value.contains(event.target)) &&
-        (!deviceDropdownRefMobile.value ||
-            !deviceDropdownRefMobile.value.contains(event.target));
-
-    // If clicked outside any dropdown, close it
-    if (isOutsideAllDropdowns) {
-        isDeviceDropdownOpen.value = false;
+watch(
+    () => devices.value,
+    (newDevices) => {
+        if (newDevices.length === 0) {
+            selectedDevice.value = null;
+        }
     }
-}
-
-function toggleDeviceDropdown(event) {
-    // Stop propagation to prevent immediate closing
-    event.stopPropagation();
-    isDeviceDropdownOpen.value = !isDeviceDropdownOpen.value;
-}
+);
 
 function skipSong() {
+    if (devices.value.length === 0 || selectedDevice.value === null) {
+        return;
+    }
     axios
         .post(`/api/spotify/skip-song/${props.mix.id}`)
         .then((response) => {
@@ -376,7 +392,7 @@ function skipSong() {
             if (response.data.queue_completed) {
                 console.log("Queue completed after skipping last song");
                 queueCompleted.value = true;
-                clearSyncingState(); // Important to clear the loading state
+                clearSyncingState();
                 return;
             }
 
@@ -408,6 +424,9 @@ function skipSong() {
 }
 
 function previousSong() {
+    if (devices.value.length === 0 || selectedDevice.value === null) {
+        return;
+    }
     axios
         .post(`/api/spotify/previous-song/${props.mix.id}`)
         .then((response) => {
@@ -421,6 +440,9 @@ function previousSong() {
 }
 
 function pauseMix() {
+    if (devices.value.length === 0 || selectedDevice.value === null) {
+        return;
+    }
     axios
         .post(`/api/spotify/pause-mix/${props.mix.id}`)
         .then((response) => {
@@ -434,10 +456,20 @@ function pauseMix() {
 }
 
 async function resumeMix() {
+    if (devices.value.length === 0 || selectedDevice.value === null) {
+        return;
+    }
     try {
         const payload = {};
 
         // Add device_id to payload if we have a selected device
+        if (devices.value.length === 0) {
+            noDeviceSelectedError.value = true;
+            return;
+        } else {
+            noDeviceSelectedError.value = false;
+        }
+
         if (selectedDevice.value) {
             payload.device_id = selectedDevice.value.id;
         }
@@ -457,7 +489,7 @@ async function resumeMix() {
         if (error.response?.status === 500) {
             await refreshDevices();
             if (devices.value.length > 0) {
-                isDeviceDropdownOpen.value = true;
+                noDeviceSelectedError.value = true;
             }
         }
     }
@@ -487,9 +519,6 @@ async function refreshDevices() {
 }
 
 function selectDevice(device) {
-    // Close dropdown
-    isDeviceDropdownOpen.value = false;
-
     // Set selected device
     selectedDevice.value = device;
 
@@ -579,7 +608,7 @@ async function refreshMixState() {
 async function toggleMixActive() {
     try {
         //if no active device is selected, show toast.
-        if (selectedDevice.value === null) {
+        if (selectedDevice.value === null && !isMixActive.value) {
             toast.add({
                 message: "You must select a device first to start the sync.",
                 type: "danger",
@@ -674,8 +703,6 @@ function updatePlayerState(playbackData) {
 }
 
 onMounted(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-
     if (props.mix) {
         // Initialize state
         isMixActive.value = !!props.mix.is_active;
@@ -762,8 +789,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    document.removeEventListener("mousedown", handleClickOutside);
-
     Echo.leave(`mix.${props.mix.id}`);
     Echo.leave(`user.${page.props.user.id}`);
 });

@@ -6,7 +6,12 @@
         >
             <div class="relative mt-1">
                 <ListboxButton
-                    class="relative w-full cursor-default rounded-lg bg-card-background border-2 border-card-stroke text-zinc-100 py-2 pl-3 pr-10 text-left focus:outline-none focus-visible:border-zinc-500 focus-visible:ring-2 focus-visible:ring-white/75 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-800 text-sm"
+                    :class="[
+                        'relative w-full cursor-default rounded-lg bg-card-background text-zinc-100 py-2 pl-3 pr-10 text-left focus:outline-none focus-visible:border-zinc-500 focus-visible:ring-2 focus-visible:ring-white/75 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-800 text-sm',
+                        error
+                            ? 'border-1 border-red-500 '
+                            : 'border-1 border-card-stroke',
+                    ]"
                 >
                     <span
                         class="absolute inset-y-0 left-0 flex items-center pl-3"
@@ -31,7 +36,10 @@
 
                     <span
                         class="block truncate"
-                        :class="selectedDevice !== null ? 'ml-5' : ''"
+                        :class="[
+                            selectedDevice !== null ? 'ml-5' : '',
+                            error ? 'text-red-400' : 'text-zinc-300',
+                        ]"
                     >
                         {{ internalSelectedDevice?.name || "Select device" }}
                     </span>
@@ -40,7 +48,8 @@
                         class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
                     >
                         <ChevronDownIcon
-                            class="h-5 w-5 text-zinc-400"
+                            class="h-5 w-5"
+                            :class="error ? 'text-red-400' : 'text-zinc-400'"
                             aria-hidden="true"
                         />
                     </span>
@@ -236,6 +245,10 @@ const props = defineProps({
         default: false,
     },
     isTransferingDevice: {
+        type: Boolean,
+        default: false,
+    },
+    error: {
         type: Boolean,
         default: false,
     },
