@@ -38,7 +38,7 @@ use App\Http\Controllers\Application\Spotify\TransferPlaybackController;
 
 use App\Http\Controllers\Application\Mixes\AssignCoDJController;
 use App\Http\Controllers\Application\Mixes\RemoveCoDJController;
-use App\Http\Controllers\Application\Mixes\ToggleIsPublicController;
+use App\Http\Controllers\Application\Mixes\ToggleMixIsPublicController;
 
 Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function () {
     Route::middleware('auth')->group(function () {
@@ -56,7 +56,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
             Route::post('/remove-session-code/{mix}', RemoveSessionCodeController::class)->name('remove-session-code');
             Route::post('/assign-co-dj/{mix}', AssignCoDJController::class)->name('assign-co-dj');
             Route::post('/remove-co-dj/{mix}', RemoveCoDJController::class)->name('remove-co-dj');
-            Route::post('/toggle-visibility/{mix}', ToggleIsPublicController::class)->name('toggle-visibility');
+            Route::post('/toggle-visibility/{mix}', ToggleMixIsPublicController::class)->name('toggle-visibility');
 
             // app/mix/presets (mix.presets)
             Route::prefix('/presets')->name('presets.')->group(function () {

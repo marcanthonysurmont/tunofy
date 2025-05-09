@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use Illuminate\Http\RedirectResponse;
 
-class ToggleIsPublicController extends Controller
+class ToggleMixIsPublicController extends Controller
 {
     public function __invoke(Mix $mix): RedirectResponse
     {
@@ -17,7 +17,7 @@ class ToggleIsPublicController extends Controller
             $message = 'Mix is now private.';
 
             //check if the mix is now public
-            if ($isNowPublic == true) {
+            if ($isNowPublic === true) {
                 $message = 'Mix is now public.';
             }
 
