@@ -13,6 +13,17 @@
                 label="Spotify sync"
                 @click="toggleMixActive"
             />
+
+            <!-- Device dropdown -->
+            <DeviceDropdown
+                v-if="props.mix.authorized.canControlPlayback"
+                :devices="devices"
+                :selected-device="selectedDevice"
+                :is-loading="isLoadingDevices"
+                :is-transfering-device="isTransferingDevice"
+                @refresh-devices="refreshDevices"
+                @update:selected-device="selectDevice"
+            />
         </div>
 
         <!-- Loading states - Prioritize showing one at a time -->
@@ -77,9 +88,11 @@
                 </div>
             </div>
             <h3 class="completion-message">Queue Completed</h3>
-            <p class="text-sm text-gray-500 mb-4">Add more songs to keep the mix going!</p>
-            <button 
-                @click="resetQueue" 
+            <p class="text-sm text-gray-500 mb-4">
+                Add more songs to keep the mix going!
+            </p>
+            <button
+                @click="resetQueue"
                 class="px-4 py-2 bg-spotify-green text-white rounded-full text-sm hover:bg-opacity-80 transition"
             >
                 Add Songs
@@ -120,109 +133,7 @@
                     />
                 </div>
 
-                <!-- Device selector RIGHT ABOVE StatusIndicator -->
-                <div v-if="props.mix.authorized.canControlPlayback" class="mr-4 relative" ref="deviceDropdownRef">
-                    <button 
-                        @click="toggleDeviceDropdown($event)" 
-                        type="button" 
-                        class="flex items-center gap-x-1 text-sm font-semibold leading-6 text-zinc-200 bg-card-background/80 px-3 py-1.5 rounded-md border border-zinc-700"
-                    >
-                        <div class="flex items-center">
-                            <span>{{
-                                selectedDevice
-                                    ? selectedDevice.name
-                                    : "Select device"
-                            }}</span>
-                            <ComputerDesktopIcon
-                                v-if="selectedDevice"
-                                class="ml-2 h-4 w-4 text-zinc-400"
-                            />
-                        </div>
-                        <ChevronDownIcon
-                            class="h-5 w-5 text-zinc-400"
-                            aria-hidden="true"
-                        />
-                    </button>
-
-                    <div
-                        v-if="isDeviceDropdownOpen"
-                        class="absolute bottom-full mb-2 right-0 z-10 w-56 origin-bottom-right rounded-md bg-card-background shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
-                        role="menu"
-                    >
-                        <div v-if="isLoadingDevices" class="p-4 text-center">
-                            <svg
-                                class="animate-spin h-5 w-5 mx-auto"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle
-                                    class="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    stroke-width="4"
-                                ></circle>
-                                <path
-                                    class="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                            </svg>
-                            <p class="mt-2 text-sm text-zinc-400">
-                                Loading devices...
-                            </p>
-                        </div>
-
-                        <div
-                            v-else-if="devices.length === 0"
-                            class="p-4 text-center"
-                        >
-                            <p class="text-sm text-zinc-400">
-                                No devices found
-                            </p>
-                            <p class="text-xs text-zinc-500 mt-1">
-                                Make sure Spotify is open on at least one device
-                            </p>
-                        </div>
-
-                        <div v-else class="py-1" role="none">
-                            <button
-                                v-for="device in devices"
-                                :key="device.id"
-                                @click="selectDevice(device)"
-                                class="w-full text-left px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-700 hover:text-white flex items-center justify-between"
-                                :class="{
-                                    'bg-zinc-800':
-                                        selectedDevice &&
-                                        selectedDevice.id === device.id,
-                                }"
-                                role="menuitem"
-                            >
-                                <span>{{ device.name }}</span>
-                                <CheckIcon
-                                    v-if="
-                                        selectedDevice &&
-                                        selectedDevice.id === device.id
-                                    "
-                                    class="h-4 w-4 text-primary"
-                                />
-                            </button>
-                        </div>
-
-                        <div class="border-t border-zinc-700 py-1">
-                            <button
-                                @click="refreshDevices"
-                                class="w-full text-left px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-700 hover:text-white flex items-center"
-                                role="menuitem"
-                            >
-                                <ArrowPathIcon class="mr-2 h-4 w-4" />
-                                Refresh devices
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <!-- Status indicator StatusIndicator -->
 
                 <StatusIndicator
                     :is-playing="isPlaying"
@@ -258,27 +169,6 @@
                         <PlayCircleIcon class="size-12 opacity-50" />
                         <ChevronDoubleRightIcon class="size-6 opacity-50" />
                     </div>
-
-                    <!-- Device selector for mobile above status indicator -->
-
-                    <div v-if="props.mix.authorized.canControlPlayback" class="mb-2 relative" ref="deviceDropdownRefMobile">
-                        <button 
-                            @click="toggleDeviceDropdown($event)" 
-                            type="button" 
-                            class="flex items-center gap-x-1 text-sm font-semibold leading-6 text-zinc-200 bg-card-background/80 px-3 py-1.5 rounded-md border border-zinc-700"
-                        >
-                            <span class="truncate max-w-[100px]">{{
-                                selectedDevice
-                                    ? selectedDevice.name
-                                    : "Select device"
-                            }}</span>
-                            <ChevronDownIcon
-                                class="h-5 w-5 text-zinc-400"
-                                aria-hidden="true"
-                            />
-                        </button>
-                    </div>
-
                     <StatusIndicator
                         :is-playing="isPlaying"
                         :is-sync-disabled="!isMixActive"
@@ -344,111 +234,7 @@
                     />
                 </div>
 
-                <!-- Device selector above status indicator for active queue -->
-                <div v-if="props.mix.authorized.canControlPlayback" class="mr-4 relative" ref="deviceDropdownRefActive">
-                    <button 
-                        @click="toggleDeviceDropdown($event)" 
-                        type="button" 
-                        class="flex items-center gap-x-1 text-sm font-semibold leading-6 text-zinc-200 bg-card-background/80 px-3 py-1.5 rounded-md border border-zinc-700"
-                    >
-                        <div class="flex items-center">
-                            <span>{{
-                                selectedDevice
-                                    ? selectedDevice.name
-                                    : "Select device"
-                            }}</span>
-                            <ComputerDesktopIcon
-                                v-if="selectedDevice"
-                                class="ml-2 h-4 w-4 text-zinc-400"
-                            />
-                        </div>
-                        <ChevronDownIcon
-                            class="h-5 w-5 text-zinc-400"
-                            aria-hidden="true"
-                        />
-                    </button>
-
-                    <!-- This is the dropdown menu that was missing -->
-                    <div
-                        v-if="isDeviceDropdownOpen"
-                        class="absolute bottom-full mb-2 right-0 z-10 w-56 origin-bottom-right rounded-md bg-card-background shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
-                        role="menu"
-                    >
-                        <div v-if="isLoadingDevices" class="p-4 text-center">
-                            <svg
-                                class="animate-spin h-5 w-5 mx-auto"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle
-                                    class="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    stroke-width="4"
-                                ></circle>
-                                <path
-                                    class="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                            </svg>
-                            <p class="mt-2 text-sm text-zinc-400">
-                                Loading devices...
-                            </p>
-                        </div>
-
-                        <div
-                            v-else-if="devices.length === 0"
-                            class="p-4 text-center"
-                        >
-                            <p class="text-sm text-zinc-400">
-                                No devices found
-                            </p>
-                            <p class="text-xs text-zinc-500 mt-1">
-                                Make sure Spotify is open on at least one device
-                            </p>
-                        </div>
-
-                        <div v-else class="py-1" role="none">
-                            <button
-                                v-for="device in devices"
-                                :key="device.id"
-                                @click="selectDevice(device)"
-                                class="w-full text-left px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-700 hover:text-white flex items-center justify-between"
-                                :class="{
-                                    'bg-zinc-800':
-                                        selectedDevice &&
-                                        selectedDevice.id === device.id,
-                                }"
-                                role="menuitem"
-                            >
-                                <span>{{ device.name }}</span>
-                                <CheckIcon
-                                    v-if="
-                                        selectedDevice &&
-                                        selectedDevice.id === device.id
-                                    "
-                                    class="h-4 w-4 text-primary"
-                                />
-                            </button>
-                        </div>
-
-                        <div class="border-t border-zinc-700 py-1">
-                            <button
-                                @click="refreshDevices"
-                                class="w-full text-left px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-700 hover:text-white flex items-center"
-                                role="menuitem"
-                            >
-                                <ArrowPathIcon class="mr-2 h-4 w-4" />
-                                Refresh devices
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
+                <!-- status indicator for active queue -->
                 <StatusIndicator :is-playing="isPlaying" />
             </div>
 
@@ -512,23 +298,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, computed } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import axios from "axios";
-import { router, usePage } from '@inertiajs/vue3'; // Import usePage
+import { router, usePage } from "@inertiajs/vue3";
 import { ChevronDoubleLeftIcon } from "@heroicons/vue/16/solid";
 import { ChevronDoubleRightIcon } from "@heroicons/vue/16/solid";
-import {
-    PauseCircleIcon,
-    PlayCircleIcon,
-    ComputerDesktopIcon,
-    CheckIcon,
-    ChevronDownIcon,
-    ArrowPathIcon,
-} from "@heroicons/vue/24/solid";
+import { PauseCircleIcon, PlayCircleIcon } from "@heroicons/vue/24/solid";
 import ToggleSwitchReadValue from "@/components/forms/ToggleSwitchReadValue.vue";
 import StatusIndicator from "@/components/playback/StatusIndicator.vue";
+import DeviceDropdown from "./DeviceDropdown.vue";
+import toast from "@/stores/StoreToast.js";
 
-const page = usePage(); // Access the page object
+const page = usePage();
 
 const props = defineProps({
     mix: {
@@ -540,6 +321,7 @@ const props = defineProps({
 // Current state variables
 const isMixActive = ref(props.mix?.is_active || false);
 const isLoading = ref(false);
+const isTransferingDevice = ref(false);
 const currentTrack = ref(null);
 const isPlaying = ref(false);
 const isSyncingWithSpotify = ref(false);
@@ -597,7 +379,7 @@ function skipSong() {
                 clearSyncingState(); // Important to clear the loading state
                 return;
             }
-            
+
             if (response.data.success && response.data.song) {
                 // Transform the data to match the expected structure
                 currentTrack.value = {
@@ -654,20 +436,23 @@ function pauseMix() {
 async function resumeMix() {
     try {
         const payload = {};
-        
+
         // Add device_id to payload if we have a selected device
         if (selectedDevice.value) {
             payload.device_id = selectedDevice.value.id;
         }
-        
-        const response = await axios.post(`/api/spotify/resume-mix/${props.mix.id}`, payload);
-        
+
+        const response = await axios.post(
+            `/api/spotify/resume-mix/${props.mix.id}`,
+            payload
+        );
+
         if (response.data.success) {
             isPlaying.value = true;
         }
     } catch (error) {
         console.error("Failed to resume playback:", error);
-        
+
         // If error suggests no device, refresh devices and show dropdown
         if (error.response?.status === 500) {
             await refreshDevices();
@@ -684,6 +469,7 @@ async function refreshDevices() {
         isLoadingDevices.value = true;
         const response = await axios.get("/api/spotify/devices");
         devices.value = response.data.devices || [];
+        console.log("Devices refreshed:", devices.value);
 
         // Auto-select the active device if one exists
         const activeDevice = devices.value.find((d) => d.is_active);
@@ -731,7 +517,8 @@ async function transferPlayback(deviceId) {
         console.log(`Transferring playback to device: ${deviceId}`);
 
         // Show loading state
-        isLoadingDevices.value = true;
+        // isLoadingDevices.value = true;
+        isTransferingDevice.value = true;
 
         // Call the API to transfer playback
         const response = await axios.post(
@@ -751,7 +538,8 @@ async function transferPlayback(deviceId) {
     } catch (error) {
         console.error("Failed to transfer playback:", error);
     } finally {
-        isLoadingDevices.value = false;
+        // isLoadingDevices.value = false;
+        isTransferingDevice.value = false;
     }
 }
 
@@ -790,6 +578,15 @@ async function refreshMixState() {
 // Update toggleMixActive to use selected device
 async function toggleMixActive() {
     try {
+        //if no active device is selected, show toast.
+        if (selectedDevice.value === null) {
+            toast.add({
+                message: "You must select a device first to start the sync.",
+                type: "danger",
+            });
+            return;
+        }
+
         // Prevent rapid toggling
         if (Date.now() - lastToggleTime.value < 1000) return;
         lastToggleTime.value = Date.now();
@@ -799,7 +596,7 @@ async function toggleMixActive() {
 
         // Optimistically update UI
         const targetActive = !isMixActive.value;
-        
+
         // Always clear queue completed state when toggling, especially when deactivating
         if (!targetActive || queueCompleted.value) {
             queueCompleted.value = false;
@@ -816,7 +613,7 @@ async function toggleMixActive() {
             `/api/spotify/set-mix-active/${props.mix.id}`,
             {
                 active: targetActive,
-                deviceId: deviceIdToUse, // Explicitly include device ID
+                deviceId: deviceIdToUse,
                 reset_queue: true,
             }
         );
@@ -951,19 +748,21 @@ onMounted(() => {
                     setSyncingState();
                     queueCompleted.value = false;
                 }
-            })
+            });
 
-        Echo.private('user.' + page.props.user.id)
-            .listen('.co-dj-updated', async () => {
+        Echo.private("user." + page.props.user.id).listen(
+            ".co-dj-updated",
+            async () => {
                 await refreshDevices();
 
-                router.reload({ only: ['mix'] });
-            })
+                router.reload({ only: ["mix"] });
+            }
+        );
     }
 });
 
 onUnmounted(() => {
-    document.removeEventListener('mousedown', handleClickOutside);
+    document.removeEventListener("mousedown", handleClickOutside);
 
     Echo.leave(`mix.${props.mix.id}`);
     Echo.leave(`user.${page.props.user.id}`);
@@ -1010,6 +809,7 @@ onUnmounted(() => {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -1057,7 +857,8 @@ onUnmounted(() => {
 }
 
 .play-status.is-playing {
-    color: #1db954; /* Spotify green */
+    color: #1db954;
+    /* Spotify green */
 }
 
 .mix-controls {
@@ -1075,7 +876,8 @@ onUnmounted(() => {
 }
 
 .control-button.active {
-    background-color: #1db954; /* Spotify green */
+    background-color: #1db954;
+    /* Spotify green */
 }
 
 .control-button.inactive {
