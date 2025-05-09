@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -41,6 +42,8 @@ class User extends Authenticatable
         ];
     }
 
+    protected $appends = ['authorized'];
+
     /**************************************/
     /*           Relationships            */
     /**************************************/
@@ -60,6 +63,13 @@ class User extends Authenticatable
     /**************************************/
     /*       Accessors / Mutators         */
     /**************************************/
+
+    public function authorized(): Attribute
+    {
+        return new Attribute(fn() => [
+            'hasPremium' => $this->type === 'premium',
+        ]);
+    }
 
     /**************************************/
     /*              Scopes                */
