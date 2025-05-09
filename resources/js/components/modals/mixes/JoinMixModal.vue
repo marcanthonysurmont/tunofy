@@ -26,7 +26,7 @@
                 class="w-full"
                 @click="joinMix"
                 :loading="isLoading"
-                >Add new mix
+                >Join mix
             </RegularButton>
         </template>
     </CreateModalDefault>
