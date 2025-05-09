@@ -379,11 +379,28 @@ class SpotifyPollingService
             return true;
         }
 
-        // Progress change of more than 3 seconds
-        if (isset($previous['progress_ms']) && isset($current['progress_ms']) &&
-            abs($current['progress_ms'] - $previous['progress_ms']) > 3000) {
-            $this->changeReason = "significant progress change";
-            return true;
+        // Only consider progress changes significant in specific cases:
+        // 1. Large jumps (seeking) of more than 10 seconds
+        // 2. When approaching the end of the track (last 15%)
+        if (isset($previous['progress_ms']) && isset($current['progress_ms'])) {
+            $progressDiff = abs($current['progress_ms'] - $previous['progress_ms']);
+
+            // Case 1: Large jump (seeking)
+            if ($progressDiff > 10000) { // 10 seconds
+                $this->changeReason = "seeking detected";
+                return true;
+            }
+
+            // Case 2: Near end of track
+            if (isset($current['item']['duration_ms']) && $current['item']['duration_ms'] > 0) {
+                $remainingPercent = ($current['item']['duration_ms'] - $current['progress_ms']) / $current['item']['duration_ms'] * 100;
+                if ($remainingPercent <= 15) {
+                    $this->changeReason = "approaching track end";
+                    return true;
+                }
+            }
+
+            // Normal playback progression - don't broadcast
         }
 
         // Not significant enough to broadcast
