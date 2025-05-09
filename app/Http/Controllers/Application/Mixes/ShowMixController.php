@@ -19,6 +19,7 @@ class ShowMixController extends Controller
 
         $user = Auth::user();
 
+        ds($mix);
         $mix->load(['songs.user', 'presets', 'user', 'collaborators']);
         $user->load(['mixes', 'accessibleMixes']);
 

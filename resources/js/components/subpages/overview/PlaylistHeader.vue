@@ -49,7 +49,7 @@
                     <div class="px-1.5 py-1.5">
                         <MenuItem
                             v-slot="{ active }"
-                            v-if="authorization.canUpdate"
+                            v-if="authorization.isOwner"
                         >
                             <button
                                 @click="showUpdateMixModal = true"
@@ -153,7 +153,7 @@
                                 >
                             </button>
                         </MenuItem>
-                        <MenuItem v-slot="{ active }" v-else>
+                        <MenuItem v-slot="{ active }" v-else-if="authorization.isOwner">
                             <button
                                 @click="toggleVisibility"
                                 :class="[
