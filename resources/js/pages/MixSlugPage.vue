@@ -80,7 +80,11 @@ const setActiveTab = (tabName) => {
     
     // Use browser's History API to update URL without page reload
     if (mix.value?.slug) {
-        const newUrl = `/${mix.value.slug}/${tabName.toLowerCase()}`;
+        // If Overview tab, just use the mix slug without tab in URL
+        const newUrl = tabName.toLowerCase() === 'overview' 
+            ? `/${mix.value.slug}` 
+            : `/${mix.value.slug}/${tabName.toLowerCase()}`;
+            
         // Update URL without triggering a page reload
         window.history.pushState(
             { tab: tabName.toLowerCase() }, 
@@ -98,15 +102,21 @@ const setActiveTab = (tabName) => {
 // Handle browser back/forward buttons
 window.addEventListener('popstate', (event) => {
     const urlParts = window.location.pathname.split('/');
-    const tabFromUrl = urlParts[urlParts.length - 1];
+    // Check if there is a tab in the URL (urlParts would have 3 segments if there's a tab)
+    const hasTabInUrl = urlParts.length > 2;
     
-    if (tabFromUrl) {
+    if (hasTabInUrl) {
+        const tabFromUrl = urlParts[urlParts.length - 1];
         const tabName = tabFromUrl.charAt(0).toUpperCase() + tabFromUrl.slice(1);
         localActiveTab.value = tabName;
-        
-        tabs.value.forEach((tab) => {
-            tab.active = tab.name.toLowerCase() === tabName.toLowerCase();
-        });
+    } else {
+        // If no tab in URL, we're on the Overview tab
+        localActiveTab.value = "Overview";
     }
+    
+    // Update tab active states
+    tabs.value.forEach((tab) => {
+        tab.active = tab.name.toLowerCase() === localActiveTab.value.toLowerCase();
+    });
 });
 </script>
