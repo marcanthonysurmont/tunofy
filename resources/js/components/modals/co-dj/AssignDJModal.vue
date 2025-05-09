@@ -48,7 +48,6 @@ const props = defineProps({
 
 const page = usePage();
 const mix = computed(() => page.props.mix);
-console.log(page.props);
 const people = computed(() => page.props.collaborators_premium);
 
 //look for the selected person in the list of people
