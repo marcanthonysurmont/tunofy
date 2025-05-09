@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Application\Mixes;
 use App\Models\Mix;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class DestroyMixController extends Controller
 {
@@ -13,10 +15,15 @@ class DestroyMixController extends Controller
         $this->authorize('delete', $mix);
 
         try {
+            $avatarPath = $mix->avatar;
+
+            if ($avatarPath && Storage::disk('public')->exists($avatarPath)) {
+                    Storage::disk('public')->delete($avatarPath);
+            }
+
             $mix->delete();
 
-            return redirect()
-                ->route('app')
+            return redirect()->route('app')
                 ->with('success', 'Mix deleted successfully.');
         } catch (\Exception $e) {
             return redirect()->back()
