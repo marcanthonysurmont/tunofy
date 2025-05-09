@@ -9,11 +9,11 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\MixResource;
-use App\Services\SpotifyService; // Add this import
+use App\Services\SpotifyService;
 
 class ShowMixController extends Controller
 {
-    public function __invoke(Mix $mix, SpotifyService $spotifyService): Response
+    public function __invoke(Mix $mix, SpotifyService $spotifyService, string $tab = 'overview'): Response
     {
         $this->authorize('view', $mix);
 
@@ -27,14 +27,15 @@ class ShowMixController extends Controller
         $collaborators = $mix->collaborators;
    
         return Inertia::render('MixSlugPage', [
-            'mix' => MixResource::make($mix)->jsonSerialize(),
-            'collaborators' => UserResource::collection($collaborators)->jsonSerialize(),
-            'collaborators_premium' => UserResource::collection($collaborators->where('type', 'premium'))->jsonSerialize(),
-            'presets' => $mix->all_presets,
-            'your_mixes' => $user->mixes,
-            'joined_mixes' => $user->accessibleMixes,
-            'owner' => $mix->user,
-            'devices' => $devices
+            'mix' => fn() => MixResource::make($mix)->jsonSerialize(),
+            'collaborators' => fn() => UserResource::collection($collaborators)->jsonSerialize(),
+            'collaborators_premium' => fn() => UserResource::collection($collaborators->where('type', 'premium'))->jsonSerialize(),
+            'presets' => fn() => $mix->all_presets,
+            'your_mixes' => fn() => $user->mixes,
+            'joined_mixes' => fn() => $user->accessibleMixes,
+            'owner' => fn() => $mix->user,
+            'devices' => fn() => $devices,
+            'activeTab' => fn() => $tab,
         ]);
     }
 }

@@ -43,7 +43,7 @@ use App\Http\Controllers\Application\Mixes\ToggleMixIsPublicController;
 Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function () {
     Route::middleware('auth')->group(function () {
         Route::get('/', ShowAppPageController::class)->name('app');
-        Route::get('/{mix:slug}', ShowMixController::class)->name('mix.show');
+        Route::get('/{mix:slug}/{tab?}', ShowMixController::class)->name('mix.show');
 
         Route::prefix('/mix')->name('mix.')->group(function () {
             Route::post('/store', StoreMixController::class)->name('store');
