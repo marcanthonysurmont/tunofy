@@ -18,6 +18,8 @@ class LogoutController extends Controller
 
         $request->session()->regenerateToken();
 
-        return Inertia::location(route('landing'));
+        $mainDomain = str_replace('app.', '', env('APP_URL'));
+        
+        return Inertia::location($mainDomain);
     }
 }

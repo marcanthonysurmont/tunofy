@@ -79,7 +79,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
             Route::post('/transfer-playback/{mix}', TransferPlaybackController::class)->name('transfer-playback');
         });
 
-        Route::get('/logout', LogoutController::class)->name('logout');
+        Route::post('/logout', LogoutController::class)->name('logout');
     });
 
     Route::middleware('guest')->group(function () {

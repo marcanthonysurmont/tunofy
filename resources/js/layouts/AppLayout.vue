@@ -207,7 +207,7 @@
                                 }}</span>
                             </a>
                             <div class="flex items-center gap-x-2">
-                                <Link :href="route('logout')" method="GET">
+                                <Link :href="route('logout')" method="POST">
                                     <ArrowLeftEndOnRectangleIcon
                                         class="size-6 stroke-2 text-white font-bold cursor-pointer custom-item-hover"
                                     />
