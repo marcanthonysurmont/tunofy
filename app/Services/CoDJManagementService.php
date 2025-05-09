@@ -55,20 +55,29 @@ class CoDJManagementService
         // Store co-DJ before removing relationship
         $coDJ = $mix->coDJ;
 
+        // Capture current playing track before switch
+        $currentlyPlaying = QueueSong::where('mix_id', $mix->id)
+                            ->where('status', 'playing')
+                            ->with('song')
+                            ->first();
+
         // Update the mix
         $mix->update(['co_dj_id' => null]);
-
-        // Notify the removed co-DJ
-        if ($coDJ) {
-            CoDJUpdatedEvent::dispatch($coDJ);
-
-            // Add this line to broadcast the mix status change to all listeners
-            event(new MixStatusChangedEvent($mix, false, 'co_dj_left'));
-        }
 
         // Prepare queue for user switch
         $this->songPlaybackService->prepareQueueForUserSwitch($mix->id);
 
+        // If there was a playing song, ensure it's correctly set after transition
+        if ($currentlyPlaying) {
+            Cache::put("mix:{$mix->id}:transition_track", $currentlyPlaying->song->spotify_id, now()->addMinutes(1));
+        }
+
+        // Notify the removed co-DJ
+        if ($coDJ) {
+            CoDJUpdatedEvent::dispatch($coDJ, [
+                'playing_track' => $currentlyPlaying ? $currentlyPlaying->song->spotify_id : null,
+            ]);
+        }
         // Clear device from cache
         Cache::forget("mix:{$mix->id}:device_id");
 
