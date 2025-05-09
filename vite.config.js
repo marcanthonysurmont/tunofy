@@ -47,7 +47,7 @@ export default defineConfig({
         strictPort: true,
         origin: 'https://tunofy.ddev.site:5173',
         cors: {
-            origin: ['https://tunofy.ddev.site', 'http://tunofy.ddev.site'],
+            origin: ['https://tunofy.ddev.site', 'https://app.tunofy.ddev.site'],
             methods: ['GET', 'POST', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Connection', 'Upgrade-Insecure-Requests']
         },

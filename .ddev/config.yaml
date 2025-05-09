@@ -4,28 +4,25 @@ docroot: public
 php_version: "8.3"
 webserver_type: nginx-fpm
 xdebug_enabled: false
-additional_hostnames: []
-additional_fqdns: []
+additional_fqdns:
+  - app.tunofy.ddev.site
 database:
-  type: mysql
-  version: "8.0"
+    type: mysql
+    version: "8.0"
 use_dns_when_possible: true
 composer_version: "2"
 web_environment: []
 corepack_enable: false
-
 web_extra_exposed_ports:
-  - name: node-vite
-    container_port: 5173
-    http_port: 5172
-    https_port: 5173
+    - name: node-vite
+      container_port: 5173
+      http_port: 5172
+      https_port: 5173
 web_extra_daemons:
-  - name: vite
-    command: bash -c 'npm install && npm run dev -- --host'
-    directory: /var/www/html
-  # - name: reverb
-  #   command: bash -c 'php artisan reverb:start'
-  #   directory: /var/www/html
+    - name: vite
+      command: bash -c 'npm install && npm run dev -- --host'
+      directory: /var/www/html
+
 # Key features of DDEV's config.yaml:
 
 # name: <projectname> # Name of the project, automatically provides
@@ -60,10 +57,27 @@ web_extra_daemons:
 # "ddev xdebug" to enable Xdebug and "ddev xdebug off" to disable it work better,
 # as leaving Xdebug enabled all the time is a big performance hit.
 
+# xhgui_https_port: 8142
+# Can be used to change the router https port for xhgui application
+# Very rarely used
+
+# xhgui_http_port: 8143
+# Can be used to change the router http port for xhgui application
+# Very rarely used
+
+# host_xhgui_port: 8142
+# Can be used to change the host binding port of the xhgui
+# application. Rarely used; only when port conflict and 
+# bind_all_ports is used (normally with router disabled)
+
 # xhprof_enabled: false  # Set to true to enable Xhprof and "ddev start" or "ddev restart"
 # Note that for most people the commands
 # "ddev xhprof" to enable Xhprof and "ddev xhprof off" to disable it work better,
 # as leaving Xhprof enabled all the time is a big performance hit.
+
+# xhprof_mode: [prepend|xhgui|global]
+# Set to "xhgui" to enable XHGui features
+# "xhgui" will become default in a future major release
 
 # webserver_type: nginx-fpm, apache-fpm, generic
 

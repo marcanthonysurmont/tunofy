@@ -40,13 +40,8 @@ use App\Http\Controllers\Application\Mixes\AssignCoDJController;
 use App\Http\Controllers\Application\Mixes\RemoveCoDJController;
 use App\Http\Controllers\Application\Mixes\ToggleIsPublicController;
 
-Route::get('/', ShowLandingPageController::class)->name('landing');
-Route::get('/dpa', ShowDPAPageController::class);
-Route::get('/privacy', ShowPrivacyPageController::class);
-Route::get('/terms-of-use', ShowTermsOfUsePageController::class);
-
-Route::middleware('auth')->group(function () {
-    Route::prefix('/app')->group(function () {
+Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function () {
+    Route::middleware('auth')->group(function () {
         Route::get('/', ShowAppPageController::class)->name('app');
         Route::get('/{mix:slug}', ShowMixController::class)->name('mix.show');
 
@@ -70,27 +65,32 @@ Route::middleware('auth')->group(function () {
                 Route::delete('/destroy/{preset}', DestroyPresetController::class)->name('destroy');
             });
         });
+
+        Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
+            Route::post('/search', SearchSongController::class)->name('search');
+
+            Route::get('/request-status', RequestSpotifyPlayerStatusController::class)->name('request-status');
+            Route::post('/set-mix-active/{mix}', SetMixActiveController::class)->name('set-mix-active');
+            Route::post('/pause-mix/{mix}', PauseMixPlaybackController::class)->name('pause-mix');
+            Route::post('/resume-mix/{mix}', ResumeMixPlaybackController::class)->name('resume-mix');
+            Route::post('/skip-song/{mix}', PlayNextSongController::class)->name('skip-song');
+            Route::post('/previous-song/{mix}', PlayPreviousSongController::class)->name('previous-song');
+            Route::get('/devices', GetDevicesController::class)->name('devices');
+            Route::post('/transfer-playback/{mix}', TransferPlaybackController::class)->name('transfer-playback');
+        });
+
+        Route::get('/logout', LogoutController::class)->name('logout');
     });
 
-    Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
-        Route::post('/search', SearchSongController::class)->name('search');
-
-        Route::get('/request-status', RequestSpotifyPlayerStatusController::class)->name('request-status');
-        Route::post('/set-mix-active/{mix}', SetMixActiveController::class)->name('set-mix-active');
-        Route::post('/pause-mix/{mix}', PauseMixPlaybackController::class)->name('pause-mix');
-        Route::post('/resume-mix/{mix}', ResumeMixPlaybackController::class)->name('resume-mix');
-        Route::post('/skip-song/{mix}', PlayNextSongController::class)->name('skip-song');
-        Route::post('/previous-song/{mix}', PlayPreviousSongController::class)->name('previous-song');
-        Route::get('/devices', GetDevicesController::class)->name('devices');
-        Route::post('/transfer-playback/{mix}', TransferPlaybackController::class)->name('transfer-playback');
+    Route::middleware('guest')->group(function () {
+        Route::prefix('/auth')->group(function () {
+            Route::get('/login/spotify', RedirectToSpotifyController::class)->name('login');
+            Route::get('/spotify/callback', SpotifyCallbackController::class)->name('callback');
+        });
     });
-
-    Route::get('/logout', LogoutController::class)->name('logout');
 });
 
-Route::middleware('guest')->group(function () {
-    Route::prefix('/auth')->group(function () {
-        Route::get('/login/spotify', RedirectToSpotifyController::class)->name('login');
-        Route::get('/spotify/callback', SpotifyCallbackController::class)->name('callback');
-    });
-});
+Route::get('/', ShowLandingPageController::class)->name('landing');
+Route::get('/dpa', ShowDPAPageController::class);
+Route::get('/privacy', ShowPrivacyPageController::class);
+Route::get('/terms-of-use', ShowTermsOfUsePageController::class);
