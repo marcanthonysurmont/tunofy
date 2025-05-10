@@ -81,6 +81,7 @@
                                         :active="active"
                                         class="mr-2 h-5 w-5 text-white"
                                         aria-hidden="true"
+                                        @click="kickUser(person)"
                                     />
                                     <span class="font-medium align-middle"
                                         >Kick from mix</span
@@ -98,6 +99,8 @@
 <script setup>
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
 import { EllipsisVerticalIcon } from "@heroicons/vue/20/solid";
+import { router, usePage } from "@inertiajs/vue3";
+import { computed } from "vue";
 import {
     LockClosedIcon,
     ShieldCheckIcon,
@@ -106,10 +109,14 @@ import {
     XMarkIcon,
 } from "@heroicons/vue/24/outline";
 
-import { usePage } from "@inertiajs/vue3";
-
 const page = usePage();
 
-const people = page.props.collaborators;
+const people = computed(() => page.props.collaborators);
+
+const kickUser = (person) => {
+    router.post(`/mix/remove-user-access/${page.props.mix.id}`, {
+        user_id: person.id,
+    });
+}
 
 </script>

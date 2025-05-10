@@ -40,7 +40,7 @@ use App\Http\Controllers\Application\Mixes\AssignCoDJController;
 use App\Http\Controllers\Application\Mixes\RemoveCoDJController;
 use App\Http\Controllers\Application\Mixes\ToggleMixIsPublicController;
 use App\Http\Controllers\Application\Mixes\SearchUserController;
-use App\Models\User;
+use App\Http\Controllers\Application\Mixes\RemoveUserMixAccessController;
 
 Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function () {
     Route::middleware('auth')->group(function () {
@@ -57,6 +57,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
             Route::post('/remove-co-dj/{mix}', RemoveCoDJController::class)->name('remove-co-dj');
             Route::post('/toggle-visibility/{mix}', ToggleMixIsPublicController::class)->name('toggle-visibility');
             Route::get('/search-user/{mix}', SearchUserController::class)->name('search-user');
+            Route::post('/remove-user-access/{mix}', RemoveUserMixAccessController::class)->name('remove-user-access');
 
             // app/mix/presets (mix.presets)
             Route::prefix('/presets')->name('presets.')->group(function () {
