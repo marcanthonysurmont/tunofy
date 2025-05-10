@@ -99,12 +99,12 @@ import { ClipboardDocumentIcon, CheckIcon } from "@heroicons/vue/24/outline";
 import { ExclamationCircleIcon } from "@heroicons/vue/24/solid";
 
 const notificationMethods = [
-    { id: "view", title: "View" },
-    { id: "contribute", title: "Contribute" },
-    { id: "edit", title: "Edit" },
+    { id: "viewer", title: "Viewer" },
+    { id: "contributor", title: "Contributor" },
+    { id: "editor", title: "Editor" },
 ];
 
-const selectedMethod = ref("view");
+const selectedMethod = ref("viewer");
 const page = usePage();
 const mix = computed(() => page.props.mix);
 const codeGenerated = ref(false);
@@ -128,7 +128,7 @@ function resetState() {
     form.reset();
     form.clearErrors();
     codeGenerated.value = false;
-    selectedMethod.value = "view";
+    selectedMethod.value = "viewer";
 }
 
 function generateCode() {
@@ -153,6 +153,7 @@ function generateCode() {
                 response?.props?.mix?.session_code || "Code not found";
         },
         onError: (errors) => {
+            console.log(selectedMethod.value);
             console.log(errors);
         },
     });

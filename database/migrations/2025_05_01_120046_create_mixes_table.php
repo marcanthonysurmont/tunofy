@@ -17,7 +17,7 @@ return new class () extends Migration {
             $table->string('slug');
             $table->string('session_code')->nullable();
             $table->timestamp('session_code_expires_at')->nullable();
-            $table->enum('session_code_permission', ['view', 'contribute', 'edit'])->nullable();
+            $table->enum('session_code_permission', ['viewer', 'contributor', 'editor'])->nullable();
             $table->boolean('is_public');
             $table->boolean('is_active')->default(false);
             $table->foreignId('co_dj_id')->nullable()->constrained('users')->onDelete('set null');

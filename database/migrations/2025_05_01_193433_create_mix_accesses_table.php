@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('mix_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('permission', ['viewer', 'contributer', 'editor'])->default('viewer');
+            $table->enum('permission', ['viewer', 'contributor', 'editor'])->default('viewer');
             $table->timestamps();
 
             $table->unique(['mix_id', 'user_id']);
