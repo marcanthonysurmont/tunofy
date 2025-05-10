@@ -52,7 +52,7 @@ import MixWithoutPlayback from "./MixWithoutPlayback.vue";
 import MixWithPlayback from "./MixWithPlayback.vue";
 import MixWithPlaybackMobile from "./MixWithPlaybackMobile.vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { usePage } from "@inertiajs/vue3";
+import { usePage, router } from "@inertiajs/vue3";
 import toast from "@/stores/StoreToast.js";
 
 const page = usePage();
