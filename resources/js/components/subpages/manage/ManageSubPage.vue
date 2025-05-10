@@ -1,5 +1,5 @@
 <template>
-    <h1 class="text-4xl sm:text-5xl font-medium mb-2">Users</h1>
+    <h1 class="text-4xl sm:text-5xl font-medium mb-6">Users</h1>
     <!-- <p class="mb-6">Manage the users in your playlist.</p> -->
     <SearchBarUsers />
     <UsersList />
