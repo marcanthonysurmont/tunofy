@@ -61,7 +61,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { usePage } from "@inertiajs/vue3";
 import { debounce } from "lodash";
@@ -74,6 +74,20 @@ const isFocused = ref(false);
 const query = ref(props.query || "");
 const isLoading = ref(false);
 const searchInput = ref(null);
+
+const emit = defineEmits(["search-updated", "is-searching"]);
+
+watch(
+    query,
+    (newValue) => {
+        if (newValue.length > 0) {
+            emit("is-searching", true);
+            return;
+        }
+        emit("is-searching", false);
+    },
+    { immediate: true }
+);
 
 function handleSearch(event) {
     //map the event to the query variable
@@ -96,8 +110,8 @@ async function searchUsers() {
                 params: { q: query.value },
             }
         );
-
-        console.log("Search results:", response.data);
+        console.log("Search results:", response.data.data);
+        emit("search-updated", response.data.data);
     } catch (error) {
         console.error("Search failed:", error);
     } finally {
