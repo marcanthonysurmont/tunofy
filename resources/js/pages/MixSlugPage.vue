@@ -15,7 +15,7 @@
                 <ManageSubPage v-else-if="activeTab === 'Manage'" />
             </div>
         </Transition>
-        <MixPlayback :mix="mix" />
+        <MixController :mix="mix" />
     </AppLayout>
 </template>
 
@@ -28,7 +28,7 @@ import OverviewSubPage from "@/components/subpages/overview/OverviewSubPage.vue"
 import PresetsSubPage from "@/components/subpages/presets/PresetsSubPage.vue";
 import StatsSubPage from "@/components/subpages/stats/StatsSubPage.vue";
 import VotingSubPage from "@/components/subpages/voting/VotingSubPage.vue";
-import MixPlayback from "@/components/playback/MixPlayback.vue";
+import MixController from "@/components/playback/MixController.vue";
 import ManageSubPage from "@/components/subpages/manage/ManageSubPage.vue";
 
 const tabs = ref([

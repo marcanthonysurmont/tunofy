@@ -1,291 +1,68 @@
 <template>
-    <div
-        class="fixed bottom-0 left-0 right-0 w-full z-40 bg-card-background/40 border-t-2 lg:border-2 backdrop-blur-xl border-card-stroke p-4 lg:fixed lg:bottom-5 lg:left-1/2 lg:-translate-x-1/2 lg:ml-[160px] lg:max-w-2xl lg:rounded-lg xl:max-w-3xl"
-    >
-        <!-- top part of the player -->
-        <div
-            v-if="props.mix.authorized.canControlPlayback"
-            class="mb-4 flex flex-row justify-between items-center"
-        >
-            <ToggleSwitchReadValue
-                :model-value="isMixActive"
-                :disabled="isLoading"
-                @click="toggleMixActive"
-            />
-            <!-- Device dropdown -->
-            <DeviceDropdown
-                v-if="props.mix.authorized.canControlPlayback"
-                :devices="devices"
-                :selected-device="selectedDevice"
-                :is-loading="isLoadingDevices"
-                :is-transfering-device="isTransferingDevice"
-                @refresh-devices="refreshDevices"
-                @update:selected-device="selectDevice"
-            />
-        </div>
-
-        <!-- Loading states - Prioritize showing one at a time -->
-        <div v-if="isLoading" class="text-center p-5 text-zinc-400">
-            <div class="flex items-center justify-center">
-                <SpinningCircle />
-                <p>Updating state...</p>
-            </div>
-        </div>
-
-        <!-- Loading state while we're syncing with Spotify -->
-        <div
-            v-else-if="isSyncingWithSpotify"
-            class="text-center p-5 text-zinc-400"
-        >
-            <div class="flex items-center justify-center">
-                <SpinningCircle />
-                <p>Syncing with Spotify...</p>
-            </div>
-        </div>
-
-        <!-- Desktop player with no active queue -->
-        <div v-else-if="isMixActive === false">
-            <div class="flex-row items-center w-full hidden md:flex">
-                <div class="flex items-center flex-1 gap-1">
-                    <img
-                        src="/images/default-song.png"
-                        class="size-14 rounded-sm"
-                        alt="Album Art"
-                    />
-                    <div class="flex-1 ml-2">
-                        <div class="mb-1">
-                            <p class="font-semibold">No song playing</p>
-                        </div>
-                        <div class="text-zinc-400 text-sm">
-                            <p>No song playing</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div
-                    v-if="props.mix.authorized.canControlPlayback"
-                    class="flex flex-row items-center justify-center flex-none gap-2"
-                >
-                    <ChevronDoubleLeftIcon
-                        class="size-6 cursor-not-allowed opacity-50"
-                    />
-                    <PlayCircleIcon
-                        class="size-12 cursor-not-allowed opacity-50"
-                    />
-                    <ChevronDoubleRightIcon
-                        class="size-6 cursor-not-allowed opacity-50"
-                    />
-                </div>
-                <StatusIndicator
-                    :is-playing="isPlaying"
-                    :is-sync-disabled="!isMixActive"
-                />
-            </div>
-
-            <!-- Mobile playback with no active queue -->
-            <div
-                class="flex flex-row items-center w-full md:hidden gap-2 sm:gap-0"
-            >
-                <div class="flex items-center flex-1">
-                    <img
-                        src="/images/default-song.png"
-                        class="size-14 rounded-sm"
-                        alt="Album Art"
-                    />
-                    <div class="flex-1 ml-2">
-                        <div class="mb-1">
-                            <p class="font-semibold text-lg">No song playing</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-zinc-400">No song playing</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex flex-col gap-3">
-                    <div
-                        v-if="props.mix.authorized.canControlPlayback"
-                        class="flex flex-row items-center justify-center flex-none gap-2"
-                    >
-                        <ChevronDoubleLeftIcon class="size-6 opacity-50" />
-                        <PlayCircleIcon class="size-12 opacity-50" />
-                        <ChevronDoubleRightIcon class="size-6 opacity-50" />
-                    </div>
-                    <StatusIndicator
-                        :is-playing="isPlaying"
-                        :is-sync-disabled="!isMixActive"
-                        v-else
-                    />
-                </div>
-            </div>
-        </div>
-
-        <div v-else-if="!currentTrack" class="text-center py-2">
-            <p class="text-zinc-400">Nothing is currently playing..</p>
-        </div>
-
-        <!-- desktop playback with active queue -->
-        <div v-else-if="isMixActive">
-            <div class="flex-row items-center w-full hidden md:flex">
-                <div class="flex items-center flex-1 gap-1">
-                    <img
-                        v-if="currentTrack.album?.images?.length"
-                        :src="currentTrack.album.images[0].url"
-                        class="size-14 rounded-sm"
-                        alt="Album Art"
-                    />
-                    <div class="flex-1 ml-2">
-                        <div class="text-white text-lg mb-1">
-                            <p class="font-semibold">
-                                {{ currentTrack.name }}
-                            </p>
-                        </div>
-                        <div class="text-sm text-zinc-300">
-                            <p>
-                                {{
-                                    currentTrack.artists
-                                        ?.map((a) => a.name)
-                                        .join(", ")
-                                }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div
-                    v-if="props.mix.authorized.canControlPlayback"
-                    class="flex flex-row items-center justify-center flex-none gap-2"
-                >
-                    <ChevronDoubleLeftIcon
-                        :class="[
-                            devices.length === 0 || selectedDevice === null
-                                ? 'opacity-50 !cursor-not-allowed'
-                                : '',
-                        ]"
-                        @click="previousSong"
-                        class="size-6 cursor-pointer"
-                    />
-                    <PauseCircleIcon
-                        :class="[
-                            devices.length === 0 || selectedDevice === null
-                                ? 'opacity-50 !cursor-not-allowed'
-                                : '',
-                        ]"
-                        @click="pauseMix"
-                        v-if="isPlaying"
-                        class="size-12 cursor-pointer"
-                    />
-                    <PlayCircleIcon
-                        :class="[
-                            devices.length === 0 || selectedDevice === null
-                                ? 'opacity-50 !cursor-not-allowed'
-                                : '',
-                        ]"
-                        @click="resumeMix"
-                        v-if="!isPlaying"
-                        class="size-12 cursor-pointer"
-                    />
-                    <ChevronDoubleRightIcon
-                        :class="[
-                            devices.length === 0 || selectedDevice === null
-                                ? 'opacity-50 !cursor-not-allowed'
-                                : '',
-                        ]"
-                        class="size-6 cursor-pointer"
-                        @click="skipSong"
-                    />
-                </div>
-
-                <!-- status indicator for active queue -->
-                <StatusIndicator :is-playing="isPlaying" />
-            </div>
-
-            <!-- mobile playback with active queue -->
-            <div
-                class="flex flex-row items-center w-full md:hidden gap-2 sm:gap-0"
-            >
-                <div class="flex items-center flex-1">
-                    <img
-                        v-if="currentTrack.album?.images?.length"
-                        :src="currentTrack.album.images[0].url"
-                        class="size-14 rounded-sm"
-                        alt="Album Art"
-                    />
-                    <div class="flex-1 ml-2">
-                        <div class="mb-1">
-                            <p class="font-semibold text-lg">
-                                {{ currentTrack.name }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-zinc-400">
-                                {{
-                                    currentTrack.artists
-                                        ?.map((a) => a.name)
-                                        .join(", ")
-                                }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex flex-col gap-3">
-                    <div
-                        v-if="props.mix.authorized.canControlPlayback"
-                        class="flex flex-row items-center justify-center flex-none gap-2"
-                    >
-                        <ChevronDoubleLeftIcon
-                            class="size-6 cursor-pointer"
-                            @click="previousSong"
-                        />
-                        <PlayCircleIcon
-                            @click="resumeMix"
-                            v-if="!isPlaying"
-                            class="size-12 cursor-pointer"
-                        />
-                        <PauseCircleIcon
-                            @click="pauseMix"
-                            v-if="isPlaying"
-                            class="size-12 cursor-pointer"
-                        />
-                        <ChevronDoubleRightIcon
-                            class="size-6 cursor-pointer"
-                            @click="skipSong"
-                        />
-                    </div>
-                    <StatusIndicator :is-playing="isPlaying" v-else />
-                </div>
-            </div>
-        </div>
-    </div>
-    <QueueCompleted
-        :is-visible="showQueueCompletedModal"
-        @close-modal="showQueueCompletedModal = false"
+    <MixWithPlaybackMobile
+        :mix="mix"
+        :isMixActive="isMixActive"
+        :isPlaying="isPlaying"
+        :currentTrack="currentTrack"
+        :devices="devices"
+        :selectedDevice="selectedDevice"
+        :isLoading="isLoading"
+        :isTransferingDevice="isTransferingDevice"
+        :isLoadingDevices="isLoadingDevices"
+        :isSyncingWithSpotify="isSyncingWithSpotify"
+        @pause-mix="pauseMix"
+        @resume-mix="resumeMix"
+        @refresh-devices="refreshDevices"
+        @select-device="selectDevice"
+        @toggle-mix-active="toggleMixActive"
+        v-if="windowSize < 1024 && authorization.canControlPlayback"
+    />
+    <MixWithPlayback
+        :mix="mix"
+        :isMixActive="isMixActive"
+        :isPlaying="isPlaying"
+        :currentTrack="currentTrack"
+        :devices="devices"
+        :selectedDevice="selectedDevice"
+        :isLoading="isLoading"
+        :isTransferingDevice="isTransferingDevice"
+        :isLoadingDevices="isLoadingDevices"
+        :isSyncingWithSpotify="isSyncingWithSpotify"
+        @pause-mix="pauseMix"
+        @resume-mix="resumeMix"
+        @refresh-devices="refreshDevices"
+        @select-device="selectDevice"
+        @toggle-mix-active="toggleMixActive"
+        @previous-song="previousSong"
+        @skip-song="skipSong"
+        v-else-if="windowSize >= 1024 && authorization.canControlPlayback"
+    />
+    <MixWithoutPlayback
+        :isLoading="isLoading"
+        :isSyncingWithSpotify="isSyncingWithSpotify"
+        :isMixActive="isMixActive"
+        :currentTrack="currentTrack"
+        :isPlaying="isPlaying"
+        v-else
     />
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, computed } from "vue";
-import axios from "axios";
-import { router, usePage } from "@inertiajs/vue3";
-import { ChevronDoubleLeftIcon } from "@heroicons/vue/16/solid";
-import { ChevronDoubleRightIcon } from "@heroicons/vue/16/solid";
-import { PauseCircleIcon, PlayCircleIcon } from "@heroicons/vue/24/solid";
-import ToggleSwitchReadValue from "@/components/forms/ToggleSwitchReadValue.vue";
-import StatusIndicator from "@/components/playback/StatusIndicator.vue";
-import DeviceDropdown from "@/components/playback/DeviceDropdown.vue";
-import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
+import MixWithoutPlayback from "./MixWithoutPlayback.vue";
+import MixWithPlayback from "./MixWithPlayback.vue";
+import MixWithPlaybackMobile from "./MixWithPlaybackMobile.vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { usePage } from "@inertiajs/vue3";
 import toast from "@/stores/StoreToast.js";
-import QueueCompleted from "./QueueCompleted.vue";
-import RegularButton from "@/components/buttons/RegularButton.vue";
 
 const page = usePage();
-
+const windowSize = ref(window.innerWidth);
 const props = defineProps({
     mix: {
         type: Object,
         required: true,
     },
 });
-
 // Current state variables
 const isMixActive = ref(props.mix?.is_active || false);
 const isLoading = ref(false);
@@ -310,14 +87,14 @@ const isLoadingDevices = ref(false);
 
 const authorization = computed(() => page.props.mix.authorized);
 
-watch(
-    () => isPlaying.value,
-    async (newValue) => {
-        if (!newValue && authorization.value.canControlPlayback) {
-            await refreshDevices();
-        }
-    }
-);
+// watch(
+//     () => isPlaying.value,
+//     async (newValue) => {
+//         if (!newValue && authorization.value.canControlPlayback) {
+//             await refreshDevices();
+//         }
+//     }
+// );
 
 //check if queue is completed. if so, show the modal
 watch(
@@ -414,6 +191,7 @@ function pauseMix() {
         })
         .catch((error) => {
             console.error("Failed to pause playback:", error);
+            refreshDevices();
         });
 }
 
@@ -469,10 +247,11 @@ async function refreshDevices() {
         const activeDevice = devices.value.find((d) => d.is_active);
         if (activeDevice) {
             selectedDevice.value = activeDevice;
-        } else if (!selectedDevice.value && devices.value.length === 1) {
-            // Auto-select the only device if no active device
-            selectedDevice.value = devices.value[0];
         }
+        // else if (!selectedDevice.value && devices.value.length === 1) {
+        //     // Auto-select the only device if no active device
+        //     selectedDevice.value = devices.value[0];
+        // }
     } catch (error) {
         console.error("Error fetching Spotify devices:", error);
     } finally {
@@ -512,8 +291,11 @@ async function transferPlayback(deviceId) {
         isTransferingDevice.value = true;
 
         // Call the API to transfer playback
+        console.log(
+            route("api.spotify.transfer-playback", { mix: props.mix.id })
+        );
         const response = await axios.post(
-            `/api/spotify/transfer-playback/${props.mix.id}`,
+            route("api.spotify.transfer-playback", { mix: props.mix.id }),
             { deviceId }
         );
 
@@ -569,10 +351,11 @@ async function refreshMixState() {
 // Update toggleMixActive to use selected device
 async function toggleMixActive() {
     try {
+        await refreshDevices();
         //if no active device is selected, show toast.
         if (selectedDevice.value === null && !isMixActive.value) {
             toast.add({
-                message: "You must select a device first to start the sync.",
+                message: "You must select a device first to start the queue.",
                 type: "danger",
             });
             return;
@@ -665,6 +448,9 @@ function updatePlayerState(playbackData) {
 }
 
 onMounted(() => {
+    window.addEventListener("resize", () => {
+        windowSize.value = window.innerWidth;
+    });
     if (props.mix) {
         // Initialize state
         isMixActive.value = !!props.mix.is_active;
@@ -753,5 +539,8 @@ onMounted(() => {
 onUnmounted(() => {
     Echo.leave(`mix.${props.mix.id}`);
     Echo.leave(`user.${page.props.user.id}`);
+    window.removeEventListener("resize", () => {
+        windowSize.value = window.innerWidth;
+    });
 });
 </script>
