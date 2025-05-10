@@ -68,10 +68,28 @@ const isLoading = ref(false);
 
 const performSearch = debounce(searchUsers, 300);
 
-function searchUsers() {
-    console.log("performing search...");
+async function searchUsers() {
+    if (!query.value) {
+        // Optional: handle empty query state
+        return;
+    }
+
     isLoading.value = true;
+
+    try {
+        const response = await axios.get(`/mix/search-user/${page.props.mix.id}`, {
+            params: { q: query.value },
+        });
+
+        console.log("Search results:", response.data);
+
+    } catch (error) {
+        console.error("Search failed:", error);
+    } finally {
+        isLoading.value = false;
+    }
 }
+
 
 watch(query, (newQuery) => {
     performSearch(newQuery);

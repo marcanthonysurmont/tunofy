@@ -39,12 +39,11 @@ use App\Http\Controllers\Application\Spotify\TransferPlaybackController;
 use App\Http\Controllers\Application\Mixes\AssignCoDJController;
 use App\Http\Controllers\Application\Mixes\RemoveCoDJController;
 use App\Http\Controllers\Application\Mixes\ToggleMixIsPublicController;
+use App\Http\Controllers\Application\Mixes\SearchUserController;
+use App\Models\User;
 
 Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function () {
     Route::middleware('auth')->group(function () {
-        Route::get('/', ShowAppPageController::class)->name('app');
-        Route::get('/{mix:slug}/{tab?}', ShowMixController::class)->name('mix.show');
-
         Route::prefix('/mix')->name('mix.')->group(function () {
             Route::post('/store', StoreMixController::class)->name('store');
             Route::post('/update/{mix}', UpdateMixController::class)->name('update');
@@ -57,6 +56,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
             Route::post('/assign-co-dj/{mix}', AssignCoDJController::class)->name('assign-co-dj');
             Route::post('/remove-co-dj/{mix}', RemoveCoDJController::class)->name('remove-co-dj');
             Route::post('/toggle-visibility/{mix}', ToggleMixIsPublicController::class)->name('toggle-visibility');
+            Route::get('/search-user/{mix}', SearchUserController::class)->name('search-user');
 
             // app/mix/presets (mix.presets)
             Route::prefix('/presets')->name('presets.')->group(function () {
@@ -79,6 +79,8 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
             Route::post('/transfer-playback/{mix}', TransferPlaybackController::class)->name('transfer-playback');
         });
 
+        Route::get('/', ShowAppPageController::class)->name('app');
+        Route::get('/{mix:slug}/{tab?}', ShowMixController::class)->name('mix.show');
         Route::post('/logout', LogoutController::class)->name('logout');
     });
 

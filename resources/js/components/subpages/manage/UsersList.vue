@@ -112,5 +112,4 @@ const page = usePage();
 
 const people = page.props.collaborators;
 
-console.log(page.props);
 </script>

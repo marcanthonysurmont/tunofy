@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Scout\Searchable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, Searchable;
 
     /**************************************/
     /*             Attributes             */
@@ -55,7 +56,7 @@ class User extends Authenticatable
 
     public function accessibleMixes()
     {
-        return $this->belongsToMany(Mix::class, 'mix_accesses')
+        return $this->belongsToMany(Mix::class, 'mix_accesses', 'user_id', 'mix_id')
             ->withPivot('permission')
             ->withTimestamps();
     }
@@ -89,4 +90,13 @@ class User extends Authenticatable
     /**************************************/
     /*              Helpers               */
     /**************************************/
+
+    public function toSearchableArray()
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'email' => $this->email,
+        ];
+    }
 }
