@@ -100,7 +100,7 @@
             </div>
         </li>
     </ul>
-    <p class="text-zinc-300">No users found.</p>
+    <p class="text-zinc-300" v-else>No users found.</p>
 </template>
 
 <script setup>
