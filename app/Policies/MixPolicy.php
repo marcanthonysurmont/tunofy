@@ -101,6 +101,7 @@ class MixPolicy
         return $user->id === $mix->user_id;
     }
 
+
     public function controlPlayback(User $user, Mix $mix): bool
     {
         // If co_dj_id is set, only the co-DJ can control playback

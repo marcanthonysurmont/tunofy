@@ -14,7 +14,7 @@ class PlayPreviousSongController extends Controller
 {
     public function __invoke(Mix $mix, SongPlaybackService $songPlaybackService): JsonResponse
     {
-        $this->authorize('update', $mix);
+        $this->authorize('controlPlayback', $mix);
 
         $result = $songPlaybackService->returnToPreviousSong($mix->id);
 

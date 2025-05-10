@@ -55,16 +55,19 @@ class QueueManagementService
         Log::info("Created new playback session {$session->id} for mix {$mix->id}");
 
         // Generate the queue entries
-        $order = 0;
-        foreach ($mix->songs as $song) {
-            $order++;
+        $preset = $mix->preset;
+        $batchSize = $preset->batch_size;
+
+        foreach ($mix->songs as $index => $song) {
+            $order = $index + 1;
+            $roundNumber = ceil($order / $batchSize);
 
             QueueSong::create([
                 'song_id' => $song->id,
                 'mix_id' => $mix->id,
                 'user_id' => Auth::id() ?? $mix->user_id,
-                'playback_session_id' => $session->id, // CHANGED FROM session_id
-                'round_number' => 1,
+                'playback_session_id' => $session->id,
+                'round_number' => $roundNumber,
                 'order' => $order,
                 'status' => 'pending',
                 'is_killed' => false

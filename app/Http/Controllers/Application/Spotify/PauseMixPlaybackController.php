@@ -15,7 +15,7 @@ class PauseMixPlaybackController extends Controller
 {
     public function __invoke(Mix $mix, SpotifyService $spotifyService): JsonResponse
     {
-        $this->authorize('update', $mix);
+        $this->authorize('controlPlayback', $mix);
 
         // Check if already paused to avoid unnecessary API calls
         $alreadyPaused = Cache::has("mix:{$mix->id}:paused");

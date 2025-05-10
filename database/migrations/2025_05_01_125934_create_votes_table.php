@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('votes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('song_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('queue_song_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->enum('vote_type', ['like', 'dislike', 'kill']);
             $table->timestamps();
+
+            $table->unique(['queue_song_id','user_id'], 'uq_votes_queue_user');
+            $table->index(['queue_song_id','vote_type'], 'idx_votes_queue_type');
         });
     }
 

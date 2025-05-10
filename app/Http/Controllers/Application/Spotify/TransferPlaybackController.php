@@ -17,7 +17,7 @@ class TransferPlaybackController extends Controller
 {
     public function __invoke(Mix $mix, Request $request, SpotifyService $spotifyService): JsonResponse
     {
-        $this->authorize('update', $mix);
+        $this->authorize('controlPlayback', $mix);
 
         $deviceId = $request->input('deviceId');
 

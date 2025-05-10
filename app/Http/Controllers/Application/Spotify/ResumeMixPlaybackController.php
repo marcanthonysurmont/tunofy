@@ -17,7 +17,7 @@ class ResumeMixPlaybackController extends Controller
 {
     public function __invoke(Mix $mix, SpotifyService $spotifyService, Request $request): JsonResponse
     {
-        $this->authorize('update', $mix);
+        $this->authorize('controlPlayback', $mix);
 
         // Get device_id from request if provided
         $deviceId = $request->input('device_id');
