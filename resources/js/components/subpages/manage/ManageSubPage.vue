@@ -6,7 +6,7 @@
         @is-searching="isSearching = $event"
     />
     <UsersList :search-result="searchResult" :is-searching="isSearching" />
-    <Pagination :elements="usersProp" />
+    <Pagination :elements="usersProp" v-if="!isSearching" />
 </template>
 
 <script setup>
