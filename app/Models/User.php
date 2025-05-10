@@ -71,6 +71,17 @@ class User extends Authenticatable
         ]);
     }
 
+    public function role(): Attribute
+    {
+        return new Attribute(
+            get: function () {
+                if(isset($this->pivot) && isset($this->pivot->permission)) {
+                    return ucfirst($this->pivot->permission);
+                }
+            }
+        );
+    }
+
     /**************************************/
     /*              Scopes                */
     /**************************************/

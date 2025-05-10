@@ -106,48 +106,11 @@ import {
     XMarkIcon,
 } from "@heroicons/vue/24/outline";
 
-const people = [
-    {
-        name: "Gilles Serrien",
-        email: "serriengilles@gmail.com",
-        role: "View",
-        imageUrl:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749209019&hash=AbYl5Tspo9hy5H4K5hKUb8_-",
-    },
-    {
-        name: "Gilles Serrien",
-        email: "serriengilles@gmail.com",
-        role: "Editor",
-        imageUrl:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749209019&hash=AbYl5Tspo9hy5H4K5hKUb8_-",
-    },
-    {
-        name: "Gilles Serrien",
-        email: "serriengilles@gmail.com",
-        role: "Contributor",
-        imageUrl:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749209019&hash=AbYl5Tspo9hy5H4K5hKUb8_-",
-    },
-    {
-        name: "Gilles Serrien",
-        email: "serriengilles@gmail.com",
-        role: "Editor",
-        imageUrl:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749209019&hash=AbYl5Tspo9hy5H4K5hKUb8_-",
-    },
-    {
-        name: "Gilles Serrien",
-        email: "serriengilles@gmail.com",
-        role: "Contributor",
-        imageUrl:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749209019&hash=AbYl5Tspo9hy5H4K5hKUb8_-",
-    },
-    {
-        name: "Gilles Serrien",
-        email: "serriengilles@gmail.com",
-        role: "View",
-        imageUrl:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749209019&hash=AbYl5Tspo9hy5H4K5hKUb8_-",
-    },
-];
+import { usePage } from "@inertiajs/vue3";
+
+const page = usePage();
+
+const people = page.props.collaborators;
+
+console.log(page.props);
 </script>

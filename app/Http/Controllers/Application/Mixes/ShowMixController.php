@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Application\Mixes;
 
+use App\Http\Resources\CollaboratorResource;
 use App\Http\Resources\UserResource;
 use App\Models\Mix;
 use App\Http\Controllers\Controller;
@@ -24,11 +25,13 @@ class ShowMixController extends Controller
 
         // Get Spotify devices for the mix owner
         $devices = $spotifyService->getUserDevices($user);
-        $collaborators = $mix->collaborators;
+        $collaborators = $mix->collaborators()->orderBy('created_at', 'asc')->paginate(15);
+
+        ds($collaborators);
    
         return Inertia::render('MixSlugPage', [
             'mix' => fn() => MixResource::make($mix)->jsonSerialize(),
-            'collaborators' => fn() => UserResource::collection($collaborators)->jsonSerialize(),
+            'collaborators' => fn() => CollaboratorResource::collection($collaborators)->jsonSerialize(),
             'collaborators_premium' => fn() => UserResource::collection($collaborators->where('type', 'premium'))->jsonSerialize(),
             'presets' => fn() => $mix->all_presets,
             'your_mixes' => fn() => $user->mixes,
