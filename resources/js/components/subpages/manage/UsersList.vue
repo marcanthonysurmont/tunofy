@@ -1,5 +1,5 @@
 <template>
-    <ul role="list">
+    <ul role="list" v-if="users.length > 0">
         <li
             v-for="user in users"
             :key="user.id"
@@ -100,6 +100,7 @@
             </div>
         </li>
     </ul>
+    <p class="text-zinc-300">No users found.</p>
 </template>
 
 <script setup>

@@ -1,5 +1,5 @@
 <template>
-    <div class="max-w-lg mb-2">
+    <div class="max-w-lg mb-2" v-if="users.length > 0">
         <div
             class="relative mb-4"
             @focusin="isFocused = true"
@@ -54,13 +54,14 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import { MagnifyingGlassIcon } from "@heroicons/vue/24/solid";
 import { usePage } from "@inertiajs/vue3";
 import { debounce } from "lodash";
 
 const page = usePage();
 const props = page.props;
+const users = computed(() => page.props.collaborators.data);
 
 const isFocused = ref(false);
 const query = ref(props.query || "");
@@ -77,19 +78,20 @@ async function searchUsers() {
     isLoading.value = true;
 
     try {
-        const response = await axios.get(`/mix/search-user/${page.props.mix.id}`, {
-            params: { q: query.value },
-        });
+        const response = await axios.get(
+            `/mix/search-user/${page.props.mix.id}`,
+            {
+                params: { q: query.value },
+            }
+        );
 
         console.log("Search results:", response.data);
-
     } catch (error) {
         console.error("Search failed:", error);
     } finally {
         isLoading.value = false;
     }
 }
-
 
 watch(query, (newQuery) => {
     performSearch(newQuery);
