@@ -10,10 +10,8 @@
             <ToggleSwitchReadValue
                 :model-value="isMixActive"
                 :disabled="isLoading"
-                label="Spotify sync"
                 @click="toggleMixActive"
             />
-
             <!-- Device dropdown -->
             <DeviceDropdown
                 v-if="props.mix.authorized.canControlPlayback"
@@ -27,92 +25,38 @@
         </div>
 
         <!-- Loading states - Prioritize showing one at a time -->
-        <div v-if="isLoading" class="loading">
+        <div v-if="isLoading" class="text-center p-5 text-zinc-400">
             <div class="flex items-center justify-center">
-                <svg
-                    class="animate-spin h-5 w-5 mr-2"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                >
-                    <circle
-                        class="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        stroke-width="4"
-                    ></circle>
-                    <path
-                        class="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                </svg>
+                <SpinningCircle />
                 <p>Updating state...</p>
             </div>
         </div>
 
         <!-- Loading state while we're syncing with Spotify -->
-        <div v-else-if="isSyncingWithSpotify" class="loading">
+        <div
+            v-else-if="isSyncingWithSpotify"
+            class="text-center p-5 text-zinc-400"
+        >
             <div class="flex items-center justify-center">
-                <svg
-                    class="animate-spin h-5 w-5 mr-2"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                >
-                    <circle
-                        class="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        stroke-width="4"
-                    ></circle>
-                    <path
-                        class="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                </svg>
+                <SpinningCircle />
                 <p>Syncing with Spotify...</p>
             </div>
-        </div>
-
-        <!-- Add queue completion state -->
-        <div v-else-if="queueCompleted && isMixActive" class="queue-completed">
-            <div class="flex justify-center items-center mb-3">
-                <div class="checkmark flex justify-center items-center">
-                    <i class="fas fa-check"></i>
-                </div>
-            </div>
-            <h3 class="completion-message">Queue Completed</h3>
-            <p class="text-sm text-gray-500 mb-4">
-                Add more songs to keep the mix going!
-            </p>
-            <button
-                @click="resetQueue"
-                class="px-4 py-2 bg-spotify-green text-white rounded-full text-sm hover:bg-opacity-80 transition"
-            >
-                Add Songs
-            </button>
         </div>
 
         <!-- Desktop player with no active queue -->
         <div v-else-if="isMixActive === false">
             <div class="flex-row items-center w-full hidden md:flex">
-                <div class="track-info flex items-center flex-1 gap-1">
+                <div class="flex items-center flex-1 gap-1">
                     <img
                         src="/images/default-song.png"
-                        class="album-art"
+                        class="size-14 rounded-sm"
                         alt="Album Art"
                     />
-                    <div class="text-info ml-2">
-                        <div class="track-name">
+                    <div class="flex-1 ml-2">
+                        <div class="mb-1">
                             <p class="font-semibold">No song playing</p>
                         </div>
-                        <div class="artist-name">
+                        <div class="text-zinc-400 text-sm">
                             <p>No song playing</p>
                         </div>
                     </div>
@@ -142,17 +86,17 @@
             <div
                 class="flex flex-row items-center w-full md:hidden gap-2 sm:gap-0"
             >
-                <div class="track-info flex items-center flex-1">
+                <div class="flex items-center flex-1">
                     <img
                         src="/images/default-song.png"
-                        class="album-art"
+                        class="size-14 rounded-sm"
                         alt="Album Art"
                     />
-                    <div class="text-info ml-2">
-                        <div class="track-name">
+                    <div class="flex-1 ml-2">
+                        <div class="mb-1">
                             <p class="font-semibold text-lg">No song playing</p>
                         </div>
-                        <div class="artist-name">
+                        <div>
                             <p class="text-sm text-zinc-400">No song playing</p>
                         </div>
                     </div>
@@ -182,20 +126,20 @@
         <!-- desktop playback with active queue -->
         <div v-else-if="isMixActive">
             <div class="flex-row items-center w-full hidden md:flex">
-                <div class="track-info flex items-center flex-1 gap-1">
+                <div class="flex items-center flex-1 gap-1">
                     <img
                         v-if="currentTrack.album?.images?.length"
                         :src="currentTrack.album.images[0].url"
-                        class="album-art"
+                        class="size-14 rounded-sm"
                         alt="Album Art"
                     />
-                    <div class="text-info ml-2">
-                        <div class="track-name">
+                    <div class="flex-1 ml-2">
+                        <div class="text-white text-lg mb-1">
                             <p class="font-semibold">
                                 {{ currentTrack.name }}
                             </p>
                         </div>
-                        <div class="artist-name">
+                        <div class="text-sm text-zinc-300">
                             <p>
                                 {{
                                     currentTrack.artists
@@ -259,20 +203,20 @@
             <div
                 class="flex flex-row items-center w-full md:hidden gap-2 sm:gap-0"
             >
-                <div class="track-info flex items-center flex-1">
+                <div class="flex items-center flex-1">
                     <img
                         v-if="currentTrack.album?.images?.length"
                         :src="currentTrack.album.images[0].url"
-                        class="album-art"
+                        class="size-14 rounded-sm"
                         alt="Album Art"
                     />
-                    <div class="text-info ml-2">
-                        <div class="track-name">
+                    <div class="flex-1 ml-2">
+                        <div class="mb-1">
                             <p class="font-semibold text-lg">
                                 {{ currentTrack.name }}
                             </p>
                         </div>
-                        <div class="artist-name">
+                        <div>
                             <p class="text-sm text-zinc-400">
                                 {{
                                     currentTrack.artists
@@ -312,6 +256,10 @@
             </div>
         </div>
     </div>
+    <QueueCompleted
+        :is-visible="showQueueCompletedModal"
+        @close-modal="showQueueCompletedModal = false"
+    />
 </template>
 
 <script setup>
@@ -323,8 +271,11 @@ import { ChevronDoubleRightIcon } from "@heroicons/vue/16/solid";
 import { PauseCircleIcon, PlayCircleIcon } from "@heroicons/vue/24/solid";
 import ToggleSwitchReadValue from "@/components/forms/ToggleSwitchReadValue.vue";
 import StatusIndicator from "@/components/playback/StatusIndicator.vue";
-import DeviceDropdown from "./DeviceDropdown.vue";
+import DeviceDropdown from "@/components/playback/DeviceDropdown.vue";
+import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
 import toast from "@/stores/StoreToast.js";
+import QueueCompleted from "./QueueCompleted.vue";
+import RegularButton from "@/components/buttons/RegularButton.vue";
 
 const page = usePage();
 
@@ -343,6 +294,10 @@ const currentTrack = ref(null);
 const isPlaying = ref(false);
 const isSyncingWithSpotify = ref(false);
 const queueCompleted = ref(false);
+const isQueueComplicated = computed(
+    () => queueCompleted.value && isMixActive.value
+);
+const showQueueCompletedModal = ref(false);
 
 const lastEventTime = ref(0);
 const lastToggleTime = ref(0);
@@ -360,11 +315,18 @@ watch(
     async (newValue) => {
         if (!newValue && authorization.value.canControlPlayback) {
             await refreshDevices();
-            // if (selectedDevice.value === null) {
-            //     noDeviceSelectedError.value = true;
-            // } else {
-            //     noDeviceSelectedError.value = false;
-            // }
+        }
+    }
+);
+
+//check if queue is completed. if so, show the modal
+watch(
+    () => isQueueComplicated.value,
+    (newValue) => {
+        if (newValue) {
+            showQueueCompletedModal.value = true;
+        } else {
+            showQueueCompletedModal.value = false;
         }
     }
 );
@@ -793,128 +755,3 @@ onUnmounted(() => {
     Echo.leave(`user.${page.props.user.id}`);
 });
 </script>
-
-<style scoped>
-.loading,
-.error,
-.not-playing,
-.not-active {
-    text-align: center;
-    padding: 20px;
-    color: #aaa;
-}
-
-.queue-completed {
-    text-align: center;
-    padding: 24px 16px;
-    animation: fadeIn 0.5s ease-out;
-}
-
-.checkmark {
-    color: #1db954;
-    font-size: 32px;
-    margin-bottom: 12px;
-    background-color: rgba(29, 185, 84, 0.1);
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-}
-
-.completion-message {
-    font-size: 1.1rem;
-    color: #fff;
-    margin-bottom: 8px;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-.track-info {
-    display: flex;
-    align-items: center;
-}
-
-.album-art {
-    width: 60px;
-    height: 60px;
-    border-radius: 4px;
-    margin-right: 0px;
-    /* Better rendering */
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: auto;
-}
-
-.text-info {
-    flex: 1;
-}
-
-.track-name {
-    font-weight: bold;
-    font-size: 1.1rem;
-    margin-bottom: 4px;
-}
-
-.artist-name {
-    color: #aaa;
-    font-size: 0.9rem;
-}
-
-.play-status {
-    text-align: center;
-    font-size: 0.8rem;
-    color: #aaa;
-    background-color: rgba(0, 0, 0, 0.2);
-    padding: 4px 8px;
-    border-radius: 12px;
-    display: inline-block;
-    margin-top: 8px;
-}
-
-.play-status.is-playing {
-    color: #1db954;
-    /* Spotify green */
-}
-
-.mix-controls {
-    text-align: center;
-}
-
-.control-button {
-    background-color: #333;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 8px 16px;
-    font-size: 0.9rem;
-    cursor: pointer;
-}
-
-.control-button.active {
-    background-color: #1db954;
-    /* Spotify green */
-}
-
-.control-button.inactive {
-    background-color: #444;
-}
-
-.control-button:hover:not(:disabled) {
-    opacity: 0.9;
-}
-
-.control-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-</style>
