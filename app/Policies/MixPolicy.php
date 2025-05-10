@@ -64,23 +64,6 @@ class MixPolicy
     }
 
     /**
-     * Determine whether the user can update the mix.
-     */
-    public function update(User $user, Mix $mix): bool
-    {
-        // Owner can always update
-        if ($user->id === $mix->user_id) {
-            return true;
-        }
-
-        // Check if user has edit permission
-        return $user->accessibleMixes()
-            ->where('mix_id', $mix->id)
-            ->where('permission', Permission::EDIT->value)
-            ->exists();
-    }
-
-    /**
      * Determine whether the user can delete the mix.
      */
     public function delete(User $user, Mix $mix): bool
@@ -96,15 +79,6 @@ class MixPolicy
     {
         // Only the owner can manage collaborators
         return $user->id === $mix->user_id;
-    }
-
-    /**
-     * Determine whether a user can join a mix via session code.
-     */
-    public function join(?User $user, Mix $mix): bool
-    {
-        // Anyone can join a mix with a valid session code
-        return !empty($mix->session_code);
     }
 
     /**

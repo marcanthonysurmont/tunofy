@@ -226,7 +226,7 @@
                             v-slot="{ active }"
                             v-if="
                                 authorization.isOwner &&
-                                mix.session_code !== null
+                                authorization.canCopySessionCode
                             "
                         >
                             <button
