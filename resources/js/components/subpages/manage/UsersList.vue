@@ -68,7 +68,10 @@
                                     >
                                 </button>
                             </MenuItem>
-                            <MenuItem v-slot="{ active }">
+                            <MenuItem 
+                                v-slot="{ active }"
+                                @click="kickUser(person)"
+                            >
                                 <button
                                     :class="[
                                         active
@@ -81,7 +84,6 @@
                                         :active="active"
                                         class="mr-2 h-5 w-5 text-white"
                                         aria-hidden="true"
-                                        @click="kickUser(person)"
                                     />
                                     <span class="font-medium align-middle"
                                         >Kick from mix</span

@@ -25,7 +25,7 @@ class ShowMixController extends Controller
 
         // Get Spotify devices for the mix owner
         $devices = $spotifyService->getUserDevices($user);
-        $collaborators = $mix->collaborators()->orderBy('created_at', 'asc')->paginate(15);
+        $collaborators = $mix->collaborators()->orderBy('created_at', 'desc')->paginate(15);
    
         return Inertia::render('MixSlugPage', [
             'mix' => fn() => MixResource::make($mix)->jsonSerialize(),
