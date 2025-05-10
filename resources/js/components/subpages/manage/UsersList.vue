@@ -1,23 +1,27 @@
 <template>
     <ul role="list">
         <li
-            v-for="person in people"
-            :key="person.email"
+            v-for="user in users"
+            :key="user.id"
             class="flex justify-between gap-x-6 py-5"
         >
-            <div class="flex min-w-0 gap-x-4">
+            <div class="flex min-w-0 gap-x-4 items-center">
                 <img
                     class="size-12 flex-none rounded-full bg-zinc-50"
-                    :src="person.imageUrl"
+                    :src="
+                        user.avatar === null
+                            ? '/images/default-avatar.jpg'
+                            : user.imageUrl
+                    "
                     alt=""
                 />
                 <div class="min-w-0 flex-auto">
                     <p class="text-md font-semibold text-zinc-200">
-                        <span class="font-semibold">{{ person.name }}</span>
+                        <span class="font-semibold">{{ user.name }}</span>
                     </p>
-                    <p class="mt-1 flex text-xs/5 text-zinc-400">
-                        <span class="truncate">{{ person.email }}</span>
-                    </p>
+                    <!-- <p class="mt-1 flex text-xs/5 text-zinc-400">
+                        <span class="truncate">{{ user.email }}</span>
+                    </p> -->
                 </div>
             </div>
             <div class="flex shrink-0 items-center gap-x-6">
@@ -25,7 +29,7 @@
                     <span
                         class="inline-block rounded-full px-4 py-1.5 text-xs font-semibold bg-[#2B55CC]/10 text-[#91A8E8]"
                     >
-                        {{ person.role }}
+                        {{ user.pivot.permission }}
                     </span>
                 </div>
                 <Menu as="div" class="relative flex-none">
@@ -68,9 +72,9 @@
                                     >
                                 </button>
                             </MenuItem>
-                            <MenuItem 
+                            <MenuItem
                                 v-slot="{ active }"
-                                @click="kickUser(person)"
+                                @click="kickUser(user)"
                             >
                                 <button
                                     :class="[
@@ -112,13 +116,18 @@ import {
 } from "@heroicons/vue/24/outline";
 
 const page = usePage();
+const users = computed(() => page.props.collaborators.data);
+const usersProp = computed(() => page.props.collaborators);
 
-const people = computed(() => page.props.collaborators);
-
-const kickUser = (person) => {
-    router.post(`/mix/remove-user-access/${page.props.mix.id}`, {
-        user_id: person.id,
-    });
+function kickUser(user) {
+    router.post(
+        `/mix/remove-user-access/${page.props.mix.id}`,
+        {
+            user_id: user.id,
+        },
+        {
+            preserveScroll: true,
+        }
+    );
 }
-
 </script>

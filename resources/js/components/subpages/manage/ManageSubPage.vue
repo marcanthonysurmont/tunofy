@@ -3,62 +3,16 @@
     <p class="mb-6">Manage the users in your playlist.</p>
     <SearchBarUsers />
     <UsersList />
-    <Pagination :elements="mockElements" />
+    <Pagination :elements="usersProp" />
 </template>
 
 <script setup>
 import UsersList from "@/components/subpages/manage/UsersList.vue";
 import Pagination from "@/components/pagination/Pagination.vue";
 import SearchBarUsers from "@/components/subpages/manage/SearchBarUsers.vue";
+import { usePage } from "@inertiajs/vue3";
+import { computed } from "vue";
 
-const mockElements = {
-    data: [
-        /* some items here just to pass the length check */
-        { id: 1 },
-        { id: 2 },
-    ],
-    links: [
-        {
-            url: null,
-            label: "&laquo; Previous",
-            active: false,
-        },
-        {
-            url: "http://localhost?page=1",
-            label: "1",
-            active: true,
-        },
-        {
-            url: "http://localhost?page=2",
-            label: "2",
-            active: false,
-        },
-        {
-            url: "http://localhost?page=3",
-            label: "3",
-            active: false,
-        },
-        {
-            url: "http://localhost?page=2",
-            label: "Next &raquo;",
-            active: false,
-        },
-    ],
-};
-
-// import UsersTable from "@/components/subpages/manage/UsersTable.vue";
-// import { ref, onMounted, onBeforeUnmount } from "vue";
-
-// const windowWidth = ref(window.innerWidth);
-// function updateWindowWidth() {
-//     windowWidth.value = window.innerWidth;
-// }
-
-// onMounted(() => {
-//     window.addEventListener("resize", updateWindowWidth);
-// });
-
-// onBeforeUnmount(() => {
-//     window.removeEventListener("resize", updateWindowWidth);
-// });
+const page = usePage();
+const usersProp = computed(() => page.props.collaborators);
 </script>
