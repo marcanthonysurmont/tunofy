@@ -73,6 +73,7 @@ createInertiaApp({
 
     app.use(ZiggyVue).use(plugin).use(pinia).use(autoAnimatePlugin).use(VueTippy,{
         defaultProps: {
+            touch: false,
             theme: 'tunofy',
         },
     }
