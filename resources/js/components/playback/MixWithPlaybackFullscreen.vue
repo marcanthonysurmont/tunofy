@@ -6,7 +6,7 @@
             :style="backgroundStyle"
         >
             <div
-                class="relative flex items-center justify-center w-full mb-8 mt-4"
+                class="relative flex items-center justify-center w-full mb-0 mt-4"
             >
                 <button
                     @click="emit('close-fullscreen')"
