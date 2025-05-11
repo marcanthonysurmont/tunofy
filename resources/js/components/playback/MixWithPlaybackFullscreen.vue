@@ -4,11 +4,22 @@
             v-if="isVisible"
             class="fixed inset-0 z-50 bg-background-page text-white flex flex-col items-center justify-between p-4"
         >
-            <div class="flex flex-row items-center justify-start w-full mb-8">
-                <button @click="emit('close-fullscreen')" class="text-3xl">
+            <div
+                class="relative flex items-center justify-center w-full mb-8 mt-4"
+            >
+                <button
+                    @click="emit('close-fullscreen')"
+                    class="absolute left-4 text-3xl"
+                >
                     <ChevronDownIcon class="size-8 text-white" />
                 </button>
+                <div
+                    class="max-w-[60%] overflow-hidden whitespace-nowrap truncate"
+                >
+                    <p class="truncate">{{ mix.name }}</p>
+                </div>
             </div>
+
             <div class="mt-10 w-3/4 max-w-xs" v-if="currentTrack === null">
                 <img
                     src="/images/default-song.png"
@@ -82,18 +93,6 @@
     </Transition>
 </template>
 
-<style scoped>
-.slide-up-enter-active,
-.slide-up-leave-active {
-    transition: transform 0.3s ease;
-}
-
-.slide-up-enter-from,
-.slide-up-leave-to {
-    transform: translateY(100%);
-}
-</style>
-
 <script setup>
 import {
     ChevronDownIcon,
@@ -161,3 +160,15 @@ function pauseSong() {
     emit("pause-song");
 }
 </script>
+
+<style scoped>
+.slide-up-enter-active,
+.slide-up-leave-active {
+    transition: transform 0.15s ease;
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+    transform: translateY(100%);
+}
+</style>

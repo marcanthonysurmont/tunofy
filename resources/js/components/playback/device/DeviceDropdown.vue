@@ -24,11 +24,11 @@
                         </svg>
                         <XCircleIcon
                             v-if="devices.length === 0"
-                            class="absolute -top-2 -right-2 text-red-500 size-4"
+                            class="absolute -top-2 -right-2 text-red-500 size-4 animate-bounce"
                         />
                         <ExclamationCircleIcon
                             v-else-if="selectedDevice === null"
-                            class="absolute -top-2 -right-2 text-yellow-500 size-4"
+                            class="absolute -top-2 -right-2 text-yellow-500 size-4 animate-bounce"
                         />
                     </div>
                 </ListboxButton>
