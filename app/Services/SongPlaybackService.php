@@ -10,7 +10,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use App\Events\MixStatusChangedEvent;
-use App\Services\SpotifyService;
 use Illuminate\Support\Facades\Auth;
 
 class SongPlaybackService
@@ -194,12 +193,29 @@ class SongPlaybackService
             // Don't change any other song statuses
             Log::info("Queue completed for mix {$mixId}, no more songs to play");
 
+            // Mark the active session as inactive since the queue is complete
+            if ($activeSession) {
+                $activeSession->update([
+                    'is_active' => false,
+                    'ended_at' => now()
+                ]);
+                Log::info("Marked playback session {$activeSession->id} as inactive after queue completion");
+            }
+
             // Set a cache flag to indicate the queue is completed - increase time to 10 minutes
             Cache::put("mix:{$mixId}:queue_completed", true, now()->addMinutes(10));
 
             // IMPORTANT: Also try to pause Spotify playback to prevent continuous playing
             try {
-                $this->spotifyService->pausePlayback(Auth::user());
+                // Get the user from the mix, not from Auth
+                $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+
+                if ($user) {
+                    $this->spotifyService->pausePlayback($user);
+                    Log::info("Paused playback for user {$user->id} after queue completion");
+                } else {
+                    Log::warning("Could not pause playback: No user associated with mix {$mixId}");
+                }
             } catch (\Exception $e) {
                 Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
             }
@@ -486,4 +502,34 @@ class SongPlaybackService
         // Add debug log to trace ownership transition
         Log::info("Reset queue state for user switch on mix {$mixId} - only changed 'playing' to 'pending'");
     }
+
+    /**
+     * Check if we need to add more rounds to the queue and add them if necessary
+     */
+    private function checkAndExtendQueue(int $mixId): void
+    {
+        // Get the mix
+        $mix = Mix::find($mixId);
+        if (!$mix) {
+            Log::warning("Cannot extend queue: Mix {$mixId} not found");
+            return;
+        }
+
+        // Count remaining pending songs
+        $pendingSongs = QueueSong::where('mix_id', $mixId)
+            ->where('status', 'pending')
+            ->count();
+
+        // Get batch size to determine threshold
+        $batchSize = $mix->preset->batch_size;
+
+        // If fewer than 1 batch size of songs remaining, add more rounds
+        if ($pendingSongs <= $batchSize) {
+            Log::info("Queue for mix {$mixId} is running low ({$pendingSongs} songs left). Adding more rounds.");
+
+            // Add 1 more round
+            app(QueueManagementService::class)->appendRoundsToQueue($mix, 1);
+        }
+    }
+
 }

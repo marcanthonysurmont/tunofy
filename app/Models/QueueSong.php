@@ -20,7 +20,6 @@ class QueueSong extends Model
         'dislike_count',
         'order',
         'round_number',
-        'priority_boost',
         'played_at',
     ];
 

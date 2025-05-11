@@ -21,71 +21,98 @@ use Illuminate\Support\Facades\Cache;
  */
 class QueueManagementService
 {
-    public function __construct(protected SpotifyService $spotifyService, protected SongPlaybackService $songPlaybackService)
-    {
+    public function __construct(
+        protected SpotifyService $spotifyService,
+        protected SongPlaybackService $songPlaybackService,
+        protected QueueBuilderService $queueBuilderService,
+        protected QueueStateService $queueStateService
+    ) {
     }
 
     /**
      * Initialize queue for a mix
-     *
-     * Creates queue entries for all songs in the mix.
      */
     public function initializeQueue(Mix $mix, bool $resetQueue = false): array
     {
-        Log::info("Initializing queue for mix {$mix->id}");
-
-        // Clean any existing queue items
-        $this->clearQueue($mix->id);
-
-        // End any existing active sessions
-        PlaybackSession::where('mix_id', $mix->id)
-            ->where('is_active', true)
-            ->update([
-                'is_active' => false,
-                'ended_at' => now()
-            ]);
-
-        // Create a new session
-        $session = PlaybackSession::create([
-            'mix_id' => $mix->id,
-            'started_at' => now(),
-            'is_active' => true
-        ]);
-
-        Log::info("Created new playback session {$session->id} for mix {$mix->id}");
-
-        // Generate the queue entries
-        $preset = $mix->preset;
-        $batchSize = $preset->batch_size;
-
-        foreach ($mix->songs as $index => $song) {
-            $order = $index + 1;
-            $roundNumber = ceil($order / $batchSize);
-
-            QueueSong::create([
-                'song_id' => $song->id,
+        try {
+            Log::info("Starting queue initialization for mix {$mix->id}");
+            
+            // Clear existing queue
+            $this->clearQueue($mix->id);
+            Log::info("Cleared existing queue for mix {$mix->id}");
+            
+            // Create a new playback session
+            $rawSession = PlaybackSession::create([
                 'mix_id' => $mix->id,
-                'user_id' => Auth::id() ?? $mix->user_id,
-                'playback_session_id' => $session->id,
-                'round_number' => $roundNumber,
-                'order' => $order,
-                'status' => 'pending',
-                'is_killed' => false
+                'started_at' => now(),
+                'is_active' => true
             ]);
+
+            // IMPORTANT: Convert to array immediately to avoid any accidental property access
+            $session = is_array($rawSession) ? $rawSession : $rawSession->toArray();
+
+            if (empty($session['id'])) {
+                throw new \Exception("Failed to create session with valid ID");
+            }
+
+            $sessionId = $session['id'];
+
+            // Proceed with queue initialization using the array access only
+            $shuffledIds = $this->queueBuilderService->getShuffledSongIds($mix);
+
+            Cache::put("mix_{$mix->id}_shuffled_ids", $shuffledIds, now()->addHours(6));
+
+            $initialRounds = max(2, ceil(12 / $mix->preset->batch_size));
+
+            // Get initial songs for the queue
+            $queueBatches = $this->queueBuilderService->buildQueue($mix, $initialRounds);
+
+            $queueBatchesCount = count($queueBatches);
+            $songCount = 0;
+
+            foreach ($queueBatches as $roundNumber => $songs) {
+                foreach ($songs as $index => $song) {
+                    // Check if song is a model or array
+                    if (is_array($song)) {
+                        $songId = $song['id'] ?? null;
+                        if (!$songId) {
+                            Log::error("Invalid song array in queue initialization: " . json_encode($song));
+                            continue;
+                        }
+                    } else {
+                        $songId = $song->id;
+                    }
+
+                    QueueSong::create([
+                        'song_id' => $songId,
+                        'mix_id' => $mix->id,
+                        'playback_session_id' => $sessionId,
+                        'round_number' => $roundNumber,
+                        'order' => $index + 1,
+                        'status' => 'pending'
+                    ]);
+
+                    $songCount++;
+                }
+            }
+
+            // Reset queue position
+            $this->queueStateService->resetPosition($mix->id);
+
+            Log::info("Queue initialization complete with {$queueBatchesCount} batches and {$songCount} songs");
+
+            return [
+                'success' => true,
+                'message' => 'Queue initialized successfully',
+                'session_id' => $sessionId
+            ];
+        } catch (\Exception $e) {
+            Log::error("Failed to initialize queue: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            return [
+                'success' => false,
+                'message' => 'Failed to initialize queue: ' . $e->getMessage()
+            ];
         }
-
-        Log::info("Created {$order} queue entries for mix {$mix->id}");
-
-        // If resetQueue is true, ensure the queue position is reset to 0
-        if ($resetQueue) {
-            Cache::put("mix_{$mix->id}_queue_position", 0, 3600);
-            Log::info("Queue position reset for mix {$mix->id}");
-        }
-
-        return [
-            'success' => true,
-            'message' => "Queue initialized with {$order} songs"
-        ];
     }
 
     /**
@@ -93,6 +120,43 @@ class QueueManagementService
      */
     public function startPlayback(int $mixId, bool $resetQueue = false, ?string $deviceId = null): array
     {
+        // Get the active session
+        $session = PlaybackSession::where('mix_id', $mixId)
+            ->where('is_active', true)
+            ->latest('started_at')
+            ->first();
+
+        // Add defensive check here too
+        $sessionId = null;
+        if (is_array($session)) {
+            Log::warning("Session was returned as array instead of object in startPlayback");
+            $sessionId = $session['id'] ?? null;
+        } elseif ($session) {
+            $sessionId = $session->id;
+        }
+
+        if (!$sessionId) {
+            // Create new session if none exists
+            $sessionObj = PlaybackSession::create([
+                'mix_id' => $mixId,
+                'started_at' => now(),
+                'is_active' => true
+            ]);
+
+            if (is_array($sessionObj)) {
+                $sessionId = $sessionObj['id'];
+            } else {
+                $sessionId = $sessionObj->id;
+            }
+
+            if (!$sessionId) {
+                Log::error("Failed to create valid session in startPlayback for mix {$mixId}");
+                return ['success' => false, 'message' => 'Session creation failed'];
+            }
+        }
+
+        // Use $sessionId instead of $session->id
+
         Log::info("Starting playback for mix {$mixId}, resetQueue: " . ($resetQueue ? 'true' : 'false') .
                   ($deviceId ? ", deviceId: {$deviceId}" : ""));
 
@@ -159,7 +223,7 @@ class QueueManagementService
     public function stopPlayback(int $mixId): array
     {
         $mix = Mix::findOrFail($mixId);
-        
+
         // Determine which user to use for playback
         $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
@@ -192,130 +256,6 @@ class QueueManagementService
     }
 
     /**
-     * Add a song to the queue
-     */
-    public function addSongToQueue(int $mixId, int $songId, int $userId): QueueSong
-    {
-        Log::info("Adding song {$songId} to mix {$mixId} queue");
-
-        // Get the active session
-        $activeSession = PlaybackSession::where('mix_id', $mixId)
-            ->where('is_active', true)
-            ->first();
-
-        if (!$activeSession) {
-            // Create a session if one doesn't exist
-            $activeSession = PlaybackSession::create([
-                'mix_id' => $mixId,
-                'started_at' => now(),
-                'is_active' => true
-            ]);
-            Log::info("Created new playback session {$activeSession->id} for mix {$mixId} during addSongToQueue");
-        }
-
-        // Get highest order number in current round
-        $maxOrder = QueueSong::where('mix_id', $mixId)
-            ->where('round_number', 1)
-            ->max('order') ?? 0;
-
-        // Create queue entry
-        $queueSong = QueueSong::create([
-            'song_id' => $songId,
-            'mix_id' => $mixId,
-            'user_id' => $userId,
-            'playback_session_id' => $activeSession->id, // CHANGED FROM session_id
-            'round_number' => 1,
-            'order' => $maxOrder + 1,
-            'status' => 'pending',
-            'is_killed' => false
-        ]);
-
-        return $queueSong;
-    }
-
-    /**
-     * Remove a song from the queue (when pending)
-     */
-    public function removeSongFromQueue(int $queueSongId): bool
-    {
-        $queueSong = QueueSong::findOrFail($queueSongId);
-
-        // Only allow removal if song is still pending
-        if ($queueSong->status === 'pending') {
-            Log::info("Removing song {$queueSong->song_id} from queue");
-            return $queueSong->delete();
-        }
-
-        Log::warning("Cannot remove song {$queueSong->song_id} - status is {$queueSong->status}");
-        return false;
-    }
-
-    /**
-     * Kill a currently playing song (skip it)
-     */
-    public function killCurrentSong(int $mixId, ?int $userId = null): array
-    {
-        $currentSong = QueueSong::where('mix_id', $mixId)
-            ->where('status', 'playing')
-            ->first();
-
-        if (!$currentSong) {
-            return [
-                'success' => false,
-                'message' => 'No song currently playing'
-            ];
-        }
-
-        // Mark as killed
-        $currentSong->update([
-            'is_killed' => true,
-            'status' => 'finished',
-            'played_at' => Carbon::now()
-        ]);
-
-        if ($userId) {
-            Log::info("User {$userId} killed song {$currentSong->song_id} in mix {$mixId}");
-        } else {
-            Log::info("System killed song {$currentSong->song_id} in mix {$mixId}");
-        }
-
-        // Advance to next song
-        return $this->songPlaybackService->advanceToNextSong($mixId);
-    }
-
-    /**
-     * Get the queue for a mix
-     */
-    public function getQueue(int $mixId): array
-    {
-        $playing = QueueSong::where('mix_id', $mixId)
-            ->where('status', 'playing')
-            ->with(['song', 'user'])
-            ->first();
-
-        $pending = QueueSong::where('mix_id', $mixId)
-            ->where('status', 'pending')
-            ->where('is_killed', false)
-            ->orderBy('round_number')
-            ->orderBy('order')
-            ->with(['song', 'user'])
-            ->get();
-
-        $finished = QueueSong::where('mix_id', $mixId)
-            ->where('status', 'finished')
-            ->orderBy('played_at', 'desc')
-            ->with(['song', 'user'])
-            ->limit(10)
-            ->get();
-
-        return [
-            'playing' => $playing,
-            'pending' => $pending,
-            'history' => $finished
-        ];
-    }
-
-    /**
      * Clear the entire queue for a mix
      */
     public function clearQueue(int $mixId): void
@@ -328,43 +268,6 @@ class QueueManagementService
             ]);
 
         Log::info("Cleared queue for mix {$mixId}");
-    }
-
-    /**
-     * Record like for a queue song
-     */
-    public function likeSong(int $queueSongId, int $userId): array
-    {
-        $queueSong = QueueSong::findOrFail($queueSongId);
-        $queueSong->increment('like_count');
-
-        Log::info("User {$userId} liked song {$queueSong->song_id}");
-
-        return [
-            'success' => true,
-            'like_count' => $queueSong->like_count
-        ];
-    }
-
-    /**
-     * Record dislike for a queue song
-     */
-    public function dislikeSong(int $queueSongId, int $userId): array
-    {
-        $queueSong = QueueSong::findOrFail($queueSongId);
-        $queueSong->increment('dislike_count');
-
-        // If dislikes reach threshold, kill the song
-        if ($queueSong->status === 'playing' && $queueSong->dislike_count >= 3) {
-            return $this->killCurrentSong($queueSong->mix_id, $userId);
-        }
-
-        Log::info("User {$userId} disliked song {$queueSong->song_id}");
-
-        return [
-            'success' => true,
-            'dislike_count' => $queueSong->dislike_count
-        ];
     }
 
     /**
@@ -425,5 +328,72 @@ class QueueManagementService
         }
 
         Log::info("Cleared cache entries for mix {$mixId} while preserving device selection");
+    }
+
+    public function appendRoundsToQueue(Mix $mix, int $rounds = 1): array
+    {
+        // Get current max round number
+        $lastRound = QueueSong::where('mix_id', $mix->id)->max('round_number') ?? 0;
+
+        // Get offset so we don’t re-add already-queued songs
+        $totalQueued = QueueSong::where('mix_id', $mix->id)->count();
+
+        if (!Cache::has("mix_{$mix->id}_shuffled_ids")) {
+            $shuffledIds = $this->queueBuilderService->getShuffledSongIds($mix);
+            Cache::put("mix_{$mix->id}_shuffled_ids", $shuffledIds, now()->addHours(6));
+        }
+
+        // Build next N rounds from that point
+        $queueBatches = $this->queueBuilderService->buildQueue($mix, $rounds, $offset = $totalQueued);
+
+        $order = QueueSong::where('mix_id', $mix->id)->max('order') ?? 0;
+
+        $sessionId = $this->getActiveSessionId($mix);
+
+        foreach ($queueBatches as $round => $songs) {
+            foreach ($songs as $song) {
+                $order++;
+                QueueSong::create([
+                    'mix_id' => $mix->id,
+                    'song_id' => $song->id,
+                    'playback_session_id' => $sessionId,
+                    'round_number' => $lastRound + $round,
+                    'order' => $order,
+                    'status' => 'pending',
+                    'is_killed' => false,
+                ]);
+            }
+        }
+
+        return [
+            'success' => true,
+            'message' => "Appended {$rounds} more rounds to the queue"
+        ];
+    }
+
+    protected function getActiveSessionId(Mix $mix): ?int
+    {
+        $session = PlaybackSession::where('mix_id', $mix->id)
+            ->where('is_active', true)
+            ->latest('started_at')
+            ->first();
+
+        if (!$session) {
+            // Create a new session if none exists
+            $session = PlaybackSession::create([
+                'mix_id' => $mix->id,
+                'started_at' => now(),
+                'is_active' => true
+            ]);
+            Log::info("Created new playback session {$session->id} for mix {$mix->id} during appendRoundsToQueue");
+        }
+
+        // Add the same defensive check here
+        if (is_array($session)) {
+            Log::warning("Session was returned as array instead of object in getActiveSessionId");
+            return $session['id'] ?? null;
+        }
+
+        return $session->id;
     }
 }
