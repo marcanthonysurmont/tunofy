@@ -183,11 +183,14 @@
         @play-song="emit('resume-mix')"
         @pause-song="emit('pause-mix')"
         @next-song="emit('next-song')"
+        @show-device-selector="showDeviceSelectorModal = true"
         :is-visible="showPlaybackFullscreen"
         :mix="mix"
         :is-playing="isPlaying"
         :current-track="currentTrack"
         :is-mix-active="isMixActive"
+        :devices="devices"
+        :selected-device="selectedDevice"
     />
 </template>
 
