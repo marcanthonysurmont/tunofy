@@ -33,7 +33,12 @@ import ManageSubPage from "@/components/subpages/manage/ManageSubPage.vue";
 
 const tabs = ref([
     { name: "Overview", active: true, id: "overview" },
-    { name: "Voting", active: false, id: "voting" },
+    {
+        name: "Voting",
+        active: false,
+        id: "voting",
+        votingActive: true,
+    },
     { name: "Stats", active: false, id: "stats" },
     { name: "Presets", active: false, id: "presets" },
     { name: "Manage", active: false, id: "manage" },
