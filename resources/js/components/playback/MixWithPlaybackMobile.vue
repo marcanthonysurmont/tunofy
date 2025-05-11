@@ -1,5 +1,6 @@
 <template>
     <div
+        @click="showPlayerFullscreen"
         class="fixed bottom-0 left-0 right-0 w-full z-40 bg-card-background/40 border-t-2 lg:border-2 backdrop-blur-xl border-card-stroke p-4 lg:fixed lg:bottom-5 lg:left-1/2 lg:-translate-x-1/2 lg:ml-[160px] lg:max-w-2xl lg:rounded-lg xl:max-w-4xl"
     >
         <div class="mb-4 flex flex-row justify-between items-center">
@@ -7,7 +8,7 @@
                 :model-value="isMixActive"
                 :disabled="isLoading"
                 :label="isMixActive ? 'Queue active' : 'Queue inactive'"
-                @click="emit('toggle-mix-active')"
+                @click.stop="emit('toggle-mix-active')"
             />
         </div>
 
@@ -54,7 +55,7 @@
                     >
                         <div
                             class="relative"
-                            @click="showDeviceSelectorModal = true"
+                            @click.stop="showDeviceSelectorModal = true"
                         >
                             <svg
                                 data-encore-id="icon"
@@ -80,7 +81,7 @@
                                 class="absolute -top-2 -right-2 text-yellow-500 size-4"
                             />
                         </div>
-                        <PlayIcon class="size-7 opacity-50" />
+                        <PlayIcon class="size-7 opacity-50" @click.stop />
                     </div>
                 </div>
             </div>
@@ -124,7 +125,7 @@
                     >
                         <div
                             class="relative"
-                            @click="showDeviceSelectorModal = true"
+                            @click.stop="showDeviceSelectorModal = true"
                         >
                             <svg
                                 data-encore-id="icon"
@@ -151,13 +152,13 @@
                             />
                         </div>
                         <PlayIcon
-                            @click="emit('resume-mix')"
+                            @click.stop="emit('resume-mix')"
                             v-if="!isPlaying"
                             class="size-7 cursor-pointer"
                             :class="selectedDevice === null ? 'opacity-50' : ''"
                         />
                         <PauseIcon
-                            @click="emit('pause-mix')"
+                            @click.stop="emit('pause-mix')"
                             v-if="isPlaying"
                             class="size-7 cursor-pointer"
                             :class="selectedDevice === null ? 'opacity-50' : ''"
@@ -176,6 +177,18 @@
         @refresh-devices="emit('refresh-devices')"
         @close-modal="showDeviceSelectorModal = false"
     />
+    <MixWithPlaybackFullscreen
+        @close-fullscreen="showPlaybackFullscreen = false"
+        @previous-song="emit('previous-song')"
+        @play-song="emit('resume-mix')"
+        @pause-song="emit('pause-mix')"
+        @next-song="emit('next-song')"
+        :is-visible="showPlaybackFullscreen"
+        :mix="mix"
+        :is-playing="isPlaying"
+        :current-track="currentTrack"
+        :is-mix-active="isMixActive"
+    />
 </template>
 
 <script setup>
@@ -189,6 +202,7 @@ import {
     PauseIcon,
     XCircleIcon,
 } from "@heroicons/vue/16/solid";
+import MixWithPlaybackFullscreen from "./MixWithPlaybackFullscreen.vue";
 
 const props = defineProps({
     mix: {
@@ -239,7 +253,14 @@ const emit = defineEmits([
     "select-device",
     "refresh-devices",
     "close-queue-modal",
+    "previous-song",
+    "next-song",
 ]);
 
 const showDeviceSelectorModal = ref(false);
+const showPlaybackFullscreen = ref(false);
+
+function showPlayerFullscreen() {
+    showPlaybackFullscreen.value = true;
+}
 </script>

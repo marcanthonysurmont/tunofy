@@ -15,6 +15,8 @@
         @refresh-devices="refreshDevices"
         @select-device="selectDevice"
         @toggle-mix-active="toggleMixActive"
+        @next-song="skipSong"
+        @previous-song="previousSong"
         v-if="windowSize < 1024 && authorization.canControlPlayback"
     />
     <MixWithPlayback
