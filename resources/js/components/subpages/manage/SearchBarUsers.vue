@@ -75,7 +75,7 @@ const query = ref(props.query || "");
 const isLoading = ref(false);
 const searchInput = ref(null);
 
-const emit = defineEmits(["search-updated", "is-searching"]);
+const emit = defineEmits(["search-updated", "is-searching", "clear-search"]);
 
 watch(
     query,
@@ -124,5 +124,6 @@ function resetQuery() {
     isLoading.value = false;
     //focus again when user clears input because it automatically unfocuses
     searchInput.value?.focus();
+    emit("clear-search");
 }
 </script>
