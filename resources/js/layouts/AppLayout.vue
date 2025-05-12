@@ -244,19 +244,7 @@
         </div>
 
         <main class="py-10 lg:pl-80 max-w-[1955px] mx-auto">
-            <div
-                class="fixed inset-0 -z-10 h-screen w-screen overflow-hidden"
-                style="
-                    background-image: url('/images/decorations/floral-border.png');
-                    background-repeat: no-repeat;
-                    background-size: cover;
-                    margin: 0;
-                    padding: 0;
-                "
-            ></div>
-            <div
-                class="fixed inset-0 -z-9 h-screen w-screen bg-background-page opacity-90"
-            ></div>
+            <CustomThemeContainer />
             <div class="px-4 sm:px-6 lg:px-8 xl:px-12">
                 <slot />
             </div>
@@ -304,6 +292,7 @@ import { usePage } from "@inertiajs/vue3";
 import JoinedMixesList from "../components/mixes/JoinedMixesList.vue";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal.vue";
 import { StoreConfirmationModal } from "@/stores/StoreConfirmationModal";
+import CustomThemeContainer from "@/components/themes/CustomThemeContainer.vue";
 const storeConfirmationModal = StoreConfirmationModal();
 
 const page = usePage();
