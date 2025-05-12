@@ -28,7 +28,7 @@
                             'border-2 rounded-lg flex items-center justify-center px-3 pb-1.5 pt-2.5 tab-nav-item-center tab-nav-peeking-item sm:text-xl md:text-2xl font-medium font-headers hover:text-neutral-300 z-10 transition-colors duration-300 ease-in-out relative whitespace-nowrap',
                             tab.active
                                 ? 'border-primary text-white'
-                                : 'border-tab-stroke-inactive text-white bg-background-page',
+                                : 'border-tab-stroke-inactive text-white',
                             tab.votingActive === false && !tab.active
                                 ? 'opacity-50 cursor-not-allowed'
                                 : 'cursor-pointer',
