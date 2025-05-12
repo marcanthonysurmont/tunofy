@@ -141,6 +141,11 @@ onMounted(() => {
     nextTick(() => {
         setTimeout(updateIndicatorPosition, 50);
     });
+
+    document.fonts.ready.then(() => {
+        updateIndicatorPosition();
+    });
+
     window.addEventListener("resize", updateIndicatorPosition);
 });
 
