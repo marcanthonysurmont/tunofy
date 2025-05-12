@@ -169,6 +169,27 @@ class SongPlaybackService
             ]);
 
             Log::info("Marked song {$currentSong->id} as finished");
+
+            // Check if we're approaching the end of the queue - get remaining song count
+            $pendingSongCount = Cache::remember("mix:{$mixId}:pending_count", now()->addMinutes(1), function () use ($mixId) {
+                return QueueSong::where('mix_id', $mixId)
+                    ->where('status', 'pending')
+                    ->count();
+            });
+
+            // Only do the full extension check after every 3 songs or if we're getting low
+            $songCheckCounter = Cache::get("mix:{$mixId}:song_check_counter", 0);
+
+            if ($songCheckCounter >= 3 || $pendingSongCount <= 5) {
+                // Time to check and possibly extend the queue
+                $this->checkAndExtendQueue($mixId);
+
+                // Reset the counter
+                Cache::put("mix:{$mixId}:song_check_counter", 0, now()->addHours(1));
+            } else {
+                // Increment the counter
+                Cache::put("mix:{$mixId}:song_check_counter", $songCheckCounter + 1, now()->addHours(1));
+            }
         }
 
         // Set a flag indicating we're changing tracks to prevent false mismatch detection
@@ -515,20 +536,35 @@ class SongPlaybackService
             return;
         }
 
-        // Count remaining pending songs
-        $pendingSongs = QueueSong::where('mix_id', $mixId)
-            ->where('status', 'pending')
-            ->count();
+        // Use the cached count if available to avoid redundant queries
+        $pendingSongs = Cache::get("mix:{$mixId}:pending_count", null);
+
+        // If not cached, get the count from the database
+        if ($pendingSongs === null) {
+            $pendingSongs = QueueSong::where('mix_id', $mixId)
+                ->where('status', 'pending')
+                ->count();
+
+            // Cache the result
+            Cache::put("mix:{$mixId}:pending_count", $pendingSongs, now()->addMinutes(1));
+        }
 
         // Get batch size to determine threshold
         $batchSize = $mix->preset->batch_size;
 
-        // If fewer than 1 batch size of songs remaining, add more rounds
-        if ($pendingSongs <= $batchSize) {
+        // If fewer than 1.5 batch sizes of songs remaining, add more rounds
+        if ($pendingSongs <= ($batchSize * 1.5)) {
             Log::info("Queue for mix {$mixId} is running low ({$pendingSongs} songs left). Adding more rounds.");
 
-            // Add 1 more round
-            app(QueueManagementService::class)->appendRoundsToQueue($mix, 1);
+            // Add 2 more rounds instead of just 1
+            app(QueueManagementService::class)->appendRoundsToQueue($mix, 2);
+
+            // Immediately recalculate and update the pending count after adding rounds
+            $newPendingCount = QueueSong::where('mix_id', $mixId)
+                ->where('status', 'pending')
+                ->count();
+
+            Cache::put("mix:{$mixId}:pending_count", $newPendingCount, now()->addMinutes(1));
         }
     }
 
