@@ -25,7 +25,7 @@
                             }
                         "
                         :class="[
-                            'border-2 rounded-lg flex items-center justify-center px-3 pb-1.5 pt-2.5 tab-nav-item-center sm:text-xl md:text-2xl font-medium font-headers hover:text-neutral-300 z-10 transition-colors duration-300 ease-in-out relative whitespace-nowrap',
+                            'border-2 rounded-lg flex items-center justify-center px-3 pb-1.5 pt-2.5 tab-nav-item-center tab-nav-peeking-item sm:text-xl md:text-2xl font-medium font-headers hover:text-neutral-300 z-10 transition-colors duration-300 ease-in-out relative whitespace-nowrap',
                             tab.active
                                 ? 'border-primary text-white'
                                 : 'border-tab-stroke-inactive text-white',
@@ -155,3 +155,12 @@ watch(
     { deep: true }
 );
 </script>
+
+<style scoped>
+@media (max-width: 468px) {
+    .tab-nav-peeking-item {
+        min-width: 25dvw;
+        max-width: 150px;
+    }
+}
+</style>
