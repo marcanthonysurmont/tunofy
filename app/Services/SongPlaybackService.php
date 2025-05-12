@@ -207,7 +207,7 @@ class SongPlaybackService
             // Just broadcast a queue completed event
             event(new MixStatusChangedEvent(
                 $mix,         // First argument: the Mix model
-                true,         // Second argument: boolean isActive
+                false,         // Second argument: boolean isActive
                 'queue_completed'  // Third argument: string reason
             ));
 
