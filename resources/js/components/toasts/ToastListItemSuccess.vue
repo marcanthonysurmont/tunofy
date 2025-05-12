@@ -9,7 +9,7 @@
     >
         <div
             v-if="visible"
-            class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg bg-[#2A2D33]"
+            class="pointer-events-auto w-full overflow-hidden rounded-lg shadow-lg bg-[#2A2D33]"
             role="alert"
         >
             <div class="p-4">
