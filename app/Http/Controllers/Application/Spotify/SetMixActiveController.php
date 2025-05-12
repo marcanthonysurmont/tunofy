@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use App\Events\PlaybackDataUpdatedEvent;
 use App\Jobs\PollSpotifyMixJob;
+use App\Models\PlaybackSession;
 
 class SetMixActiveController extends Controller
 {
@@ -164,5 +165,32 @@ class SetMixActiveController extends Controller
                 'type' => get_class($e)
             ], 500);
         }
+    }
+
+    // Add this method to handle automatic deactivation when queue completes
+    public function deactivateMixAfterQueueCompletion(Mix $mix)
+    {
+        // Update the mix status to inactive
+        $mix->update(['is_active' => false]);
+
+        // Log status change
+        Log::info("Mix {$mix->id} automatically deactivated after queue completion");
+
+        // End active sessions
+        PlaybackSession::where('mix_id', $mix->id)
+            ->where('is_active', true)
+            ->update([
+                'is_active' => false,
+                'ended_at' => now()
+            ]);
+
+        // Broadcast deactivation event
+        event(new MixStatusChangedEvent($mix, false));
+
+        return response()->json([
+            'success' => true,
+            'status' => 'deactivated',
+            'message' => 'Mix automatically deactivated after queue completion'
+        ]);
     }
 }

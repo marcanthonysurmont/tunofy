@@ -45,13 +45,13 @@ class PollSpotifyMixJob implements ShouldQueue
         $mixId = $this->mix->id;
 
         // Don't poll if queue is completed
-        if(Cache::has("mix:{$mixId}:queue_completed")) {
+        if (Cache::has("mix:{$mixId}:queue_completed")) {
             Log::info("Mix {$mixId} queue completed, exiting poll job");
             // Don't reschedule
             return;
         }
 
-        if(Cache::has("mix:{$mixId}:paused")) {
+        if (Cache::has("mix:{$mixId}:paused")) {
             Log::info("Mix {$mixId} is paused, skipping polling");
 
             $this->scheduleNextPoll();
@@ -94,7 +94,13 @@ class PollSpotifyMixJob implements ShouldQueue
 
         try {
             // Pass the fresh mix to polling service
-            $pollingService->pollPlayback($freshMix);
+            $result = $pollingService->pollPlayback($freshMix);
+
+            // Check for special stop polling signal
+            if ($result === "stop_polling") {
+                Log::info("Stopping polling for mix {$mixId} as queue has completed");
+                return;  // Don't schedule next poll
+            }
 
             // Schedule the next poll
             $this->scheduleNextPoll($freshMix);

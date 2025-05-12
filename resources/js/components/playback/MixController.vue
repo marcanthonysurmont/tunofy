@@ -512,16 +512,14 @@ onMounted(() => {
                     clearSyncingState();
                     currentTrack.value = null;
                     isPlaying.value = false;
-                    if (e.reason === "queue_completed")
-                        queueCompleted.value = true;
                 } else if (e.reason === "queue_completed") {
-                    // Handle active but queue completed
-                    clearSyncingState(); // Make sure this is called
+                    // Handle queue completion while keeping mix active
+                    clearSyncingState();
                     queueCompleted.value = true;
-                    console.log("Queue completed but mix remains active");
-                } else {
-                    setSyncingState();
-                    queueCompleted.value = false;
+                    isPlaying.value = false;
+
+                    // Show queue completed modal
+                    showQueueCompletedModal.value = true;
                 }
             });
 

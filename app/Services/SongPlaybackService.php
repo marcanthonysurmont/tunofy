@@ -10,7 +10,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use App\Events\MixStatusChangedEvent;
-use Illuminate\Support\Facades\Auth;
 
 class SongPlaybackService
 {
@@ -201,18 +200,21 @@ class SongPlaybackService
         // Get and play the next song, passing the device ID
         $result = $this->startPlayback($mixId, $deviceId);
 
-        // Add this check to handle the end of queue correctly
         if (!$result['success'] && isset($result['message']) && $result['message'] === 'No songs in queue') {
-            // This is normal end of queue, don't mark everything as finished
-            // Just broadcast a queue completed event
-            event(new MixStatusChangedEvent(
-                $mix,         // First argument: the Mix model
-                false,         // Second argument: boolean isActive
-                'queue_completed'  // Third argument: string reason
-            ));
+            // Make sure to mark the queue as completed in the database
+            QueueSong::where('mix_id', $mixId)
+                ->whereIn('status', ['playing', 'pending'])
+                ->update([
+                    'status' => 'finished',
+                    'played_at' => Carbon::now()
+                ]);
 
-            // Don't change any other song statuses
-            Log::info("Queue completed for mix {$mixId}, no more songs to play");
+            // Broadcast a queue completed event
+            event(new MixStatusChangedEvent(
+                $mix,
+                true,  // Keep mix active but indicate queue completion
+                'queue_completed'
+            ));
 
             // Mark the active session as inactive since the queue is complete
             if ($activeSession) {
@@ -223,20 +225,14 @@ class SongPlaybackService
                 Log::info("Marked playback session {$activeSession->id} as inactive after queue completion");
             }
 
-            // Set a cache flag to indicate the queue is completed - increase time to 10 minutes
+            // Set a cache flag to indicate the queue is completed
             Cache::put("mix:{$mixId}:queue_completed", true, now()->addMinutes(10));
 
-            // IMPORTANT: Also try to pause Spotify playback to prevent continuous playing
-            try {
-                // Get the user from the mix, not from Auth
-                $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+            Log::info("Queue completed for mix {$mixId}, all songs marked as finished");
 
-                if ($user) {
-                    $this->spotifyService->pausePlayback($user);
-                    Log::info("Paused playback for user {$user->id} after queue completion");
-                } else {
-                    Log::warning("Could not pause playback: No user associated with mix {$mixId}");
-                }
+            // Try to pause Spotify playback
+            try {
+                $this->spotifyService->pausePlayback($user);
             } catch (\Exception $e) {
                 Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
             }

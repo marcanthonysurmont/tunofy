@@ -5,9 +5,11 @@ namespace App\Services;
 use App\Models\Mix;
 use App\Models\QueueSong;
 use App\Models\User;
+use App\Models\PlaybackSession;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use App\Events\PlaybackDataUpdatedEvent;
+use App\Events\MixStatusChangedEvent;
 
 class SpotifyPollingService
 {
@@ -41,7 +43,7 @@ class SpotifyPollingService
     /**
      * Poll Spotify for the current playback state
      */
-    public function pollPlayback(Mix $mix): void
+    public function pollPlayback(Mix $mix)
     {
         $cacheKey = self::CACHE_PREFIX_PLAYBACK . $mix->id;
 
@@ -87,43 +89,20 @@ class SpotifyPollingService
             // Get the currently playing song according to our queue
             $currentQueueSong = $this->songPlaybackService->getCurrentlyPlayingSong($mix->id);
 
-            // Analyze the current playback state - now with proper null handling
+            // Analyze the current playback state
             $playerState = $this->analyzePlayerState($mix, $user, $currentQueueSong, $playbackData, $previousData);
 
-            // When device mismatch is detected:
-            if ($selectedDeviceId && isset($playbackData['device']['id']) &&
-                $playbackData['device']['id'] !== $selectedDeviceId) {
+            // Handle the player state - now with return value
+            $result = $this->handlePlayerState($mix, $playerState, $playbackData, $currentQueueSong);
 
-                // IMPORTANT: Don't automatically switch devices, just log the issue
-                Log::warning("Device mismatch detected during polling. Selected: {$selectedDeviceId}, Active: {$playbackData['device']['id']}");
-
-                // We still broadcast the current playback state, but add a flag
-                $playbackData['_device_mismatch'] = true;
-
-                // Only if we're not in a device change grace period
-                if (!Cache::has("mix:{$mix->id}:device_changed")) {
-                    // Set a flag that will be used by the frontend to display a device mismatch warning
-                    Cache::put("mix:{$mix->id}:device_mismatch", true, now()->addMinutes(5));
-                }
+            // Check for queue completion signal
+            if ($result === self::PLAYER_STATE_QUEUE_COMPLETED) {
+                // Set the queue_completed flag in cache
+                Cache::put("mix:{$mix->id}:queue_completed", true, now()->addHours(1));
+                return "stop_polling";
             }
 
-            // Track mismatch is a separate issue from device mismatch
-            if ($playerState === self::PLAYER_STATE_TRACK_MISMATCH) {
-                // Handle mismatch by correcting playback, BUT preserve device ID
-                $this->handlePlayerState($mix, $playerState);
-
-                // Don't broadcast mismatched playback data - we'll get a new event when it's fixed
-                Log::info("Suppressing playback data broadcast due to track mismatch");
-                return;
-            }
-
-            // For regular playback changes, handle them normally
-            if ($playerState !== self::PLAYER_STATE_NORMAL) {
-                $this->handlePlayerState($mix, $playerState);
-            }
-
-            // Use your existing method to update cache and broadcast only significant changes
-            $this->updateCacheAndBroadcast($mix, $playbackData, $previousData, $cacheKey);
+            return true; // Normal return
         } catch (\Exception $e) {
             Log::error("Error polling Spotify: " . $e->getMessage());
         }
@@ -173,18 +152,48 @@ class SpotifyPollingService
             // Set flag for tighter polling when nearing end
             if ($percentRemaining <= 15) {
                 $songNearingEndKey = self::CACHE_PREFIX_ENDING . $mix->id;
-                Cache::put($songNearingEndKey, true, now()->addSeconds(20));
-                Log::debug("Song nearing end - {$percentRemaining}% remaining");
 
-                // Only return nearing_end if not past the threshold for finished
-                if ($remainingMs > 3000) {
-                    return self::PLAYER_STATE_NEARING_END;
+                // Only set the flag and broadcast if not already done for this track
+                $trackEndNotifiedKey = "mix:{$mix->id}:track_end_notified:{$currentQueueSong->song->spotify_id}";
+                if (!Cache::has($trackEndNotifiedKey)) {
+                    Cache::put($songNearingEndKey, true, now()->addSeconds(20));
+                    // Set track-specific notification flag to prevent duplicate broadcasts
+                    Cache::put($trackEndNotifiedKey, true, now()->addSeconds(20));
+                    Log::debug("Song nearing end - {$percentRemaining}% remaining");
+
+                    // Check if this is the last song in the queue
+                    $hasMoreSongs = QueueSong::where('mix_id', $mix->id)
+                        ->where('status', 'pending')
+                        ->exists();
+
+                    if (!$hasMoreSongs && $remainingMs <= 5000) {
+                        return self::PLAYER_STATE_QUEUE_COMPLETED;
+                    }
+
+                    // Only return nearing_end if we're not too close to the end
+                    if ($remainingMs > 3000) {
+                        return self::PLAYER_STATE_NEARING_END;
+                    }
                 }
             }
 
-            // Song is finished or very close to ending
+            // Improve detection of finished tracks
+            // Song is finished or very close to ending (less than 3 seconds remaining)
             if ($remainingMs <= 3000) {
                 return self::PLAYER_STATE_FINISHED;
+            }
+
+            // Special case for detecting an empty queue with the last song nearing end
+            if ($currentQueueSong && $percentRemaining <= 10) {
+                // Check if this is the last song in the queue
+                $hasPendingSongs = QueueSong::where('mix_id', $mix->id)
+                    ->where('status', 'pending')
+                    ->exists();
+
+                if (!$hasPendingSongs) {
+                    Log::info("Last song in queue is ending, preparing for queue completion");
+                    return self::PLAYER_STATE_QUEUE_COMPLETED;
+                }
             }
         }
 
@@ -246,7 +255,7 @@ class SpotifyPollingService
     /**
      * Handle the player state based on analysis
      */
-    private function handlePlayerState(Mix $mix, string $playerState): void
+    private function handlePlayerState(Mix $mix, string $playerState, ?array $playbackData = null, ?QueueSong $currentQueueSong = null)
     {
         // Try harder to find device ID - check multiple patterns
         $deviceId = Cache::get("mix:{$mix->id}:device_id");
@@ -268,11 +277,70 @@ class SpotifyPollingService
                   ($deviceId ? " with device {$deviceId}" : " with no specific device"));
 
         switch ($playerState) {
+            case self::PLAYER_STATE_QUEUE_COMPLETED:
+                Log::info("Queue completion detected for mix {$mix->id}");
+
+                // Mark all songs as finished
+                QueueSong::where('mix_id', $mix->id)
+                    ->whereIn('status', ['playing', 'pending'])
+                    ->update([
+                        'status' => 'finished',
+                        'played_at' => now()
+                    ]);
+
+                // Mark session as inactive
+                PlaybackSession::where('mix_id', $mix->id)
+                    ->where('is_active', true)
+                    ->update([
+                        'is_active' => false,
+                        'ended_at' => now()
+                    ]);
+
+                // Set cache flag
+                Cache::put("mix:{$mix->id}:queue_completed", true, now()->addHours(1));
+
+                // *** IMPORTANT: Mark the mix itself as inactive ***
+                $mix->update(['is_active' => false]);
+                Log::info("Marked mix {$mix->id} as inactive after queue completion");
+
+                // Pause playback
+                try {
+                    $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+                    $this->spotifyService->pausePlayback($user);
+                    Log::info("Paused playback after queue completion");
+                } catch (\Exception $e) {
+                    Log::error("Failed to pause playback: " . $e->getMessage());
+                }
+
+                // Broadcast queue completion AND deactivation
+                event(new MixStatusChangedEvent(
+                    $mix,
+                    false,  // Important: Set to false to indicate mix is now inactive
+                    'queue_completed'
+                ));
+
+                return self::PLAYER_STATE_QUEUE_COMPLETED;
+                break;
+
             case self::PLAYER_STATE_TRACK_ENDED:
             case self::PLAYER_STATE_FINISHED:
                 Log::info("Detected track ended for mix {$mix->id}, advancing to next song");
-                // Use the SongPlaybackService instead of QueueManagementService
-                $this->songPlaybackService->advanceToNextSong($mix->id);
+                // Clear the notification flag before advancing
+                if (isset($currentQueueSong)) {
+                    Cache::forget("mix:{$mix->id}:track_end_notified:{$currentQueueSong->song->spotify_id}");
+                }
+
+                // Check if there are any more songs in the queue
+                $hasPendingSongs = QueueSong::where('mix_id', $mix->id)
+                    ->where('status', 'pending')
+                    ->exists();
+
+                if (!$hasPendingSongs) {
+                    $this->handlePlayerState($mix, self::PLAYER_STATE_QUEUE_COMPLETED);
+                } else {
+                    // Only advance if there are more songs
+                    $this->songPlaybackService->advanceToNextSong($mix->id);
+                }
                 break;
 
             case self::PLAYER_STATE_TRACK_MISMATCH:
@@ -303,6 +371,9 @@ class SpotifyPollingService
                 }
                 break;
         }
+
+        // Add a default return
+        return null;
     }
 
     /**
