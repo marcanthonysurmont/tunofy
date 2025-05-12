@@ -2,36 +2,88 @@
     <Head :title="`Tunofy | ${nameOfMix}`" />
     <AppLayout>
         <TabNav :tabs="tabs" @tab-changed="setActiveTab" />
-        <Transition name="fade-with-slide" appear mode="out-in" :duration="300">
-            <div
-                :key="localActiveTab"
-                class="relative"
-                :class="localActiveTab === 'Overview' ? 'mb-0' : 'mb-32'"
+        <Suspense
+            :key="localActiveTab"
+            suspensible
+            @resolve="state = console.log('resolved')"
+            @pending="state = console.log('pending')"
+            @fallback="state = console.log('fallback')"
+        >
+            <template #fallback>
+                <Transition
+                    name="fade-with-slide"
+                    appear
+                    mode="out-in"
+                    :duration="300"
+                >
+                    <SkeletonOverviewSubPage
+                        v-if="localActiveTab === 'Overview'"
+                    />
+                    <SkeletonPresetsSubPage
+                        v-else-if="localActiveTab === 'Presets'"
+                    />
+                    <SkeletonDefault v-else />
+                </Transition>
+            </template>
+
+            <Transition
+                name="fade-with-slide"
+                appear
+                mode="out-in"
+                :duration="300"
             >
-                <OverviewSubPage v-if="localActiveTab === 'Overview'" />
-                <VotingSubPage v-else-if="localActiveTab === 'Voting'" />
-                <StatsSubPage v-else-if="localActiveTab === 'Stats'" />
-                <PresetsSubPage v-else-if="localActiveTab === 'Presets'" />
-                <ManageSubPage v-else-if="localActiveTab === 'Manage'" />
-            </div>
-        </Transition>
+                <div
+                    :key="localActiveTab"
+                    class="relative"
+                    :class="localActiveTab === 'Overview' ? 'mb-0' : 'mb-32'"
+                >
+                    <component :is="currentAsyncComponent" />
+                </div>
+            </Transition>
+        </Suspense>
         <MixController :mix="mix" />
         <CustomThemeContainer />
     </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, defineAsyncComponent, onBeforeMount } from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
 import TabNav from "@/components/navigation/TabNav.vue";
 import { Head, usePage } from "@inertiajs/vue3";
-import OverviewSubPage from "@/components/subpages/overview/OverviewSubPage.vue";
-import PresetsSubPage from "@/components/subpages/presets/PresetsSubPage.vue";
-import StatsSubPage from "@/components/subpages/stats/StatsSubPage.vue";
-import VotingSubPage from "@/components/subpages/voting/VotingSubPage.vue";
+import SkeletonOverviewSubPage from "@/components/skeletons/SkeletonOverviewSubPage.vue";
+import SkeletonPresetsSubPage from "@/components/skeletons/SkeletonPresetsSubPage.vue";
+import SkeletonDefault from "@/components/skeletons/SkeletonDefault.vue";
 import MixController from "@/components/playback/MixController.vue";
-import ManageSubPage from "@/components/subpages/manage/ManageSubPage.vue";
 import CustomThemeContainer from "@/components/themes/CustomThemeContainer.vue";
+
+const OverviewSubPageAsync = defineAsyncComponent(() =>
+    import("@/components/subpages/overview/OverviewSubPage.vue")
+);
+const PresetsSubPageAsync = defineAsyncComponent(() =>
+    import("@/components/subpages/presets/PresetsSubPage.vue")
+);
+const StatsSubPageAsync = defineAsyncComponent(() =>
+    import("@/components/subpages/stats/StatsSubPage.vue")
+);
+const VotingSubPageAsync = defineAsyncComponent(() =>
+    import("@/components/subpages/voting/VotingSubPage.vue")
+);
+const ManageSubPageAsync = defineAsyncComponent(() =>
+    import("@/components/subpages/manage/ManageSubPage.vue")
+);
+
+const asyncComponents = {
+    Overview: OverviewSubPageAsync,
+    Voting: VotingSubPageAsync,
+    Stats: StatsSubPageAsync,
+    Presets: PresetsSubPageAsync,
+    Manage: ManageSubPageAsync,
+};
+
+const currentAsyncComponent = computed(
+    () => asyncComponents[localActiveTab.value]
+);
 
 const tabs = ref([
     { name: "Overview", active: true, id: "overview" },
@@ -54,7 +106,7 @@ const mix = computed(() => page.props.mix || null);
 const localActiveTab = ref("Overview");
 
 // Initialize based on URL or props
-onMounted(() => {
+onBeforeMount(() => {
     const tabFromProps = page.props.activeTab;
     if (tabFromProps) {
         localActiveTab.value =
