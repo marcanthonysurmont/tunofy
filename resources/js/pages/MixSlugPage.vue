@@ -16,6 +16,7 @@
             </div>
         </Transition>
         <MixController :mix="mix" />
+        <CustomThemeContainer />
     </AppLayout>
 </template>
 
@@ -30,6 +31,7 @@ import StatsSubPage from "@/components/subpages/stats/StatsSubPage.vue";
 import VotingSubPage from "@/components/subpages/voting/VotingSubPage.vue";
 import MixController from "@/components/playback/MixController.vue";
 import ManageSubPage from "@/components/subpages/manage/ManageSubPage.vue";
+import CustomThemeContainer from "@/components/themes/CustomThemeContainer.vue";
 
 const tabs = ref([
     { name: "Overview", active: true, id: "overview" },
@@ -45,7 +47,7 @@ const tabs = ref([
 ]);
 
 const page = usePage();
-const nameOfMix = computed(() => page.props.mix?.name || 'Mix');
+const nameOfMix = computed(() => page.props.mix?.name || "Mix");
 const mix = computed(() => page.props.mix || null);
 
 // Track currently active tab in local state first
@@ -55,11 +57,13 @@ const localActiveTab = ref("Overview");
 onMounted(() => {
     const tabFromProps = page.props.activeTab;
     if (tabFromProps) {
-        localActiveTab.value = tabFromProps.charAt(0).toUpperCase() + tabFromProps.slice(1);
+        localActiveTab.value =
+            tabFromProps.charAt(0).toUpperCase() + tabFromProps.slice(1);
     }
-    
+
     tabs.value.forEach((tab) => {
-        tab.active = tab.name.toLowerCase() === localActiveTab.value.toLowerCase();
+        tab.active =
+            tab.name.toLowerCase() === localActiveTab.value.toLowerCase();
     });
 });
 
@@ -68,36 +72,36 @@ const isTransitioning = ref(false);
 
 const setActiveTab = (tabName) => {
     // Don't do anything if we're already on this tab or transitioning
-    if (localActiveTab.value.toLowerCase() === tabName.toLowerCase() || isTransitioning.value) {
+    if (
+        localActiveTab.value.toLowerCase() === tabName.toLowerCase() ||
+        isTransitioning.value
+    ) {
         return;
     }
-    
+
     // Set the flag to prevent multiple rapid transitions
     isTransitioning.value = true;
-    
+
     // Update local state immediately to trigger the UI change
     localActiveTab.value = tabName;
-    
+
     // Update tab state for visual feedback in the tab bar
     tabs.value.forEach((tab) => {
         tab.active = tab.name === tabName;
     });
-    
+
     // Use browser's History API to update URL without page reload
     if (mix.value?.slug) {
         // If Overview tab, just use the mix slug without tab in URL
-        const newUrl = tabName.toLowerCase() === 'overview' 
-            ? `/${mix.value.slug}` 
-            : `/${mix.value.slug}/${tabName.toLowerCase()}`;
-            
+        const newUrl =
+            tabName.toLowerCase() === "overview"
+                ? `/${mix.value.slug}`
+                : `/${mix.value.slug}/${tabName.toLowerCase()}`;
+
         // Update URL without triggering a page reload
-        window.history.pushState(
-            { tab: tabName.toLowerCase() }, 
-            '', 
-            newUrl
-        );
+        window.history.pushState({ tab: tabName.toLowerCase() }, "", newUrl);
     }
-    
+
     // Reset transition flag after animation completes
     setTimeout(() => {
         isTransitioning.value = false;
@@ -105,23 +109,25 @@ const setActiveTab = (tabName) => {
 };
 
 // Handle browser back/forward buttons
-window.addEventListener('popstate', (event) => {
-    const urlParts = window.location.pathname.split('/');
+window.addEventListener("popstate", (event) => {
+    const urlParts = window.location.pathname.split("/");
     // Check if there is a tab in the URL (urlParts would have 3 segments if there's a tab)
     const hasTabInUrl = urlParts.length > 2;
-    
+
     if (hasTabInUrl) {
         const tabFromUrl = urlParts[urlParts.length - 1];
-        const tabName = tabFromUrl.charAt(0).toUpperCase() + tabFromUrl.slice(1);
+        const tabName =
+            tabFromUrl.charAt(0).toUpperCase() + tabFromUrl.slice(1);
         localActiveTab.value = tabName;
     } else {
         // If no tab in URL, we're on the Overview tab
         localActiveTab.value = "Overview";
     }
-    
+
     // Update tab active states
     tabs.value.forEach((tab) => {
-        tab.active = tab.name.toLowerCase() === localActiveTab.value.toLowerCase();
+        tab.active =
+            tab.name.toLowerCase() === localActiveTab.value.toLowerCase();
     });
 });
 </script>

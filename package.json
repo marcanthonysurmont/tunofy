@@ -16,6 +16,7 @@
         "vite": "^6.2.4"
     },
     "dependencies": {
+        "@fireworks-js/vue": "^2.10.8",
         "@formkit/auto-animate": "^0.8.2",
         "@headlessui-float/vue": "^0.15.0",
         "@headlessui/vue": "^1.7.23",

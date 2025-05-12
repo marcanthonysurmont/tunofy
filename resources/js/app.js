@@ -75,6 +75,8 @@ createInertiaApp({
         defaultProps: {
             touch: false,
             theme: 'tunofy',
+            hideOnClick: true,
+            trigger: "mouseenter",
         },
     }
     );
