@@ -6,6 +6,9 @@
             <div
                 class="size-40 sm:size-64 flex-shrink-0 rounded-md bg-zinc-800 animate-pulse"
             ></div>
+            <div
+                class="h-9 sm:h-10 md:h-12 bg-zinc-800 rounded w-3/4 animate-pulse sm:hidden"
+            ></div>
 
             <div
                 class="flex flex-col justify-center items-center sm:items-start gap-3 flex-1 overflow-hidden min-w-0 py-2 text-center sm:text-left"
