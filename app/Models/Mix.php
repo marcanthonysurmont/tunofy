@@ -63,6 +63,11 @@ class Mix extends Model
         return $this->belongsTo(Preset::class);
     }
 
+    public function themes()
+    {
+        return $this->hasMany(Theme::class);
+    }
+
     public function collaborators()
     {
         return $this->belongsToMany(User::class, 'mix_accesses')
