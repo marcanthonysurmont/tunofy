@@ -101,7 +101,13 @@
                         </div>
                     </div>
                 </div>
-                <StatusIndicator :is-playing="isPlaying" />
+                <div class="flex flex-row items-center gap-4">
+                    <CoDJSelector
+                        v-if="authorization.isOwner"
+                        @click.stop="showCoDjSelector = true"
+                    />
+                    <StatusIndicator :is-playing="isPlaying" />
+                </div>
             </div>
 
             <div
@@ -131,17 +137,37 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex flex-col gap-3 max-w-[40%]">
+                <div class="flex flex-row gap-3 items-center max-w-[40%]">
+                    <CoDJSelector
+                        v-if="authorization.isOwner"
+                        @click.stop="showCoDjSelector = true"
+                    />
                     <StatusIndicator :is-playing="isPlaying" />
                 </div>
             </div>
         </div>
     </div>
+    <SelectCoDJModal
+        :is-visible="showCoDjSelector"
+        :mix="mix"
+        @close-modal="showCoDjSelector = false"
+    />
 </template>
 
 <script setup>
 import StatusIndicator from "@/components/playback/StatusIndicator.vue";
 import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
+import CoDJSelector from "@/components/playback/co-dj/CoDJSelector.vue";
+import { usePage } from "@inertiajs/vue3";
+import { computed, ref } from "vue";
+import SelectCoDJModal from "../modals/co-dj/SelectCoDJModal.vue";
+
+const page = usePage();
+const mix = computed(() => page.props.mix);
+const authorization = computed(() => page.props.mix.authorized);
+
+const showCoDjSelector = ref(false);
+
 defineProps({
     isLoading: Boolean,
     isSyncingWithSpotify: Boolean,

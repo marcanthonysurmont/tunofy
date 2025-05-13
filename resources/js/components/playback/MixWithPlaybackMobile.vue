@@ -138,6 +138,7 @@
         @pause-song="emit('pause-mix')"
         @next-song="emit('next-song')"
         @show-device-selector="showDeviceSelectorModal = true"
+        @show-co-dj-selector="showCoDjSelector = true"
         :is-visible="showPlaybackFullscreen"
         :mix="mix"
         :is-playing="isPlaying"
@@ -145,6 +146,11 @@
         :is-mix-active="isMixActive"
         :devices="devices"
         :selected-device="selectedDevice"
+    />
+    <SelectCoDJModal
+        :is-visible="showCoDjSelector"
+        :mix="mix"
+        @close-modal="showCoDjSelector = false"
     />
 </template>
 
@@ -156,6 +162,8 @@ import SelectDeviceModal from "@/components/modals/playback/SelectDeviceModal.vu
 import { PlayIcon, PauseIcon } from "@heroicons/vue/16/solid";
 import MixWithPlaybackFullscreen from "./MixWithPlaybackFullscreen.vue";
 import DeviceSelectorStatus from "@/components/playback/device/DeviceSelectorStatus.vue";
+import SelectCoDJModal from "@/components/modals/co-dj/SelectCoDJModal.vue";
+import CoDJSelector from "@/components/playback/co-dj/CoDJSelector.vue";
 
 const props = defineProps({
     mix: {
@@ -219,6 +227,7 @@ watch(
 
 const showDeviceSelectorModal = ref(false);
 const showPlaybackFullscreen = ref(false);
+const showCoDjSelector = ref(false);
 
 function showPlayerFullscreen() {
     showPlaybackFullscreen.value = true;

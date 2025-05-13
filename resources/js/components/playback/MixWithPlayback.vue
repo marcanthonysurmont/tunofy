@@ -155,7 +155,9 @@
                     />
                 </div>
                 <div class="relative w-[30%] justify-end items-center flex">
-                    <CoDJSelector class="mr-3" />
+                    <!-- wip -->
+                    <CoDJSelector class="mr-3 mb-0.5" />
+                    <!-- wip end -->
                     <DeviceDropdown
                         :devices="devices"
                         :selected-device="selectedDevice"

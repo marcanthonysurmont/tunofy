@@ -309,20 +309,13 @@
 <script setup>
 import { MenuItem } from "@headlessui/vue";
 import {
-    Cog8ToothIcon,
     TrashIcon,
-    UserMinusIcon,
-    UserPlusIcon,
     PencilIcon,
     LockClosedIcon,
     KeyIcon,
     ClipboardDocumentIcon,
     MinusCircleIcon,
-    MusicalNoteIcon,
-    ShieldCheckIcon,
     LockOpenIcon,
-    ShieldExclamationIcon,
-    PaintBrushIcon,
     SparklesIcon,
 } from "@heroicons/vue/24/outline";
 
@@ -334,7 +327,6 @@ import { ref, computed } from "vue";
 import toast from "@/stores/StoreToast.js";
 import UpdateMixModal from "@/components/modals/mixes/UpdateMixModal.vue";
 import { StoreConfirmationModal } from "@/stores/StoreConfirmationModal";
-import AssignDJModal from "@/components/modals/co-dj/AssignDJModal.vue";
 import { XMarkIcon } from "@heroicons/vue/24/solid";
 
 const storeConfirmationModal = StoreConfirmationModal();
@@ -348,7 +340,6 @@ const collaborators = computed(() => page.props.collaborators);
 
 const showCreateSessionModal = ref(false);
 const showUpdateMixModal = ref(false);
-const showAssignDJModal = ref(false);
 const showUpdateThemeModal = ref(false);
 
 const readableTime = computed(() => {

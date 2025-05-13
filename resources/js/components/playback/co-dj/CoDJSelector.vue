@@ -1,6 +1,6 @@
 <template>
     <div class="relative">
-        <AdjustmentsVerticalIcon class="size-6 mb-0.5 text-white" />
+        <AdjustmentsVerticalIcon class="size-6 text-white" />
     </div>
 </template>
 

@@ -77,13 +77,6 @@ const searchInput = ref(null);
 
 const emit = defineEmits(["search-updated", "is-searching", "clear-search"]);
 
-const vueProps = defineProps({
-    premiumFilter: {
-        type: Boolean,
-        default: false,
-    },
-});
-
 watch(
     query,
     (newValue) => {
@@ -116,7 +109,7 @@ async function searchUsers() {
             `/mix/search-user/${page.props.mix.id}`,
             {
                 params: { q: query.value },
-                premium: vueProps.premiumFilter,
+                premium: true,
             }
         );
         console.log("Search results:", response.data.data);
