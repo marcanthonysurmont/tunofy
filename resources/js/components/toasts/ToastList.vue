@@ -1,12 +1,12 @@
 <template>
     <TransitionGroup
         tag="div"
-        enter-from-class="translate-x-full opacity-0"
-        leave-to-class="translate-x-full opacity-0"
-        enter-active-class="duration-500 transition-all"
-        leave-active-class="duration-500 transitional-all absolute"
-        move-class="duration-500 transition-all"
-        class="fixed bottom-40 md:bottom-42 lg:bottom-6 right-4 z-[41] w-full max-w-xs space-y-4"
+        enter-from-class="translate-y-[-100%] opacity-0 md:translate-y-full"
+        enter-to-class="translate-y-0 opacity-100"
+        enter-active-class="transition-all duration-300"
+        move-class="transition-all duration-300"
+        leave-active-class="hidden"
+        class="fixed top-0 z-[41] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[400px]"
     >
         <ToastListItem
             v-for="(item, index) in toast.items"
@@ -29,7 +29,7 @@ import toast from "@/stores/StoreToast.js";
 
 const page = usePage();
 
-let removeFinishEventListener = Inertia.on("finish", (event) => {
+let removeFinishEventListener = Inertia.on("finish", () => {
     //if msg is success, show success prop
     if (page.props.success) {
         toast.add({
@@ -37,7 +37,6 @@ let removeFinishEventListener = Inertia.on("finish", (event) => {
             type: "success",
         });
     }
-
     //if msg is success, show success prop
     if (page.props.danger) {
         toast.add({

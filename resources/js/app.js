@@ -8,7 +8,9 @@ import { createApp, h } from 'vue'
 import { createInertiaApp, router } from '@inertiajs/vue3'
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { createPinia } from 'pinia';
-import { autoAnimatePlugin } from '@formkit/auto-animate/vue'
+import { autoAnimatePlugin } from '@formkit/auto-animate/vue';
+import VueTippy from 'vue-tippy'
+import 'tippy.js/dist/tippy.css' // optional for styling
 import toast from '@/stores/StoreToast.js';
 const pinia = createPinia();
 
@@ -69,7 +71,15 @@ createInertiaApp({
         render: () => h(App, props)
     });
 
-    app.use(ZiggyVue).use(plugin).use(pinia).use(autoAnimatePlugin);
+    app.use(ZiggyVue).use(plugin).use(pinia).use(autoAnimatePlugin).use(VueTippy,{
+        defaultProps: {
+            touch: false,
+            theme: 'tunofy',
+            hideOnClick: true,
+            trigger: "mouseenter",
+        },
+    }
+    );
     app.mount(el);
 
     return app;

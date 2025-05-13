@@ -33,7 +33,7 @@
             <div
                 class="flex flex-row gap-3 justify-center items-center sm:justify-start"
             >
-                <UserPlusIcon
+                <!-- <UserPlusIcon
                     class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
                 />
                 <UserMinusIcon
@@ -44,6 +44,12 @@
                 />
                 <Cog8ToothIcon
                     class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
+                /> -->
+                <SparklesIcon
+                    v-if="authorization.isOwner"
+                    @click="showUpdateThemeModal = true"
+                    v-tippy="{ content: 'Customize theme' }"
+                    class="size-6 sm:size-8 text-dark-white cursor-pointer custom-item-hover"
                 />
                 <MenuDropdown v-if="showMenuDropdown">
                     <div class="px-1.5 py-1.5">
@@ -153,7 +159,10 @@
                                 >
                             </button>
                         </MenuItem>
-                        <MenuItem v-slot="{ active }" v-else-if="authorization.isOwner">
+                        <MenuItem
+                            v-slot="{ active }"
+                            v-else-if="authorization.isOwner"
+                        >
                             <button
                                 @click="toggleVisibility"
                                 :class="[
@@ -290,6 +299,10 @@
             :is-visible="showAssignDJModal"
             @close-modal="showAssignDJModal = false"
         />
+        <UpdateThemeModal
+            :is-visible="showUpdateThemeModal"
+            @close-modal="showUpdateThemeModal = false"
+        />
     </teleport>
 </template>
 
@@ -309,10 +322,13 @@ import {
     ShieldCheckIcon,
     LockOpenIcon,
     ShieldExclamationIcon,
+    PaintBrushIcon,
+    SparklesIcon,
 } from "@heroicons/vue/24/outline";
 
 import MenuDropdown from "@/components/menus/MenuDropdown.vue";
 import CreateSessionModal from "@/components/modals/sessions/CreateSessionModal.vue";
+import UpdateThemeModal from "@/components/modals/mixes/UpdateThemeModal.vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { ref, computed } from "vue";
 import toast from "@/stores/StoreToast.js";
@@ -333,6 +349,7 @@ const collaborators = computed(() => page.props.collaborators);
 const showCreateSessionModal = ref(false);
 const showUpdateMixModal = ref(false);
 const showAssignDJModal = ref(false);
+const showUpdateThemeModal = ref(false);
 
 const readableTime = computed(() => {
     const totalMs = mix.value.songs.reduce(

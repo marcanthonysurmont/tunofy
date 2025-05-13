@@ -1,5 +1,6 @@
 <template>
     <div
+        @click="showPlayerFullscreen"
         class="fixed bottom-0 left-0 right-0 w-full z-40 bg-card-background/40 border-t-2 lg:border-2 backdrop-blur-xl border-card-stroke p-4 lg:fixed lg:bottom-5 lg:left-1/2 lg:-translate-x-1/2 lg:ml-[160px] lg:max-w-2xl lg:rounded-lg xl:max-w-4xl"
     >
         <div class="mb-4 flex flex-row justify-between items-center">
@@ -7,7 +8,7 @@
                 :model-value="isMixActive"
                 :disabled="isLoading"
                 :label="isMixActive ? 'Queue active' : 'Queue inactive'"
-                @click="emit('toggle-mix-active')"
+                @click.stop="emit('toggle-mix-active')"
             />
         </div>
 
@@ -52,35 +53,12 @@
                     <div
                         class="flex flex-row items-center justify-center flex-none gap-4"
                     >
-                        <div
-                            class="relative"
-                            @click="showDeviceSelectorModal = true"
-                        >
-                            <svg
-                                data-encore-id="icon"
-                                role="img"
-                                aria-hidden="true"
-                                viewBox="0 0 16 16"
-                                class="size-5 text-white"
-                                fill="currentColor"
-                            >
-                                <path
-                                    d="M6 2.75C6 1.784 6.784 1 7.75 1h6.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 14.25 15h-6.5A1.75 1.75 0 0 1 6 13.25V2.75zm1.75-.25a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h6.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25h-6.5zm-6 0a.25.25 0 0 0-.25.25v6.5c0 .138.112.25.25.25H4V11H1.75A1.75 1.75 0 0 1 0 9.25v-6.5C0 1.784.784 1 1.75 1H4v1.5H1.75zM4 15H2v-1.5h2V15z"
-                                ></path>
-                                <path
-                                    d="M13 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-1-5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"
-                                ></path>
-                            </svg>
-                            <XCircleIcon
-                                v-if="devices.length === 0"
-                                class="absolute -top-2 -right-2 text-red-500 size-4"
-                            />
-                            <ExclamationCircleIcon
-                                v-else-if="selectedDevice === null"
-                                class="absolute -top-2 -right-2 text-yellow-500 size-4"
-                            />
-                        </div>
-                        <PlayIcon class="size-7 opacity-50" />
+                        <DeviceSelectorStatus
+                            @click.stop="showDeviceSelectorModal = true"
+                            :devices="devices"
+                            :selected-device="selectedDevice"
+                        />
+                        <PlayIcon class="size-7 opacity-50" @click.stop />
                     </div>
                 </div>
             </div>
@@ -122,42 +100,19 @@
                     <div
                         class="flex flex-row items-center justify-center flex-none gap-2"
                     >
-                        <div
-                            class="relative"
-                            @click="showDeviceSelectorModal = true"
-                        >
-                            <svg
-                                data-encore-id="icon"
-                                role="img"
-                                aria-hidden="true"
-                                viewBox="0 0 16 16"
-                                class="size-5 text-white"
-                                fill="currentColor"
-                            >
-                                <path
-                                    d="M6 2.75C6 1.784 6.784 1 7.75 1h6.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 14.25 15h-6.5A1.75 1.75 0 0 1 6 13.25V2.75zm1.75-.25a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h6.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25h-6.5zm-6 0a.25.25 0 0 0-.25.25v6.5c0 .138.112.25.25.25H4V11H1.75A1.75 1.75 0 0 1 0 9.25v-6.5C0 1.784.784 1 1.75 1H4v1.5H1.75zM4 15H2v-1.5h2V15z"
-                                ></path>
-                                <path
-                                    d="M13 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-1-5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"
-                                ></path>
-                            </svg>
-                            <XCircleIcon
-                                v-if="devices.length === 0"
-                                class="absolute -top-2 -right-2 text-red-500 size-4 animate-bounce"
-                            />
-                            <ExclamationCircleIcon
-                                v-else-if="selectedDevice === null"
-                                class="absolute -top-2 -right-2 text-yellow-500 size-4 animate-bounce"
-                            />
-                        </div>
+                        <DeviceSelectorStatus
+                            @click.stop="showDeviceSelectorModal = true"
+                            :devices="devices"
+                            :selected-device="selectedDevice"
+                        />
                         <PlayIcon
-                            @click="emit('resume-mix')"
+                            @click.stop="emit('resume-mix')"
                             v-if="!isPlaying"
                             class="size-7 cursor-pointer"
                             :class="selectedDevice === null ? 'opacity-50' : ''"
                         />
                         <PauseIcon
-                            @click="emit('pause-mix')"
+                            @click.stop="emit('pause-mix')"
                             v-if="isPlaying"
                             class="size-7 cursor-pointer"
                             :class="selectedDevice === null ? 'opacity-50' : ''"
@@ -176,19 +131,31 @@
         @refresh-devices="emit('refresh-devices')"
         @close-modal="showDeviceSelectorModal = false"
     />
+    <MixWithPlaybackFullscreen
+        @close-fullscreen="showPlaybackFullscreen = false"
+        @previous-song="emit('previous-song')"
+        @play-song="emit('resume-mix')"
+        @pause-song="emit('pause-mix')"
+        @next-song="emit('next-song')"
+        @show-device-selector="showDeviceSelectorModal = true"
+        :is-visible="showPlaybackFullscreen"
+        :mix="mix"
+        :is-playing="isPlaying"
+        :current-track="currentTrack"
+        :is-mix-active="isMixActive"
+        :devices="devices"
+        :selected-device="selectedDevice"
+    />
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
 import ToggleSwitchReadValue from "@/components/forms/ToggleSwitchReadValue.vue";
 import SelectDeviceModal from "@/components/modals/playback/SelectDeviceModal.vue";
-import {
-    ExclamationCircleIcon,
-    PlayIcon,
-    PauseIcon,
-    XCircleIcon,
-} from "@heroicons/vue/16/solid";
+import { PlayIcon, PauseIcon } from "@heroicons/vue/16/solid";
+import MixWithPlaybackFullscreen from "./MixWithPlaybackFullscreen.vue";
+import DeviceSelectorStatus from "@/components/playback/device/DeviceSelectorStatus.vue";
 
 const props = defineProps({
     mix: {
@@ -239,7 +206,21 @@ const emit = defineEmits([
     "select-device",
     "refresh-devices",
     "close-queue-modal",
+    "previous-song",
+    "next-song",
 ]);
 
+watch(
+    () => props.selectedDevice,
+    (newValue) => {
+        console.log("Selected device changed:", newValue);
+    }
+);
+
 const showDeviceSelectorModal = ref(false);
+const showPlaybackFullscreen = ref(false);
+
+function showPlayerFullscreen() {
+    showPlaybackFullscreen.value = true;
+}
 </script>

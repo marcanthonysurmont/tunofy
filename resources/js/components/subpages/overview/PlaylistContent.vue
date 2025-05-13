@@ -90,6 +90,7 @@
                                     "
                                 >
                                     <img
+                                        v-tippy="{ content: song.user.name }"
                                         :src="
                                             song.user.avatar === null
                                                 ? '/images/default-avatar.jpg'
@@ -107,6 +108,7 @@
                             >
                                 <div class="flex items-center justify-end">
                                     <button
+                                        v-tippy="{ content: 'Delete song' }"
                                         @click="deleteSong(song.id)"
                                         class="pl-1 sm:px-2 cursor-pointer"
                                     >
