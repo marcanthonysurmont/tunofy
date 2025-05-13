@@ -450,6 +450,28 @@ class SpotifyService
         return $response;
     }
 
+    public function getUserPlaylists(User $user): array
+    {
+        try {
+            $response = $this->spotifyRequest(
+                $user,
+                'GET',
+                'https://api.spotify.com/v1/me/playlists',
+                [],
+            );
+
+            if (!$response->successful()) {
+                Log::error("Failed to get Spotify playlists: " . $response->status());
+                return [];
+            }
+
+            return $response->json()['items'] ?? [];
+        } catch (\Exception $e) {
+            Log::error("Error fetching Spotify playlists: " . $e->getMessage());
+            return [];
+        }
+    }
+
     /**
      * Check if the token is expired or about to expire (within 5 minutes)
      */

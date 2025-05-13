@@ -35,6 +35,7 @@ use App\Http\Controllers\Application\Spotify\ResumeMixPlaybackController;
 use App\Http\Controllers\Application\Spotify\PlayNextSongController;
 use App\Http\Controllers\Application\Spotify\PlayPreviousSongController;
 use App\Http\Controllers\Application\Spotify\TransferPlaybackController;
+use App\Http\Controllers\Application\Spotify\GetSpotifyPlaylistsController;
 
 use App\Http\Controllers\Application\Mixes\AssignCoDJController;
 use App\Http\Controllers\Application\Mixes\RemoveCoDJController;
@@ -69,6 +70,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
 
         Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
             Route::post('/search', SearchSongController::class)->name('search');
+            Route::post('/get-playlists', GetSpotifyPlaylistsController::class)->name('get-playlist');
 
             Route::get('/request-status', RequestSpotifyPlayerStatusController::class)->name('request-status');
             Route::post('/set-mix-active/{mix}', SetMixActiveController::class)->name('set-mix-active');
