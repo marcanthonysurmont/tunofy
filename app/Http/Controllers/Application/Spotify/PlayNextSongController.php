@@ -10,28 +10,51 @@ use App\Events\PlaybackDataUpdatedEvent;
 use App\Events\MixStatusChangedEvent;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 
 class PlayNextSongController extends Controller
 {
-    public function __invoke(Mix $mix, SongPlaybackService $songPlaybackService): JsonResponse
-    {
+    public function __invoke(
+        Request $request,
+        Mix $mix,
+        SongPlaybackService $songPlaybackService
+    ): JsonResponse {
         $this->authorize('controlPlayback', $mix);
 
+        // First, clear any previous skip flags to ensure fresh state
+        Cache::forget("mix:{$mix->id}:manual_change");
+
+        // Set the skip flag with a longer TTL to cover rapid skips
+        Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
+
+        // Get the result from advancing to the next song
         $result = $songPlaybackService->advanceToNextSong($mix->id);
 
-        // Check for queue completion
-        if (isset($result['queue_completed']) && $result['queue_completed']) {
-            // Broadcast a clear and explicit event for queue completion
+        // After skip, ensure the flag is still set to prevent polling right after
+        Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
+
+        // IMPORTANT: Check if this was the last song
+        if (!$result['success'] && isset($result['queue_completed']) && $result['queue_completed']) {
+            Log::info("Queue completed after skipping last song for mix {$mix->id}");
+
+            // Set the mix to inactive
+            $mix->update(['is_active' => false]);
+
+            // Broadcast the queue completion AND deactivation
             event(new MixStatusChangedEvent(
                 $mix,
-                true,  // Mix is still active
+                false,  // Set to false to indicate mix is now inactive
                 'queue_completed'
             ));
 
+            // Set cache flag to prevent further polling
+            Cache::put("mix:{$mix->id}:queue_completed", true, now()->addHours(1));
+
+            // Return the queue completion status
             return response()->json([
-                'success' => true,
-                'message' => 'Queue completed',
-                'queue_completed' => true
+                'success' => false,
+                'queue_completed' => true,
+                'message' => 'Queue completed'
             ]);
         }
 

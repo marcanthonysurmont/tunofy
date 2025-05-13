@@ -36,11 +36,11 @@ class QueueManagementService
     {
         try {
             Log::info("Starting queue initialization for mix {$mix->id}");
-            
+
             // Clear existing queue
             $this->clearQueue($mix->id);
             Log::info("Cleared existing queue for mix {$mix->id}");
-            
+
             // Create a new playback session
             $rawSession = PlaybackSession::create([
                 'mix_id' => $mix->id,
@@ -335,7 +335,7 @@ class QueueManagementService
         // Get current max round number
         $lastRound = QueueSong::where('mix_id', $mix->id)->max('round_number') ?? 0;
 
-        // Get offset so we don’t re-add already-queued songs
+        // Get offset so we don't re-add already-queued songs
         $totalQueued = QueueSong::where('mix_id', $mix->id)->count();
 
         if (!Cache::has("mix_{$mix->id}_shuffled_ids")) {
@@ -346,19 +346,20 @@ class QueueManagementService
         // Build next N rounds from that point
         $queueBatches = $this->queueBuilderService->buildQueue($mix, $rounds, $offset = $totalQueued);
 
-        $order = QueueSong::where('mix_id', $mix->id)->max('order') ?? 0;
-
+        // IMPORTANT: For each round, reset the order counter to 1
         $sessionId = $this->getActiveSessionId($mix);
 
         foreach ($queueBatches as $round => $songs) {
+            // Start order from 1 for each round
+            $orderInRound = 1;
+
             foreach ($songs as $song) {
-                $order++;
                 QueueSong::create([
                     'mix_id' => $mix->id,
                     'song_id' => $song->id,
                     'playback_session_id' => $sessionId,
                     'round_number' => $lastRound + $round,
-                    'order' => $order,
+                    'order' => $orderInRound++, // Use order within round, then increment
                     'status' => 'pending',
                     'is_killed' => false,
                 ]);

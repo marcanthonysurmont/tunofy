@@ -47,21 +47,21 @@ class PollSpotifyMixJob implements ShouldQueue
         // Don't poll if queue is completed
         if (Cache::has("mix:{$mixId}:queue_completed")) {
             Log::info("Mix {$mixId} queue completed, exiting poll job");
-            // Don't reschedule
             return;
         }
 
         if (Cache::has("mix:{$mixId}:paused")) {
             Log::info("Mix {$mixId} is paused, skipping polling");
-
             $this->scheduleNextPoll();
             return;
         }
 
-        if (Cache::has("mix:{$mixId}:manual_change")) {
+        // IMPROVED: Check for manual change with a more reliable mechanism
+        // This handles rapid skips better by using Cache::get to check the actual value
+        $manuallyChanged = Cache::get("mix:{$mixId}:manual_change", false);
+        if ($manuallyChanged) {
             Log::info("Mix {$mixId} was just manually changed, skipping this poll");
-            Cache::forget("mix:{$mixId}:manual_change");
-
+            // Don't remove the flag, let it expire naturally
             $this->scheduleNextPoll();
             return;
         }

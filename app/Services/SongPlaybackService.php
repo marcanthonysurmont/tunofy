@@ -169,25 +169,15 @@ class SongPlaybackService
 
             Log::info("Marked song {$currentSong->id} as finished");
 
-            // Check if we're approaching the end of the queue - get remaining song count
-            $pendingSongCount = Cache::remember("mix:{$mixId}:pending_count", now()->addMinutes(1), function () use ($mixId) {
-                return QueueSong::where('mix_id', $mixId)
-                    ->where('status', 'pending')
-                    ->count();
-            });
+            // CRITICAL: Always check queue extension when skipping, not just every 3 songs
+            // This ensures that rapidly skipping triggers extensions
+            $pendingSongCount = QueueSong::where('mix_id', $mixId)
+                ->where('status', 'pending')
+                ->count();
 
-            // Only do the full extension check after every 3 songs or if we're getting low
-            $songCheckCounter = Cache::get("mix:{$mixId}:song_check_counter", 0);
-
-            if ($songCheckCounter >= 3 || $pendingSongCount <= 5) {
-                // Time to check and possibly extend the queue
-                $this->checkAndExtendQueue($mixId);
-
-                // Reset the counter
-                Cache::put("mix:{$mixId}:song_check_counter", 0, now()->addHours(1));
-            } else {
-                // Increment the counter
-                Cache::put("mix:{$mixId}:song_check_counter", $songCheckCounter + 1, now()->addHours(1));
+            // If we're getting low on songs, extend the queue BEFORE trying to get the next song
+            if ($pendingSongCount <= 5) {
+                $this->extendQueueIfNeeded($mixId);
             }
         }
 
@@ -201,6 +191,9 @@ class SongPlaybackService
         $result = $this->startPlayback($mixId, $deviceId);
 
         if (!$result['success'] && isset($result['message']) && $result['message'] === 'No songs in queue') {
+            // Get the user for this mix
+            $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+
             // Make sure to mark the queue as completed in the database
             QueueSong::where('mix_id', $mixId)
                 ->whereIn('status', ['playing', 'pending'])
@@ -230,9 +223,11 @@ class SongPlaybackService
 
             Log::info("Queue completed for mix {$mixId}, all songs marked as finished");
 
-            // Try to pause Spotify playback
+            // Try to pause Spotify playback - WITH THE CORRECT USER
             try {
+                // Use the previously defined $user variable
                 $this->spotifyService->pausePlayback($user);
+                Log::info("Paused playback after queue completion");
             } catch (\Exception $e) {
                 Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
             }
@@ -521,9 +516,9 @@ class SongPlaybackService
     }
 
     /**
-     * Check if we need to add more rounds to the queue and add them if necessary
+     * Checks if queue needs extension and extends it if necessary
      */
-    private function checkAndExtendQueue(int $mixId): void
+    public function checkAndExtendQueue(int $mixId): void
     {
         // Get the mix
         $mix = Mix::find($mixId);
@@ -562,6 +557,58 @@ class SongPlaybackService
 
             Cache::put("mix:{$mixId}:pending_count", $newPendingCount, now()->addMinutes(1));
         }
+    }
+
+    /**
+     * Public wrapper to check and extend queue
+     */
+    public function extendQueueIfNeeded(int $mixId): bool
+    {
+        // Add debug logging to trace execution
+        Log::info("Checking if queue needs extension for mix {$mixId}");
+
+        // Check pending song count
+        $pendingSongs = QueueSong::where('mix_id', $mixId)
+            ->where('status', 'pending')
+            ->count();
+
+        Log::info("Mix {$mixId} has {$pendingSongs} pending songs left");
+
+        // Get the mix
+        $mix = Mix::find($mixId);
+        if (!$mix) {
+            Log::warning("Cannot extend queue: Mix {$mixId} not found");
+            return false;
+        }
+
+        // Get batch size to determine threshold
+        $batchSize = $mix->preset->batch_size;
+
+        // IMPORTANT: Use a much higher threshold when fewer songs remain
+        // If we only have 3 or fewer songs OR less than threshold, extend
+        if ($pendingSongs <= 3 || $pendingSongs <= ($batchSize * 0.5)) {
+            Log::info("Queue for mix {$mixId} is running low ({$pendingSongs} songs left). Adding more rounds.");
+
+            // Force add 2 more rounds
+            $result = app(QueueManagementService::class)->appendRoundsToQueue($mix, 2);
+
+            if (isset($result['success']) && $result['success']) {
+                // Force update the cache after extending
+                $newCount = QueueSong::where('mix_id', $mixId)
+                    ->where('status', 'pending')
+                    ->count();
+
+                Log::info("Successfully extended queue for mix {$mixId}. Now has {$newCount} pending songs");
+                Cache::put("mix:{$mixId}:pending_count", $newCount, now()->addMinutes(5));
+                return true;
+            } else {
+                Log::warning("Failed to extend queue for mix {$mixId}");
+                return false;
+            }
+        }
+
+        Log::info("Queue extension not needed for mix {$mixId} ({$pendingSongs} pending songs)");
+        return false;
     }
 
 }

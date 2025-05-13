@@ -186,13 +186,26 @@ class SpotifyPollingService
             // Special case for detecting an empty queue with the last song nearing end
             if ($currentQueueSong && $percentRemaining <= 10) {
                 // Check if this is the last song in the queue
-                $hasPendingSongs = QueueSong::where('mix_id', $mix->id)
+                $pendingSongCount = QueueSong::where('mix_id', $mix->id)
                     ->where('status', 'pending')
-                    ->exists();
+                    ->count();
 
-                if (!$hasPendingSongs) {
-                    Log::info("Last song in queue is ending, preparing for queue completion");
-                    return self::PLAYER_STATE_QUEUE_COMPLETED;
+                // IMPORTANT: Force a queue extension check BEFORE deciding queue is completed
+                if ($pendingSongCount === 0) {
+                    // Try to extend the queue using the public wrapper
+                    $queueExtended = $this->songPlaybackService->extendQueueIfNeeded($mix->id);
+
+                    // Check AGAIN after attempted extension
+                    $pendingSongCount = QueueSong::where('mix_id', $mix->id)
+                        ->where('status', 'pending')
+                        ->count();
+
+                    if ($pendingSongCount === 0) {
+                        Log::info("Last song in queue is ending and extension didn't add songs. Preparing for queue completion");
+                        return self::PLAYER_STATE_QUEUE_COMPLETED;
+                    } else {
+                        Log::info("Last song in queue was ending but queue was extended with {$pendingSongCount} new songs");
+                    }
                 }
             }
         }
