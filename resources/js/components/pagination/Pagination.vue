@@ -85,8 +85,6 @@ const props = defineProps({
     },
 });
 
-console.log(props.elements);
-
 //this makes sure to remove the "1, 2, 3" links from the mobile view
 const mobileLinks = props.elements.links.filter(
     (link) =>
