@@ -8,7 +8,7 @@
         >
             <div class="flex min-w-0 gap-x-4 items-center">
                 <img
-                    class="size-12 flex-none rounded-full bg-zinc-50"
+                    class="size-10 md:size-12 flex-none rounded-full bg-zinc-50"
                     v-lazy="{
                         src: user.avatar_url,
                         error: '/images/default-avatar.jpg',
@@ -17,7 +17,7 @@
                     alt="User avatar"
                 />
                 <div class="min-w-0 flex-auto">
-                    <p class="text-md font-semibold text-zinc-200">
+                    <p class="text-sm md:text-base font-semibold text-zinc-200">
                         <span class="font-semibold">{{ user.name }}</span>
                     </p>
                 </div>
