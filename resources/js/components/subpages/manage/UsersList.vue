@@ -10,10 +10,7 @@
                 <img
                     class="size-12 flex-none rounded-full bg-zinc-50"
                     v-lazy="{
-                        src:
-                            user.avatar === null
-                                ? '/images/default-avatar.jpg'
-                                : user.avatar,
+                        src: user.avatar_url,
                         error: '/images/default-avatar.jpg',
                         loading: '/images/default-avatar.jpg',
                     }"
@@ -126,10 +123,7 @@
                 <img
                     class="size-12 flex-none rounded-full bg-zinc-50"
                     v-lazy="{
-                        src:
-                            user.avatar === null
-                                ? '/images/default-avatar.jpg'
-                                : user.avatar,
+                        src: user.avatar_url,
                         error: '/images/default-avatar.jpg',
                         loading: '/images/default-avatar.jpg',
                     }"
@@ -146,7 +140,7 @@
                     <span
                         class="inline-block rounded-full px-4 py-1.5 text-xs font-semibold bg-[#2B55CC]/10 text-[#91A8E8]"
                     >
-                        {{ user.pivot.permission }}
+                        {{ user.role }}
                     </span>
                 </div>
                 <Menu as="div" class="relative flex-none">
