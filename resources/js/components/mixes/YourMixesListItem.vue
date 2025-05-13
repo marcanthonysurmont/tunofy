@@ -50,7 +50,7 @@ const props = defineProps({
 
 const imageUrl = computed(() =>
     props.mix.avatar === null
-        ? "/images/default-avatar.jpg"
+        ? "/images/default-song.png"
         : "/storage/" + props.mix.avatar
 );
 

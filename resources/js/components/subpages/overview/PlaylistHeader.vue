@@ -372,7 +372,7 @@ const showMenuDropdown = computed(() => {
 
 function getImageUrl(song) {
     return song.avatar === null
-        ? "/images/default-avatar.jpg"
+        ? "/images/default-song.png"
         : "/storage/" + song.avatar;
 }
 

@@ -53,7 +53,11 @@
                             >
                                 <div class="flex items-center gap-2 sm:gap-3">
                                     <img
-                                        v-lazy="song.image_url"
+                                        v-lazy="{
+                                            src: song.image_url,
+                                            error: '/images/default-song.png',
+                                            loading: '/images/default-song.png',
+                                        }"
                                         alt="cover"
                                         class="w-8 h-8 sm:w-10 sm:h-10 rounded flex-shrink-0"
                                     />
@@ -91,9 +95,12 @@
                                 >
                                     <img
                                         v-tippy="{ content: song.user.name }"
-                                        :src="
-                                            song.user.avatar_url
-                                        "
+                                        v-lazy="{
+                                            src: song.user.avatar_url,
+                                            error: '/images/default-avatar.jpg',
+                                            loading:
+                                                '/images/default-avatar.jpg',
+                                        }"
                                         alt="cover"
                                         class="size-6 sm:size-7 rounded-full flex-shrink-0"
                                     />
