@@ -472,6 +472,71 @@ class SpotifyService
         }
     }
 
+    public function getPlaylistTracks(User $user, string $playlistId): array
+    {
+        try {
+            $allTracks = [];
+            $nextUrl = "https://api.spotify.com/v1/playlists/{$playlistId}/tracks";
+            $pageCount = 0;
+
+            // Loop until we have no more pages
+            while ($nextUrl) {
+                $pageCount++;
+                Log::info("Fetching playlist tracks page {$pageCount}, URL: {$nextUrl}");
+
+                if ($pageCount === 1) {
+                    $response = $this->spotifyRequest(
+                        $user,
+                        'GET',
+                        $nextUrl,
+                        [],
+                    );
+                } else {
+                    // For pagination URLs, use direct HTTP request
+                    $accessToken = $this->getAccessToken($user);
+                    $response = Http::withHeaders([
+                        'Authorization' => 'Bearer ' . $accessToken,
+                        'Content-Type' => 'application/json',
+                        'Accept' => 'application/json',
+                    ])->get($nextUrl);
+
+                    // Handle token expiration
+                    if ($response->status() === 401) {
+                        $this->refreshAccessToken($user);
+                        $accessToken = $this->getAccessToken($user);
+                        $response = Http::withHeaders([
+                            'Authorization' => 'Bearer ' . $accessToken,
+                            'Content-Type' => 'application/json',
+                            'Accept' => 'application/json',
+                        ])->get($nextUrl);
+                    }
+                }
+
+                if (!$response->successful()) {
+                    Log::error("Failed to get Spotify playlist tracks: " . $response->status());
+                    return $allTracks;
+                }
+
+                $responseData = $response->json();
+
+                // Add tracks from this page to our collection
+                if (isset($responseData['items']) && is_array($responseData['items'])) {
+                    $allTracks = array_merge($allTracks, $responseData['items']);
+                    Log::info("Added " . count($responseData['items']) . " tracks from page {$pageCount}");
+                }
+
+                // Get the next URL for pagination, or null if we're done
+                $nextUrl = $responseData['next'] ?? null;
+            }
+
+            Log::info("Fetched " . count($allTracks) . " tracks from playlist {$playlistId} in {$pageCount} pages");
+            return $allTracks;
+        } catch (\Exception $e) {
+            Log::error("Error fetching Spotify playlist tracks: " . $e->getMessage());
+            return [];
+        }
+    }
+
     /**
      * Check if the token is expired or about to expire (within 5 minutes)
      */

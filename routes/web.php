@@ -42,6 +42,7 @@ use App\Http\Controllers\Application\Mixes\RemoveCoDJController;
 use App\Http\Controllers\Application\Mixes\ToggleMixIsPublicController;
 use App\Http\Controllers\Application\Mixes\SearchUserController;
 use App\Http\Controllers\Application\Mixes\RemoveUserMixAccessController;
+use App\Http\Controllers\Application\Mixes\ImportSpotifyPlaylistController;
 
 Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function () {
     Route::middleware('auth')->group(function () {
@@ -59,6 +60,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
             Route::post('/toggle-visibility/{mix}', ToggleMixIsPublicController::class)->name('toggle-visibility');
             Route::get('/search-user/{mix}', SearchUserController::class)->name('search-user');
             Route::post('/remove-user-access/{mix}', RemoveUserMixAccessController::class)->name('remove-user-access');
+            Route::post('/import-spotify-playlist/{mix}', ImportSpotifyPlaylistController::class)->name('import-spotify-playlist');
 
             // app/mix/presets (mix.presets)
             Route::prefix('/presets')->name('presets.')->group(function () {
