@@ -5,7 +5,7 @@
         <Suspense
             :key="localActiveTab"
             suspensible
-            @resolve="showFallback = false"
+            @resolve="onSuspenseResolve"
         >
             <template #fallback v-if="showFallback">
                 <Transition
@@ -48,7 +48,13 @@
 </template>
 
 <script setup>
-import { ref, computed, defineAsyncComponent, onBeforeMount } from "vue";
+import {
+    ref,
+    computed,
+    defineAsyncComponent,
+    onBeforeMount,
+    onBeforeUnmount,
+} from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
 import TabNav from "@/components/navigation/TabNav.vue";
 import { Head, usePage } from "@inertiajs/vue3";
@@ -104,9 +110,34 @@ const nameOfMix = computed(() => page.props.mix?.name || "Mix");
 const mix = computed(() => page.props.mix || null);
 
 const showFallback = ref(false);
-setTimeout(() => {
-    showFallback.value = true;
-}, 200);
+let fallbackTimer = null;
+
+function startFallbackTimer() {
+    if (fallbackTimer) {
+        clearTimeout(fallbackTimer);
+    }
+
+    fallbackTimer = setTimeout(() => {
+        showFallback.value = true;
+    }, 200);
+}
+
+function onSuspenseResolve() {
+    if (fallbackTimer) {
+        clearTimeout(fallbackTimer);
+        fallbackTimer = null;
+    }
+    showFallback.value = false;
+}
+
+onBeforeUnmount(() => {
+    if (fallbackTimer) {
+        clearTimeout(fallbackTimer);
+    }
+});
+
+//start the fallback timer on initial load
+startFallbackTimer();
 
 // Track currently active tab in local state first
 const localActiveTab = ref("Overview");
@@ -142,6 +173,10 @@ const setActiveTab = (tabName) => {
 
     // Update local state immediately to trigger the UI change
     localActiveTab.value = tabName;
+
+    // Reset the fallback state and start the timer for the new tab
+    showFallback.value = false;
+    startFallbackTimer();
 
     // Update tab state for visual feedback in the tab bar
     tabs.value.forEach((tab) => {
@@ -181,6 +216,10 @@ window.addEventListener("popstate", (event) => {
         // If no tab in URL, we're on the Overview tab
         localActiveTab.value = "Overview";
     }
+
+    // Reset the fallback state and start the timer for the tab change
+    showFallback.value = false;
+    startFallbackTimer();
 
     // Update tab active states
     tabs.value.forEach((tab) => {
