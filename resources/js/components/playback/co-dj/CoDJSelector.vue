@@ -1,5 +1,5 @@
 <template>
-    <div class="relative">
+    <div class="relative" v-tippy="{ content: 'Co-DJ Options' }">
         <AdjustmentsVerticalIcon class="size-6 text-white" />
     </div>
 </template>

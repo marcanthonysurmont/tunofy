@@ -155,9 +155,10 @@
                     />
                 </div>
                 <div class="relative w-[30%] justify-end items-center flex">
-                    <!-- wip -->
-                    <CoDJSelector class="mr-3 mb-0.5" />
-                    <!-- wip end -->
+                    <CoDJSelector
+                        class="mr-3 mb-0.5"
+                        @click="showCoDJSelectorDrawer = true"
+                    />
                     <DeviceDropdown
                         :devices="devices"
                         :selected-device="selectedDevice"
@@ -170,6 +171,11 @@
             </div>
         </div>
     </div>
+    <CoDJSelectorDrawer
+        :is-visible="showCoDJSelectorDrawer"
+        :mix="mix"
+        @close-drawer="showCoDJSelectorDrawer = false"
+    />
 </template>
 
 <script setup>
@@ -180,6 +186,10 @@ import ToggleSwitchReadValue from "@/components/forms/ToggleSwitchReadValue.vue"
 import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
 import DeviceDropdown from "@/components/playback/device/DeviceDropdown.vue";
 import CoDJSelector from "@/components/playback/co-dj/CoDJSelector.vue";
+import CoDJSelectorDrawer from "@/components/playback/co-dj/CoDJSelectorDrawer.vue";
+import { ref } from "vue";
+
+const showCoDJSelectorDrawer = ref(false);
 
 const props = defineProps({
     mix: {

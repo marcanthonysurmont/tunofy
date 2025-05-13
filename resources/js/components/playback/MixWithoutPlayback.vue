@@ -148,9 +148,17 @@
         </div>
     </div>
     <SelectCoDJModal
+        v-if="!isLargeBreakPoint"
         :is-visible="showCoDjSelector"
         :mix="mix"
         @close-modal="showCoDjSelector = false"
+    />
+
+    <CoDJSelectorDrawer
+        v-if="isLargeBreakPoint"
+        :is-visible="showCoDjSelector"
+        :mix="mix"
+        @close-drawer="showCoDjSelector = false"
     />
 </template>
 
@@ -159,8 +167,9 @@ import StatusIndicator from "@/components/playback/StatusIndicator.vue";
 import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
 import CoDJSelector from "@/components/playback/co-dj/CoDJSelector.vue";
 import { usePage } from "@inertiajs/vue3";
-import { computed, ref } from "vue";
-import SelectCoDJModal from "../modals/co-dj/SelectCoDJModal.vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
+import SelectCoDJModal from "@/components/modals/co-dj/SelectCoDJModal.vue";
+import CoDJSelectorDrawer from "@/components/playback/co-dj/CoDJSelectorDrawer.vue";
 
 const page = usePage();
 const mix = computed(() => page.props.mix);
@@ -174,5 +183,19 @@ defineProps({
     isMixActive: [Boolean, Number],
     currentTrack: Object,
     isPlaying: Boolean,
+});
+
+const isLargeBreakPoint = ref(window.innerWidth >= 1024); // Updated to be true when screen is >= 1024
+
+function updateScreenSize() {
+    isLargeBreakPoint.value = window.innerWidth >= 1024; // Check if screen width is >= 1024
+}
+
+onMounted(() => {
+    window.addEventListener("resize", updateScreenSize);
+});
+
+onUnmounted(() => {
+    window.removeEventListener("resize", updateScreenSize);
 });
 </script>

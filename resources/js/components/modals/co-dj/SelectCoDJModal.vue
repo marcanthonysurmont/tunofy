@@ -32,8 +32,8 @@
                                     class="size-5 shrink-0"
                                 />
                                 <span
-                                    >Selected user must have premium
-                                    subscription.</span
+                                    >Search results are exclusively for premium
+                                    users.</span
                                 >
                             </p>
                         </div>
@@ -112,7 +112,7 @@
                         class="flex flex-col items-center justify-center h-full"
                     >
                         <h1 class="text-3xl">Take back control!</h1>
-                        <p class="text-zinc-400 text-sm mt-2 mb-6">
+                        <p class="text-zinc-300 text-sm mt-2 mb-6">
                             Currently, Gilles Serrien is the Co-DJ of this mix.
                         </p>
                         <RegularButton
@@ -130,7 +130,6 @@
 
 <script setup>
 import { XMarkIcon, ExclamationCircleIcon } from "@heroicons/vue/24/solid";
-import SearchBarUsersPremium from "@/components/SearchBarUsersPremium.vue";
 import SearchBarUsers from "@/components/subpages/manage/SearchBarUsers.vue";
 import { CheckIcon } from "@heroicons/vue/24/solid";
 import RegularButton from "@/components/buttons/RegularButton.vue";
