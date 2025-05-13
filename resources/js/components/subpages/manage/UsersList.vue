@@ -12,7 +12,7 @@
                     :src="
                         user.avatar === null
                             ? '/images/default-avatar.jpg'
-                            : user.imageUrl
+                            : user.avatar
                     "
                     alt=""
                 />
@@ -125,7 +125,7 @@
                     :src="
                         user.avatar === null
                             ? '/images/default-avatar.jpg'
-                            : user.imageUrl
+                            : user.avatar
                     "
                     alt=""
                 />
