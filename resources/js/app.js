@@ -85,17 +85,17 @@ createInertiaApp({
             .use(VueLazyLoad, {
                 loading: "/images/default-song.png",
                 error: "/images/default-song.png",
-                lifecycle: {
-                    loading: (el) => {
-                        console.log("loading", el);
-                    },
-                    error: (el) => {
-                        console.log("error", el);
-                    },
-                    loaded: (el) => {
-                        console.log("loaded", el);
-                    },
-                },
+                // lifecycle: {
+                //     loading: (el) => {
+                //         console.log("loading", el);
+                //     },
+                //     error: (el) => {
+                //         console.log("error", el);
+                //     },
+                //     loaded: (el) => {
+                //         console.log("loaded", el);
+                //     },
+                // },
             });
         app.mount(el);
 
