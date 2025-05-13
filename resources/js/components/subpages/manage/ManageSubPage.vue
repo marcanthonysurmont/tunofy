@@ -1,64 +1,39 @@
 <template>
-    <h1 class="text-4xl sm:text-5xl font-medium mb-2">Users</h1>
-    <p class="mb-6">Manage the users in your playlist.</p>
-    <SearchBarUsers />
-    <UsersList />
-    <Pagination :elements="mockElements" />
+    <h1 class="text-4xl sm:text-5xl font-medium mb-6">Users</h1>
+    <!-- <p class="mb-6">Manage the users in your playlist.</p> -->
+    <SearchBarUsers
+        @clear-search="searchResult = {}"
+        @search-updated="searchResult = $event"
+        @is-searching="isSearching = $event"
+    />
+    <UsersList :search-result="searchResult" :is-searching="isSearching" />
+    <Pagination :elements="usersProp" v-if="!isSearching" />
 </template>
 
 <script setup>
 import UsersList from "@/components/subpages/manage/UsersList.vue";
 import Pagination from "@/components/pagination/Pagination.vue";
 import SearchBarUsers from "@/components/subpages/manage/SearchBarUsers.vue";
+import { usePage } from "@inertiajs/vue3";
+import { computed, ref, watch } from "vue";
 
-const mockElements = {
-    data: [
-        /* some items here just to pass the length check */
-        { id: 1 },
-        { id: 2 },
-    ],
-    links: [
-        {
-            url: null,
-            label: "&laquo; Previous",
-            active: false,
-        },
-        {
-            url: "http://localhost?page=1",
-            label: "1",
-            active: true,
-        },
-        {
-            url: "http://localhost?page=2",
-            label: "2",
-            active: false,
-        },
-        {
-            url: "http://localhost?page=3",
-            label: "3",
-            active: false,
-        },
-        {
-            url: "http://localhost?page=2",
-            label: "Next &raquo;",
-            active: false,
-        },
-    ],
-};
+const page = usePage();
+const usersProp = computed(() => page.props.collaborators);
+const searchResult = ref({});
+const isSearching = ref(false);
+watch(
+    searchResult,
+    (newValue) => {
+        console.log("Search result updated:", newValue);
+    },
+    { immediate: true }
+);
 
-// import UsersTable from "@/components/subpages/manage/UsersTable.vue";
-// import { ref, onMounted, onBeforeUnmount } from "vue";
-
-// const windowWidth = ref(window.innerWidth);
-// function updateWindowWidth() {
-//     windowWidth.value = window.innerWidth;
-// }
-
-// onMounted(() => {
-//     window.addEventListener("resize", updateWindowWidth);
-// });
-
-// onBeforeUnmount(() => {
-//     window.removeEventListener("resize", updateWindowWidth);
-// });
+watch(
+    isSearching,
+    (newValue) => {
+        console.log(newValue);
+    },
+    { immediate: true }
+);
 </script>

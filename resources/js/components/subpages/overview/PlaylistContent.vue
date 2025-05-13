@@ -53,7 +53,7 @@
                             >
                                 <div class="flex items-center gap-2 sm:gap-3">
                                     <img
-                                        :src="song.image_url"
+                                        v-lazy="song.image_url"
                                         alt="cover"
                                         class="w-8 h-8 sm:w-10 sm:h-10 rounded flex-shrink-0"
                                     />

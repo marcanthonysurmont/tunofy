@@ -18,11 +18,9 @@ class UpdatePresetController extends Controller
         try {
             $preset->update([
                 'batch_size' => $validated['batch_size'],
-                'max_songs' => $validated['max_songs'],
-                'num_rounds' => $validated['num_rounds'],
                 'requires_approval' => $validated['requires_approval'],
                 'voting_enabled' => $validated['voting_enabled'],
-                'kill_percentage_percent' => $validated['kill_percentage_percent'],
+                'kill_percentage' => $validated['kill_percentage'],
                 'priority_boost_new' => $validated['priority_boost_new'],
                 'auto_remove_negative' => $validated['auto_remove_negative'],
                 'emoji_chat_enabled' => $validated['emoji_chat_enabled'],
