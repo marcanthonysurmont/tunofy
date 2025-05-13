@@ -27,7 +27,7 @@
                     <span
                         class="inline-block rounded-full px-4 py-1.5 text-xs font-semibold bg-[#2B55CC]/10 text-[#91A8E8]"
                     >
-                        {{ user.pivot.permission }}
+                        {{ user.role }}
                     </span>
                 </div>
                 <Menu as="div" class="relative flex-none">
