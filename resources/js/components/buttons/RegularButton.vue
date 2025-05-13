@@ -16,7 +16,7 @@
         @click="$emit('click')"
     >
         <span
-            class="inline-block font-semibold"
+            class="inline-block font-semibold text-sm sm:text-base"
             :class="{ invisible: loading }"
         >
             <slot />

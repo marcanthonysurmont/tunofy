@@ -109,9 +109,8 @@
                         ]"
                     />
                 </div>
-
-                <!-- empty for spacing -->
-                <div class="w-5"></div>
+                <div class="w-5" v-if="currentTrack === null"></div>
+                <CoDJSelector @click.stop="showCoDjSelector" v-else />
             </div>
         </div>
     </Transition>
@@ -128,6 +127,7 @@ import {
 } from "@heroicons/vue/24/solid";
 
 import DeviceSelectorStatus from "@/components/playback/device/DeviceSelectorStatus.vue";
+import CoDJSelector from "@/components/playback/co-dj/CoDJSelector.vue";
 
 const emit = defineEmits([
     "close-fullscreen",
@@ -136,6 +136,7 @@ const emit = defineEmits([
     "next-song",
     "previous-song",
     "show-device-selector",
+    "show-co-dj-selector",
 ]);
 
 const props = defineProps({
@@ -167,6 +168,18 @@ const props = defineProps({
         required: true,
     },
 });
+
+watch(
+    () => props.isVisible,
+    (newValue) => {
+        if (newValue) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "auto";
+        }
+    },
+    { immediate: true }
+);
 
 const dominantColor = ref("rgb(18, 18, 18)");
 const albumCoverRef = ref(null);
@@ -208,6 +221,10 @@ function pauseSong() {
 
 function showDeviceSelector() {
     emit("show-device-selector");
+}
+
+function showCoDjSelector() {
+    emit("show-co-dj-selector");
 }
 
 function extractColors() {

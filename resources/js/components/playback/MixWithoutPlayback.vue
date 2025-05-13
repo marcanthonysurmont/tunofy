@@ -101,7 +101,13 @@
                         </div>
                     </div>
                 </div>
-                <StatusIndicator :is-playing="isPlaying" />
+                <div class="flex flex-row items-center gap-4">
+                    <CoDJSelector
+                        v-if="authorization.isOwner"
+                        @click.stop="showCoDjSelector = true"
+                    />
+                    <StatusIndicator :is-playing="isPlaying" />
+                </div>
             </div>
 
             <div
@@ -131,22 +137,65 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex flex-col gap-3 max-w-[40%]">
+                <div class="flex flex-row gap-3 items-center max-w-[40%]">
+                    <CoDJSelector
+                        v-if="authorization.isOwner"
+                        @click.stop="showCoDjSelector = true"
+                    />
                     <StatusIndicator :is-playing="isPlaying" />
                 </div>
             </div>
         </div>
     </div>
+    <SelectCoDJModal
+        v-if="!isLargeBreakPoint"
+        :is-visible="showCoDjSelector"
+        :mix="mix"
+        @close-modal="showCoDjSelector = false"
+    />
+
+    <CoDJSelectorDrawer
+        v-if="isLargeBreakPoint"
+        :is-visible="showCoDjSelector"
+        :mix="mix"
+        @close-drawer="showCoDjSelector = false"
+    />
 </template>
 
 <script setup>
 import StatusIndicator from "@/components/playback/StatusIndicator.vue";
 import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
+import CoDJSelector from "@/components/playback/co-dj/CoDJSelector.vue";
+import { usePage } from "@inertiajs/vue3";
+import { computed, ref, onMounted, onUnmounted } from "vue";
+import SelectCoDJModal from "@/components/modals/co-dj/SelectCoDJModal.vue";
+import CoDJSelectorDrawer from "@/components/playback/co-dj/CoDJSelectorDrawer.vue";
+
+const page = usePage();
+const mix = computed(() => page.props.mix);
+const authorization = computed(() => page.props.mix.authorized);
+
+const showCoDjSelector = ref(false);
+
 defineProps({
     isLoading: Boolean,
     isSyncingWithSpotify: Boolean,
     isMixActive: [Boolean, Number],
     currentTrack: Object,
     isPlaying: Boolean,
+});
+
+const isLargeBreakPoint = ref(window.innerWidth >= 1024); // Updated to be true when screen is >= 1024
+
+function updateScreenSize() {
+    isLargeBreakPoint.value = window.innerWidth >= 1024; // Check if screen width is >= 1024
+}
+
+onMounted(() => {
+    window.addEventListener("resize", updateScreenSize);
+});
+
+onUnmounted(() => {
+    window.removeEventListener("resize", updateScreenSize);
 });
 </script>

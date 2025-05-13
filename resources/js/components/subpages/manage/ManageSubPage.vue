@@ -8,6 +8,12 @@
     />
     <UsersList :search-result="searchResult" :is-searching="isSearching" />
     <Pagination :elements="usersProp.meta" v-if="!isSearching" />
+    <p
+        class="text-sm text-zinc-300 border-t border-zinc-800 py-3"
+        v-if="usersProp.meta.total <= usersProp.meta.per_page && !isSearching"
+    >
+        Showing all results
+    </p>
 </template>
 
 <script setup>
