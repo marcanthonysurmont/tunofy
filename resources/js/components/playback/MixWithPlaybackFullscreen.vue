@@ -109,9 +109,8 @@
                         ]"
                     />
                 </div>
-
-                <!-- empty for spacing -->
-                <div class="w-5"></div>
+                <div class="w-5" v-if="currentTrack === null"></div>
+                <CoDJSelector v-else />
             </div>
         </div>
     </Transition>
@@ -128,6 +127,7 @@ import {
 } from "@heroicons/vue/24/solid";
 
 import DeviceSelectorStatus from "@/components/playback/device/DeviceSelectorStatus.vue";
+import CoDJSelector from "@/components/playback/co-dj/CoDJSelector.vue";
 
 const emit = defineEmits([
     "close-fullscreen",

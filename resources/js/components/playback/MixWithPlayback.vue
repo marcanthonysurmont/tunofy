@@ -31,7 +31,6 @@
             </div>
         </div>
 
-        <!-- Desktop player with no active queue -->
         <!-- desktop playback with no song playing -->
         <div v-else-if="isMixActive === false">
             <div class="flex-row items-center justify-around w-full flex">
@@ -155,7 +154,8 @@
                         @click="emit('skip-song')"
                     />
                 </div>
-                <div class="relative w-[30%] justify-end flex">
+                <div class="relative w-[30%] justify-end items-center flex">
+                    <CoDJSelector class="mr-3" />
                     <DeviceDropdown
                         :devices="devices"
                         :selected-device="selectedDevice"
@@ -171,15 +171,14 @@
 </template>
 
 <script setup>
-import { usePage } from "@inertiajs/vue3";
 import { ChevronDoubleLeftIcon } from "@heroicons/vue/16/solid";
 import { ChevronDoubleRightIcon } from "@heroicons/vue/16/solid";
 import { PauseCircleIcon, PlayCircleIcon } from "@heroicons/vue/24/solid";
 import ToggleSwitchReadValue from "@/components/forms/ToggleSwitchReadValue.vue";
 import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
 import DeviceDropdown from "@/components/playback/device/DeviceDropdown.vue";
+import CoDJSelector from "@/components/playback/co-dj/CoDJSelector.vue";
 
-const page = usePage();
 const props = defineProps({
     mix: {
         type: Object,
