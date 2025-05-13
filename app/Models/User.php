@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Scout\Searchable;
+use App\Helpers\AvatarHelper;
 
 class User extends Authenticatable
 {
@@ -45,7 +46,7 @@ class User extends Authenticatable
         ];
     }
 
-    protected $appends = ['authorized'];
+    protected $appends = ['authorized', 'avatar_url'];
 
     /**************************************/
     /*           Relationships            */
@@ -96,6 +97,11 @@ class User extends Authenticatable
                 return null;
             }
         );
+    }
+
+    protected function getAvatarUrlAttribute(): ?string
+    {
+        return AvatarHelper::generateAvatarUrl($this, 'avatar');
     }
 
     /**************************************/

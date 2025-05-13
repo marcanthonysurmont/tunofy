@@ -92,9 +92,7 @@
                                     <img
                                         v-tippy="{ content: song.user.name }"
                                         :src="
-                                            song.user.avatar === null
-                                                ? '/images/default-avatar.jpg'
-                                                : song.user.avatar
+                                            song.user.avatar_url
                                         "
                                         alt="cover"
                                         class="size-6 sm:size-7 rounded-full flex-shrink-0"
@@ -148,12 +146,6 @@ const songs = computed(() => props.value.mix.songs);
 const authorization = computed(() => page.props.mix.authorized);
 
 const windowWidth = ref(window.innerWidth);
-
-function getImageUrl(song) {
-    return song.avatar === null
-        ? "/images/default-avatar.jpg"
-        : "/storage/" + song.avatar;
-}
 
 function msToMinutes(ms) {
     let minutes = Math.floor(ms / 60000);
