@@ -5,11 +5,9 @@
         <Suspense
             :key="localActiveTab"
             suspensible
-            @resolve="state = console.log('resolved')"
-            @pending="state = console.log('pending')"
-            @fallback="state = console.log('fallback')"
+            @resolve="onSuspenseResolve"
         >
-            <template #fallback>
+            <template #fallback v-if="showFallback">
                 <Transition
                     name="fade-with-slide"
                     appear
@@ -25,21 +23,24 @@
                     <SkeletonDefault v-else />
                 </Transition>
             </template>
-
-            <Transition
-                name="fade-with-slide"
-                appear
-                mode="out-in"
-                :duration="300"
-            >
-                <div
-                    :key="localActiveTab"
-                    class="relative"
-                    :class="localActiveTab === 'Overview' ? 'mb-0' : 'mb-32'"
+            <template #default>
+                <Transition
+                    name="fade-with-slide"
+                    appear
+                    mode="out-in"
+                    :duration="300"
                 >
-                    <component :is="currentAsyncComponent" />
-                </div>
-            </Transition>
+                    <div
+                        :key="localActiveTab"
+                        class="relative"
+                        :class="
+                            localActiveTab === 'Overview' ? 'mb-0' : 'mb-32'
+                        "
+                    >
+                        <component :is="currentAsyncComponent" />
+                    </div>
+                </Transition>
+            </template>
         </Suspense>
         <MixController :mix="mix" />
         <CustomThemeContainer />
@@ -47,7 +48,13 @@
 </template>
 
 <script setup>
-import { ref, computed, defineAsyncComponent, onBeforeMount } from "vue";
+import {
+    ref,
+    computed,
+    defineAsyncComponent,
+    onBeforeMount,
+    onBeforeUnmount,
+} from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
 import TabNav from "@/components/navigation/TabNav.vue";
 import { Head, usePage } from "@inertiajs/vue3";
@@ -102,6 +109,36 @@ const page = usePage();
 const nameOfMix = computed(() => page.props.mix?.name || "Mix");
 const mix = computed(() => page.props.mix || null);
 
+const showFallback = ref(false);
+let fallbackTimer = null;
+
+function startFallbackTimer() {
+    if (fallbackTimer) {
+        clearTimeout(fallbackTimer);
+    }
+
+    fallbackTimer = setTimeout(() => {
+        showFallback.value = true;
+    }, 200);
+}
+
+function onSuspenseResolve() {
+    if (fallbackTimer) {
+        clearTimeout(fallbackTimer);
+        fallbackTimer = null;
+    }
+    showFallback.value = false;
+}
+
+onBeforeUnmount(() => {
+    if (fallbackTimer) {
+        clearTimeout(fallbackTimer);
+    }
+});
+
+//start the fallback timer on initial load
+startFallbackTimer();
+
 // Track currently active tab in local state first
 const localActiveTab = ref("Overview");
 
@@ -136,6 +173,10 @@ const setActiveTab = (tabName) => {
 
     // Update local state immediately to trigger the UI change
     localActiveTab.value = tabName;
+
+    // Reset the fallback state and start the timer for the new tab
+    showFallback.value = false;
+    startFallbackTimer();
 
     // Update tab state for visual feedback in the tab bar
     tabs.value.forEach((tab) => {
@@ -175,6 +216,10 @@ window.addEventListener("popstate", (event) => {
         // If no tab in URL, we're on the Overview tab
         localActiveTab.value = "Overview";
     }
+
+    // Reset the fallback state and start the timer for the tab change
+    showFallback.value = false;
+    startFallbackTimer();
 
     // Update tab active states
     tabs.value.forEach((tab) => {
