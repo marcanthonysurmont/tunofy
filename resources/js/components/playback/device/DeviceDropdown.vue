@@ -5,7 +5,7 @@
             @update:modelValue="handleSelect"
         >
             <div class="mt-1">
-                <ListboxButton>
+                <ListboxButton v-tippy="{ content: 'Change playback device' }">
                     <DeviceSelectorStatus
                         :selected-device="selectedDevice"
                         :devices="devices"
