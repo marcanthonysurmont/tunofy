@@ -24,6 +24,7 @@ use App\Http\Controllers\Application\Mixes\UpdatePresetController;
 use App\Http\Controllers\Application\Spotify\SearchSongController;
 use App\Http\Controllers\Application\Mixes\DestroyPresetController;
 use App\Http\Controllers\Application\Spotify\SetMixActiveController;
+use App\Http\Controllers\Application\Spotify\GetTrackPreviewController;
 use App\Http\Controllers\Application\Mixes\GenerateMixCodeController;
 use App\Http\Controllers\Application\Mixes\RemoveSongFromMixController;
 use App\Http\Controllers\Application\Mixes\RemoveSessionCodeController;
@@ -69,6 +70,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
 
         Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
             Route::post('/search', SearchSongController::class)->name('search');
+            Route::post('/track-preview', GetTrackPreviewController::class)->name('track-preview');
 
             Route::get('/request-status', RequestSpotifyPlayerStatusController::class)->name('request-status');
             Route::post('/set-mix-active/{mix}', SetMixActiveController::class)->name('set-mix-active');

@@ -414,6 +414,36 @@ class SpotifyService
         }
     }
 
+    public function getPreviewUrl(string $trackId): string
+    {
+        try {
+            $trackUrl = "https://open.spotify.com/track/" . $trackId;
+
+            // Add a user agent to mimic a browser
+            $html = Http::withHeaders([
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept' => 'text/html,application/xhtml+xml,application/xml',
+                'Accept-Language' => 'en-US,en;q=0.9',
+            ])->get($trackUrl)->body();
+
+            if (empty($html)) {
+                Log::error("Empty HTML response for track {$trackId}");
+                return '';
+            }
+            preg_match('/<meta\s+property="og:audio"\s+content="([^"]+)"/', $html, $matches);
+
+            if (!empty($matches[1])) {
+                return $matches[1];
+            }
+
+            Log::warning("No preview URL found for track {$trackId}");
+            return '';
+        } catch (\Exception $e) {
+            Log::error("Error fetching track preview URL for {$trackId}: " . $e->getMessage());
+            return '';
+        }
+    }
+
     /**
      * Make a request to the Spotify API
      */
