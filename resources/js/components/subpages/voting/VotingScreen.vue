@@ -28,6 +28,44 @@
             @touchmove.passive="onDrag"
             @touchend.passive="endDrag"
         >
+            <!-- Audio play button overlay -->
+            <div
+                class="absolute top-4 right-4 z-20"
+                v-if="swipeLengthX >= -15 && swipeLengthX <= 15"
+            >
+                <button
+                    @click.stop="toggleAudio(song.track_id)"
+                    class="w-12 h-12 bg-primary bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all"
+                >
+                    <svg
+                        v-if="currentPlayingId !== song.track_id || !isPlaying"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="white"
+                        class="w-6 h-6"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                    <svg
+                        v-else
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="white"
+                        class="w-6 h-6"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0A.75.75 0 0115 4.5h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75V5.25z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                </button>
+            </div>
+
             <div class="gradient-bg"></div>
             <div
                 v-if="skullAnimation"
@@ -109,12 +147,31 @@
                 </button>
             </div>
         </div>
+
+        <!-- Hidden audio elements container -->
+        <div class="hidden">
+            <audio
+                v-for="(preview, trackId) in audioPreviewCache"
+                :key="trackId"
+                :ref="
+                    (el) => {
+                        if (el) audioElements[trackId] = el;
+                    }
+                "
+                :src="preview"
+                preload="auto"
+                @play="handlePlay(trackId)"
+                @pause="isPlaying = false"
+                @ended="isPlaying = false"
+            ></audio>
+        </div>
     </div>
 </template>
 
 <script setup>
 import { HeartIcon, XMarkIcon } from "@heroicons/vue/24/solid";
-import { ref, computed } from "vue";
+import axios from "axios";
+import { ref, computed, onMounted, watch } from "vue";
 
 const likeOpacity = computed(() => {
     return swipeLengthX.value > 0 ? Math.min(swipeLengthX.value / 100, 1) : 0;
@@ -147,6 +204,14 @@ const dragDirection = ref(null);
 const skullAnimation = ref(false);
 const skullAnimationFading = ref(false);
 const isNewCardAnimating = ref(false);
+
+// Audio related state
+const audioPreviewCache = ref({});
+const audioElements = ref({});
+const isPlaying = ref(false);
+const currentPlayingId = ref(null);
+const loadingQueue = ref([]);
+const isLoading = ref(false);
 
 const emit = defineEmits(["endVoting"]);
 
@@ -316,20 +381,29 @@ function kill() {
     }, shakeDuration);
 }
 
-// function swipeAndAnimate(offset) {
-//     swipeLengthX.value = offset;
-//     transitionToNext.value = true;
-
-//     setTimeout(() => {
-//         swipeLengthX.value = 0;
-//         transitionToNext.value = false;
-//     }, 300);
-// }
-
 function nextSong() {
     if (currentIndex.value < songs.value.length - 1) {
+        // Pause current audio if playing
+        if (isPlaying.value && currentPlayingId.value) {
+            audioElements.value[currentPlayingId.value]?.pause();
+        }
+
         currentIndex.value++;
         isNewCardAnimating.value = true;
+
+        // Preload next song's audio if available
+        const currentSong = songs.value[currentIndex.value];
+        const nextSong = songs.value[currentIndex.value + 1];
+
+        // Make sure current song's audio is loaded
+        if (currentSong && !audioPreviewCache.value[currentSong.track_id]) {
+            getSongFile(currentSong.track_id);
+        }
+
+        // Preload next song's audio if it exists
+        if (nextSong && !audioPreviewCache.value[nextSong.track_id]) {
+            getSongFile(nextSong.track_id);
+        }
 
         //reset animation flag after animation completes
         setTimeout(() => {
@@ -367,23 +441,156 @@ function cardOpacity(index) {
 const songs = ref([
     {
         id: 1,
-        name: "Into the Rodeo",
+        track_id: "6TQwgRWmnovDECDrHVOxlY",
+        name: "The Prayer",
         artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b273f54b99bf27cda88f4a7403ce",
+        cover: "https://i.scdn.co/image/ab67616d0000b2730fc93fe41791c5aa51ae9645",
     },
     {
         id: 2,
+        track_id: "42VsgItocQwOQC3XWZ8JNA",
         name: "FE!N",
         artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b273cc392813bfd8f63d4d5f4a95",
+        cover: "https://i.scdn.co/image/ab67616d0000b273881d8d8378cd01099babcd44",
     },
     {
         id: 3,
+        track_id: "2QeQNF182V61Im0QpjdVta",
         name: "Pornography",
         artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b2734f0fd9dad63977146e685700",
+        cover: "https://i.scdn.co/image/ab67616d0000b2736cfd9a7353f98f5165ea6160",
     },
 ]);
+
+function toggleAudio(trackId) {
+    //if we don't have the audio element yet, queue it up
+    if (!audioPreviewCache.value[trackId]) {
+        getSongFile(trackId);
+        return;
+    }
+
+    const audioElement = audioElements.value[trackId];
+    audioElement.volume = 0.3;
+
+    if (!audioElement) {
+        return;
+    }
+
+    //if this is the currently playing audio, toggle play/pause
+    if (currentPlayingId.value === trackId) {
+        if (isPlaying.value) {
+            audioElement.pause();
+            isPlaying.value = false;
+        } else {
+            audioElement.play();
+            isPlaying.value = true;
+        }
+    } else {
+        //if another audio is playing, pause it
+        if (
+            currentPlayingId.value &&
+            audioElements.value[currentPlayingId.value]
+        ) {
+            audioElements.value[currentPlayingId.value].pause();
+        }
+
+        //play the new audio
+        audioElement.play();
+        currentPlayingId.value = trackId;
+        isPlaying.value = true;
+    }
+}
+
+function handlePlay(trackId) {
+    //update state when an audio starts playing
+    currentPlayingId.value = trackId;
+    isPlaying.value = true;
+}
+
+async function getSongFile(trackId) {
+    //if already in cache, don't fetch again
+    if (audioPreviewCache.value[trackId]) {
+        return;
+    }
+
+    //if already being loaded, don't duplicate the request
+    if (loadingQueue.value.includes(trackId)) {
+        return;
+    }
+
+    //add to loading queue
+    loadingQueue.value.push(trackId);
+
+    //if another load is in progress, just queue this one
+    if (isLoading.value) {
+        return;
+    }
+
+    //process loading queue
+    processLoadingQueue();
+}
+
+async function processLoadingQueue() {
+    //if queue is empty, we're done
+    if (loadingQueue.value.length === 0) {
+        isLoading.value = false;
+        return;
+    }
+
+    //set loading flag
+    isLoading.value = true;
+
+    //get next track ID to load
+    const trackId = loadingQueue.value.shift();
+
+    try {
+        const response = await axios.post(route("api.spotify.track-preview"), {
+            track_id: trackId,
+        });
+
+        //store preview URL in cache
+        if (response.data && response.data.preview_url) {
+            audioPreviewCache.value[trackId] = response.data.preview_url;
+        }
+    } catch (error) {
+        console.error(`Error loading preview for track ${trackId}:`, error);
+    } finally {
+        //process next item in queue
+        processLoadingQueue();
+    }
+}
+
+onMounted(() => {
+    //initialize audio loading -- preload first song
+    if (songs.value.length > 0) {
+        const currentSong = songs.value[currentIndex.value];
+        getSongFile(currentSong.track_id);
+
+        //queue up next song if available
+        if (songs.value.length > 1) {
+            setTimeout(() => {
+                getSongFile(songs.value[1].track_id);
+            }, 1000);
+        }
+
+        //queue remaining songs with a delay
+        if (songs.value.length > 2) {
+            setTimeout(() => {
+                for (let i = 2; i < songs.value.length; i++) {
+                    getSongFile(songs.value[i].track_id);
+                }
+            }, 2000);
+        }
+    }
+});
+
+//watch for index changes to prefetch audio
+watch(currentIndex, (newIndex) => {
+    const nextIndex = newIndex + 1;
+    if (nextIndex < songs.value.length) {
+        getSongFile(songs.value[nextIndex].track_id);
+    }
+});
 </script>
 
 <style scoped>
