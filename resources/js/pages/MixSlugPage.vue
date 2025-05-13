@@ -5,9 +5,7 @@
         <Suspense
             :key="localActiveTab"
             suspensible
-            @resolve="state = console.log('resolved')"
-            @pending="state = console.log('pending')"
-            @fallback="state = console.log('fallback')"
+            @resolve="showFallback = false"
         >
             <template #fallback v-if="showFallback">
                 <Transition
