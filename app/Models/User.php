@@ -10,7 +10,9 @@ use Laravel\Scout\Searchable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, Searchable;
+    use HasFactory;
+    use Notifiable;
+    use Searchable;
 
     /**************************************/
     /*             Attributes             */
@@ -67,7 +69,7 @@ class User extends Authenticatable
 
     public function authorized(): Attribute
     {
-        return new Attribute(fn() => [
+        return new Attribute(fn () => [
             'hasPremium' => $this->type === 'premium',
         ]);
     }
@@ -76,9 +78,22 @@ class User extends Authenticatable
     {
         return new Attribute(
             get: function () {
-                if(isset($this->pivot) && isset($this->pivot->permission)) {
+                // First check if it's set directly as a property (from a join)
+                if (isset($this->user_role)) {
+                    return ucfirst($this->user_role);
+                }
+
+                // Then check if it's in the pivot relationship
+                if (isset($this->pivot) && isset($this->pivot->permission)) {
                     return ucfirst($this->pivot->permission);
                 }
+
+                // Finally check if it's already set as a property
+                if (isset($this->attributes['role'])) {
+                    return $this->attributes['role'];
+                }
+
+                return null;
             }
         );
     }

@@ -84,7 +84,7 @@
                             collaborators.length > 0
                         "
                     >
-                        <MenuItem
+                        <!-- <MenuItem
                             v-slot="{ active }"
                             v-if="authorization.isOwner"
                         >
@@ -106,7 +106,7 @@
                                     >Assign a co-dj</span
                                 >
                             </button>
-                        </MenuItem>
+                        </MenuItem> -->
                         <MenuItem
                             v-slot="{ active }"
                             v-if="
@@ -295,10 +295,10 @@
             :is-visible="showUpdateMixModal"
             @close-modal="showUpdateMixModal = false"
         />
-        <AssignDJModal
+        <!-- <AssignDJModal
             :is-visible="showAssignDJModal"
             @close-modal="showAssignDJModal = false"
-        />
+        /> -->
         <UpdateThemeModal
             :is-visible="showUpdateThemeModal"
             @close-modal="showUpdateThemeModal = false"

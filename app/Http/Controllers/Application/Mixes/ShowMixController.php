@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Application\Mixes;
 
 use App\Http\Resources\CollaboratorResource;
-use App\Http\Resources\UserResource;
 use App\Models\Mix;
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
@@ -30,7 +29,6 @@ class ShowMixController extends Controller
         return Inertia::render('MixSlugPage', [
             'mix' => fn() => MixResource::make($mix)->jsonSerialize(),
             'collaborators' => fn() => CollaboratorResource::collection($collaborators)->jsonSerialize(),
-            'collaborators_premium' => fn() => UserResource::collection($collaborators->where('type', 'premium'))->jsonSerialize(),
             'presets' => fn() => $mix->all_presets,
             'your_mixes' => fn() => $user->mixes,
             'joined_mixes' => fn() => $user->accessibleMixes,

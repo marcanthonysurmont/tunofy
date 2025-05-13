@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Application\Mixes;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\Mix;
-use App\Http\Resources\UserResource;
-
 
 class SearchUserController extends Controller
 {
@@ -22,20 +21,23 @@ class SearchUserController extends Controller
             ]);
         }
 
-        // 1. Make sure to specify the table name to avoid ambiguity
-        // 2. Make sure the mix_id is being passed correctly
+        // Get IDs of collaborators for this mix
+        $collaboratorIds = $mix->collaborators()->pluck('users.id')->toArray();
 
-        $collaboratorIds = $mix->collaborators()
-            ->pluck('users.id')
-            ->toArray();
-
-        // Update the search to use where() correctly
-        $results = User::search($query)
-            ->whereIn('id', $collaboratorIds) // Use whereIn instead
+        // Search users with Scout and filter by the collaborator IDs
+        $searchResults = User::search($query)
+            ->whereIn('id', $collaboratorIds)
             ->take(10)
             ->get();
 
-
+        if ($searchResults->isNotEmpty()) {
+            // Use the relationship instead of a join to ensure pivot data is available
+            $results = $mix->collaborators()
+                ->whereIn('users.id', $searchResults->pluck('id'))
+                ->get();
+        } else {
+            $results = collect([]);
+        }
 
         return response()->json([
             'data' => UserResource::collection($results),
