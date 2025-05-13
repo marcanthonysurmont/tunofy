@@ -41,7 +41,7 @@
                 />
                 <InputRangeSlider
                     label="Kill percentage"
-                    v-model="settingsForm.kill_percentage_percent"
+                    v-model="settingsForm.kill_percentage"
                     :min="0"
                     :max="100"
                     :step="1"
@@ -65,7 +65,7 @@
                 />
             </div>
             <div v-else-if="option.name === 'Mix'" class="flex flex-col gap-6">
-                <InputFieldAdvanced
+                <!-- <InputFieldAdvanced
                     v-model="settingsForm.max_songs"
                     label="Maximum number of songs"
                     id="max_songs"
@@ -90,7 +90,7 @@
                     :disabled="
                         !isCustomTemplate || authorization.isOwner === false
                     "
-                />
+                /> -->
                 <ToggleSwitchDescription
                     :label="'Priority boost'"
                     v-model="settingsForm.priority_boost_new"
@@ -131,11 +131,11 @@
 <script setup>
 import ToggleSwitchDescription from "@/components/forms/ToggleSwitchDescription.vue";
 import InputFieldAdvanced from "@/components/forms/InputFieldAdvanced.vue";
-import { useForm, router, usePage } from "@inertiajs/vue3";
+import { useForm, usePage } from "@inertiajs/vue3";
 import { computed, onBeforeMount, ref, watch } from "vue";
 import RegularButton from "@/components/buttons/RegularButton.vue";
 import { useTemplatesStore } from "@/stores/StorePresets.js";
-import InputRangeSlider from "../../forms/InputRangeSlider.vue";
+import InputRangeSlider from "@/components/forms/InputRangeSlider.vue";
 
 const templatesStore = useTemplatesStore();
 
@@ -147,11 +147,9 @@ const authorization = computed(() => page.props.mix.authorized);
 const settingsForm = useForm({
     mix_id: mixId.value,
     batch_size: null,
-    max_songs: null,
-    num_rounds: null,
     requires_approval: null,
     voting_enabled: null,
-    kill_percentage_percent: null,
+    kill_percentage: null,
     priority_boost_new: null,
     auto_remove_negative: null,
     emoji_chat_enabled: null,
@@ -177,11 +175,7 @@ const isCustomTemplate = computed(() => {
 
 function saveChanges() {
     //if user is not owner, then do not allow to save potential changes
-    if (authorization.value.isOwner === false) {
-        return;
-    }
-
-    if (isLoading.value) {
+    if (authorization.value.isOwner === false || isLoading.value) {
         return;
     }
 
@@ -204,11 +198,8 @@ function saveChanges() {
 
 function setFormValues(selectedTemplate) {
     settingsForm.batch_size = selectedTemplate.batch_size;
-    settingsForm.max_songs = selectedTemplate.max_songs;
-    settingsForm.num_rounds = selectedTemplate.num_rounds;
     settingsForm.requires_approval = selectedTemplate.requires_approval;
-    settingsForm.kill_percentage_percent =
-        selectedTemplate.kill_percentage_percent;
+    settingsForm.kill_percentage = selectedTemplate.kill_percentage;
     settingsForm.priority_boost_new = selectedTemplate.priority_boost_new;
     settingsForm.auto_remove_negative = selectedTemplate.auto_remove_negative;
     settingsForm.emoji_chat_enabled = selectedTemplate.emoji_chat_enabled;
@@ -229,7 +220,6 @@ const options = [
 
 onBeforeMount(() => {
     const selectedTemplate = templatesStore.getSelectedTemplate();
-
     setFormValues(selectedTemplate);
 });
 </script>
