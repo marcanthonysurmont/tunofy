@@ -36,12 +36,14 @@ use App\Http\Controllers\Application\Spotify\ResumeMixPlaybackController;
 use App\Http\Controllers\Application\Spotify\PlayNextSongController;
 use App\Http\Controllers\Application\Spotify\PlayPreviousSongController;
 use App\Http\Controllers\Application\Spotify\TransferPlaybackController;
+use App\Http\Controllers\Application\Spotify\GetSpotifyPlaylistsController;
 
 use App\Http\Controllers\Application\Mixes\AssignCoDJController;
 use App\Http\Controllers\Application\Mixes\RemoveCoDJController;
 use App\Http\Controllers\Application\Mixes\ToggleMixIsPublicController;
 use App\Http\Controllers\Application\Mixes\SearchUserController;
 use App\Http\Controllers\Application\Mixes\RemoveUserMixAccessController;
+use App\Http\Controllers\Application\Mixes\ImportSpotifyPlaylistController;
 
 Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function () {
     Route::middleware('auth')->group(function () {
@@ -59,6 +61,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
             Route::post('/toggle-visibility/{mix}', ToggleMixIsPublicController::class)->name('toggle-visibility');
             Route::get('/search-user/{mix}', SearchUserController::class)->name('search-user');
             Route::post('/remove-user-access/{mix}', RemoveUserMixAccessController::class)->name('remove-user-access');
+            Route::post('/import-spotify-playlist/{mix}', ImportSpotifyPlaylistController::class)->name('import-spotify-playlist');
 
             // app/mix/presets (mix.presets)
             Route::prefix('/presets')->name('presets.')->group(function () {
@@ -71,6 +74,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
         Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
             Route::post('/search', SearchSongController::class)->name('search');
             Route::post('/track-preview', GetTrackPreviewController::class)->name('track-preview');
+            Route::post('/get-playlists', GetSpotifyPlaylistsController::class)->name('get-playlist');
 
             Route::get('/request-status', RequestSpotifyPlayerStatusController::class)->name('request-status');
             Route::post('/set-mix-active/{mix}', SetMixActiveController::class)->name('set-mix-active');
