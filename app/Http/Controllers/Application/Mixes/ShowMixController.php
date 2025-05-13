@@ -28,7 +28,7 @@ class ShowMixController extends Controller
 
         return Inertia::render('MixSlugPage', [
             'mix' => fn() => MixResource::make($mix)->jsonSerialize(),
-            'collaborators' => fn() => CollaboratorResource::collection($collaborators)->jsonSerialize(),
+            'collaborators' => fn() => CollaboratorResource::collection($collaborators),
             'themes' => fn() => $mix->themes,
             'presets' => fn() => $mix->all_presets,
             'your_mixes' => fn() => $user->mixes,
