@@ -9,12 +9,15 @@
             <div class="flex min-w-0 gap-x-4 items-center">
                 <img
                     class="size-12 flex-none rounded-full bg-zinc-50"
-                    :src="
-                        user.avatar === null
-                            ? '/images/default-avatar.jpg'
-                            : user.avatar
-                    "
-                    alt=""
+                    v-lazy="{
+                        src:
+                            user.avatar === null
+                                ? '/images/default-avatar.jpg'
+                                : user.avatar,
+                        error: '/images/default-avatar.jpg',
+                        loading: '/images/default-avatar.jpg',
+                    }"
+                    alt="User avatar"
                 />
                 <div class="min-w-0 flex-auto">
                     <p class="text-md font-semibold text-zinc-200">
@@ -122,12 +125,15 @@
             <div class="flex min-w-0 gap-x-4 items-center">
                 <img
                     class="size-12 flex-none rounded-full bg-zinc-50"
-                    :src="
-                        user.avatar === null
-                            ? '/images/default-avatar.jpg'
-                            : user.avatar
-                    "
-                    alt=""
+                    v-lazy="{
+                        src:
+                            user.avatar === null
+                                ? '/images/default-avatar.jpg'
+                                : user.avatar,
+                        error: '/images/default-avatar.jpg',
+                        loading: '/images/default-avatar.jpg',
+                    }"
+                    alt="User avatar"
                 />
                 <div class="min-w-0 flex-auto">
                     <p class="text-md font-semibold text-zinc-200">
