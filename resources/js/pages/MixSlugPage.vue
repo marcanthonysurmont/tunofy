@@ -9,7 +9,7 @@
             @pending="state = console.log('pending')"
             @fallback="state = console.log('fallback')"
         >
-            <template #fallback>
+            <template #fallback v-if="showFallback">
                 <Transition
                     name="fade-with-slide"
                     appear
@@ -25,21 +25,24 @@
                     <SkeletonDefault v-else />
                 </Transition>
             </template>
-
-            <Transition
-                name="fade-with-slide"
-                appear
-                mode="out-in"
-                :duration="300"
-            >
-                <div
-                    :key="localActiveTab"
-                    class="relative"
-                    :class="localActiveTab === 'Overview' ? 'mb-0' : 'mb-32'"
+            <template #default>
+                <Transition
+                    name="fade-with-slide"
+                    appear
+                    mode="out-in"
+                    :duration="300"
                 >
-                    <component :is="currentAsyncComponent" />
-                </div>
-            </Transition>
+                    <div
+                        :key="localActiveTab"
+                        class="relative"
+                        :class="
+                            localActiveTab === 'Overview' ? 'mb-0' : 'mb-32'
+                        "
+                    >
+                        <component :is="currentAsyncComponent" />
+                    </div>
+                </Transition>
+            </template>
         </Suspense>
         <MixController :mix="mix" />
         <CustomThemeContainer />
@@ -101,6 +104,11 @@ const tabs = ref([
 const page = usePage();
 const nameOfMix = computed(() => page.props.mix?.name || "Mix");
 const mix = computed(() => page.props.mix || null);
+
+const showFallback = ref(false);
+setTimeout(() => {
+    showFallback.value = true;
+}, 200);
 
 // Track currently active tab in local state first
 const localActiveTab = ref("Overview");
