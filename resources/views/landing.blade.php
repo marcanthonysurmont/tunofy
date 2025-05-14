@@ -1,7 +1,7 @@
 @extends('layouts.landing')
 
 @section('title', 'Tunofy - The music platform you need')
-@section('meta_description', 'Jam together using Spotify! Add tracks, vote, and control the vibe.')
+@section('meta_description', 'Vibe together using Spotify! Add tracks, vote, and control the vibe.')
 @section('og_url', url('/'))
 {{-- @section('og_image', asset('images/social-preview.jpg'))
 @section('twitter_image', asset('images/twitter-preview.jpg')) --}}

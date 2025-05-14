@@ -138,10 +138,11 @@ body {
 
 .carousel-progress {
     position: relative;
-    max-width: 1000px;
+    max-width: 550px;
     top: 0px;
     height: 8px;
-    width: 80%;
+    width: 30dvw;
+    min-width: 350px;
     margin: -8px auto 0 auto;
     background-color: var(--color-card-background);
     border: 1px solid var(--color-card-stroke);
@@ -156,7 +157,7 @@ body {
     background-color: var(--color-primary);
     border-radius: 12px;
     animation-name: progress;
-    animation-duration: 5s;
+    animation-duration: 8s;
     animation-timing-function: linear;
     animation-iteration-count: 1;
 }

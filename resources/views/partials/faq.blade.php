@@ -8,20 +8,28 @@
     @php
         $faqs = [
             [
-                'question' => 'Do I need Spotify premium to use this platform?',
-                'answer' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit...',
+                'question' => 'How does the playback work?',
+                'answer' =>
+                    'Playback works by using the Spotify API to control the playback of your spotify device. You can play, pause, skip, and seek through the track using the playback controls on the web app. You can also see what track is currently playing and who is currently playing it!',
             ],
             [
-                'question' => 'How does voting work during a jam?',
-                'answer' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit...',
+                'question' => 'Do I need Spotify premium to use this platform?',
+                'answer' =>
+                    'Technically, no. However, you do need Spotify Premium to use our playback feature. You can always assign another Premium user as the co-DJ to allow playback.',
             ],
             [
                 'question' => 'Is this web application free?',
-                'answer' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit...',
+                'answer' =>
+                    'Yes! This web application is completely free to use. We do not charge any fees for using the platform. We might however add a some "premium" features in the future, but the core functionality will always be free.',
             ],
             [
-                'question' => 'Can I customize the look and theme of my jam session?',
-                'answer' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit...',
+                'question' => 'Do you use my Spotify data?',
+                'answer' => 'For more information on data, please refer to our privacy policy.',
+            ],
+            [
+                'question' => 'Can I customize the look and theme of my mix session?',
+                'answer' =>
+                    'Of course! We have a few themes - birthday party, halloween, .. - to choose from with some customization options. You can also add a custom cover image to your mix session.',
             ],
         ];
     @endphp
@@ -39,7 +47,7 @@
 
                 <div class="relative overflow-hidden transition-all max-h-0 duration-400" x-ref="container"
                     x-bind:style="open ? 'max-height: ' + $refs.container.scrollHeight + 'px' : ''">
-                    <div class="px-4 pb-4">
+                    <div class="px-4 pb-4 max-w-7xl">
                         <p class="text-l font-normal">{{ $faq['answer'] }}</p>
                     </div>
                 </div>

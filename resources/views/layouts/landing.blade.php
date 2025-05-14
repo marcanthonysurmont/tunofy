@@ -9,11 +9,11 @@
     <title>@yield('title', 'Tunofy - The music platform you need')</title>
 
     {{-- SEO Meta --}}
-    <meta name="description" content="@yield('meta_description', 'Tunofy lets you create collaborative Spotify jam sessions.')">
+    <meta name="description" content="@yield('meta_description', 'Tunofy lets you create collaborative Spotify mix sessions.')">
 
     {{-- Open Graph --}}
-    <meta property="og:title" content="@yield('og_title', 'Tunofy - Host the Ultimate Spotify Jam Session')">
-    <meta property="og:description" content="@yield('og_description', 'Start Spotify jam sessions with Tunofy...')">
+    <meta property="og:title" content="@yield('og_title', 'Tunofy - Host the Ultimate Spotify mix Session')">
+    <meta property="og:description" content="@yield('og_description', 'Start Spotify mix sessions with Tunofy...')">
     <meta property="og:type" content="website">
     <meta property="og:url" content="@yield('og_url', url('/'))">
     @hasSection('og_image')

@@ -1,7 +1,7 @@
 @extends('layouts.landing')
 
 @section('title', 'Terms of Use | Tunofy')
-@section('meta_description', "Learn about Tunofy's terms of use and how we make your Spotify jam sessions better.")
+@section('meta_description', "Learn about Tunofy's terms of use and how we make your Spotify mix sessions better.")
 @section('og_url', url('/terms-of-use'))
 {{-- @section('og_image', asset('images/social-preview.jpg'))
 @section('twitter_image', asset('images/twitter-preview.jpg')) --}}
