@@ -17,7 +17,15 @@
                 backgroundImage: `url(${song.cover})`,
                 transform: cardTransform(index),
                 opacity: cardOpacity(index),
-                cursor: isDragging ? 'grabbing' : 'grab',
+                cursor:
+                    isFakeSwipeAnimating ||
+                    transitionToNext ||
+                    skullAnimation ||
+                    isNewCardAnimating
+                        ? 'not-allowed'
+                        : isDragging
+                        ? 'grabbing'
+                        : 'grab',
             }"
             v-show="index === currentIndex"
             @mousedown="startDrag"
@@ -28,6 +36,27 @@
             @touchmove.passive="onDrag"
             @touchend.passive="endDrag"
         >
+            <!-- Audio play button overlay -->
+            <transition name="fade">
+                <div
+                    class="absolute top-4 right-4 z-20"
+                    v-if="swipeLengthX >= -15 && swipeLengthX <= 15"
+                >
+                    <button
+                        @click.stop="toggleAudio(song.track_id)"
+                        class="w-12 h-12 bg-primary bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all cursor-pointer"
+                    >
+                        <PlayIcon
+                            v-if="
+                                currentPlayingId !== song.track_id || !isPlaying
+                            "
+                            class="w-6 h-6 text-white"
+                        />
+                        <PauseIcon v-else class="w-6 h-6 text-white" />
+                    </button>
+                </div>
+            </transition>
+
             <div class="gradient-bg"></div>
             <div
                 v-if="skullAnimation"
@@ -67,11 +96,17 @@
         <!-- action buttons -->
         <div class="mt-5 flex gap-6">
             <div
-                class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700"
+                @click="clickLeft"
+                class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700 cursor-pointer"
             >
                 <button
-                    @click="clickLeft"
                     :class="{ bounce: bounceState.left }"
+                    class="cursor-pointer disabled:opacity-40"
+                    :disabled="
+                        isFakeSwipeAnimating ||
+                        isNewCardAnimating ||
+                        skullAnimation
+                    "
                 >
                     <XMarkIcon
                         class="size-8 text-[#e95a6c] stroke-2 stroke-[#e95a6c]"
@@ -79,12 +114,17 @@
                 </button>
             </div>
             <div
-                class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700"
+                @click="kill"
+                class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700 cursor-pointer"
             >
                 <button
-                    @click="kill"
                     :class="{ bounce: bounceState.kill }"
-                    class="text-white font-bold"
+                    :disabled="
+                        isFakeSwipeAnimating ||
+                        isNewCardAnimating ||
+                        skullAnimation
+                    "
+                    class="text-white font-bold cursor-pointer disabled:opacity-40"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -99,22 +139,48 @@
                 </button>
             </div>
             <div
-                class="w-16 h-16 rounded-full bg-zinc-800 border-1 border-zinc-700 flex items-center justify-center"
+                class="w-16 h-16 rounded-full bg-zinc-800 border-1 border-zinc-700 flex items-center justify-center cursor-pointer"
+                @click="clickRight"
             >
                 <button
-                    @click="clickRight"
                     :class="{ bounce: bounceState.right }"
+                    class="cursor-pointer disabled:opacity-40"
+                    :disabled="
+                        isFakeSwipeAnimating ||
+                        isNewCardAnimating ||
+                        skullAnimation
+                    "
                 >
                     <HeartIcon class="size-8 text-[#74e3b8]" />
                 </button>
             </div>
         </div>
+
+        <!-- Hidden audio elements container -->
+        <div class="hidden">
+            <audio
+                v-for="(preview, trackId) in audioPreviewCache"
+                :key="trackId"
+                :ref="
+                    (el) => {
+                        if (el) audioElements[trackId] = el;
+                    }
+                "
+                :src="preview"
+                preload="auto"
+                @play="handlePlay(trackId)"
+                @pause="isPlaying = false"
+                @ended="isPlaying = false"
+            ></audio>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { HeartIcon, XMarkIcon } from "@heroicons/vue/24/solid";
-import { ref, computed } from "vue";
+import { PauseIcon } from "@heroicons/vue/24/solid";
+import { HeartIcon, PlayIcon, XMarkIcon } from "@heroicons/vue/24/solid";
+import axios from "axios";
+import { ref, computed, onMounted, watch } from "vue";
 
 const likeOpacity = computed(() => {
     return swipeLengthX.value > 0 ? Math.min(swipeLengthX.value / 100, 1) : 0;
@@ -147,12 +213,30 @@ const dragDirection = ref(null);
 const skullAnimation = ref(false);
 const skullAnimationFading = ref(false);
 const isNewCardAnimating = ref(false);
+const isFakeSwipeAnimating = ref(false);
+
+// Audio related state
+const audioPreviewCache = ref({});
+const audioElements = ref({});
+const isPlaying = ref(false);
+const currentPlayingId = ref(null);
+const loadingQueue = ref([]);
+const isLoading = ref(false);
 
 const emit = defineEmits(["endVoting"]);
 
 const SWIPE_THRESHOLD = 100;
 
 function startDrag(event) {
+    if (
+        isFakeSwipeAnimating.value ||
+        transitionToNext.value ||
+        skullAnimation.value ||
+        isNewCardAnimating.value
+    ) {
+        return;
+    }
+
     isDragging.value = true;
     startX.value = getClientX(event);
     dragDirection.value = null;
@@ -234,6 +318,7 @@ function fakeSwipe(direction) {
     const maxDistance = 300;
     const multiplier = direction === "left" ? -1 : 1;
     const startTime = performance.now();
+    isFakeSwipeAnimating.value = true;
 
     const animate = (currentTime) => {
         const elapsed = currentTime - startTime;
@@ -248,11 +333,13 @@ function fakeSwipe(direction) {
             requestAnimationFrame(animate);
         } else {
             transitionToNext.value = true;
+            isFakeSwipeAnimating.value = true;
             setTimeout(() => {
                 if (direction === "left") swipeLeft();
                 else swipeRight();
                 swipeLengthX.value = 0;
                 transitionToNext.value = false;
+                isFakeSwipeAnimating.value = false;
             }, 200);
         }
     };
@@ -260,24 +347,38 @@ function fakeSwipe(direction) {
     requestAnimationFrame(animate);
 }
 
-function swipeLeft() {
-    bounceButton("left");
-    nextSong();
+function clickRight() {
+    if (
+        isFakeSwipeAnimating.value ||
+        transitionToNext.value ||
+        skullAnimation.value ||
+        isNewCardAnimating.value
+    ) {
+        return;
+    }
+    bounceButton("right");
+    fakeSwipe("right");
 }
 
 function clickLeft() {
+    if (
+        isFakeSwipeAnimating.value ||
+        transitionToNext.value ||
+        skullAnimation.value ||
+        isNewCardAnimating.value
+    ) {
+        return;
+    }
     bounceButton("left");
     fakeSwipe("left");
 }
 
-function swipeRight() {
-    bounceButton("right");
+function swipeLeft() {
     nextSong();
 }
 
-function clickRight() {
-    bounceButton("right");
-    fakeSwipe("right");
+function swipeRight() {
+    nextSong();
 }
 
 function kill() {
@@ -316,26 +417,39 @@ function kill() {
     }, shakeDuration);
 }
 
-// function swipeAndAnimate(offset) {
-//     swipeLengthX.value = offset;
-//     transitionToNext.value = true;
-
-//     setTimeout(() => {
-//         swipeLengthX.value = 0;
-//         transitionToNext.value = false;
-//     }, 300);
-// }
-
 function nextSong() {
+    //if there are more songs, move to the next one
     if (currentIndex.value < songs.value.length - 1) {
+        //pause current audio if playing because user swiped
+        //meaning that the user made their choice and audio should stop
+        if (isPlaying.value && currentPlayingId.value) {
+            audioElements.value[currentPlayingId.value]?.pause();
+        }
+
         currentIndex.value++;
         isNewCardAnimating.value = true;
+
+        const currentSong = songs.value[currentIndex.value];
+        const nextSong = songs.value[currentIndex.value + 1];
+
+        //check if current song audio is preloaded
+        //if not, load it immediately
+        if (currentSong && !audioPreviewCache.value[currentSong.track_id]) {
+            getSongFile(currentSong.track_id);
+        }
+
+        //check if next song audio is preloaded
+        //if not, load it immediately
+        if (nextSong && !audioPreviewCache.value[nextSong.track_id]) {
+            getSongFile(nextSong.track_id);
+        }
 
         //reset animation flag after animation completes
         setTimeout(() => {
             isNewCardAnimating.value = false;
         }, 500);
     } else {
+        //no more songs = end voting
         emit("endVoting");
     }
 }
@@ -367,23 +481,184 @@ function cardOpacity(index) {
 const songs = ref([
     {
         id: 1,
-        name: "Into the Rodeo",
+        track_id: "6TQwgRWmnovDECDrHVOxlY",
+        name: "The Prayer",
         artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b273f54b99bf27cda88f4a7403ce",
+        cover: "https://i.scdn.co/image/ab67616d0000b2730fc93fe41791c5aa51ae9645",
     },
     {
         id: 2,
+        track_id: "42VsgItocQwOQC3XWZ8JNA",
         name: "FE!N",
         artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b273cc392813bfd8f63d4d5f4a95",
+        cover: "https://i.scdn.co/image/ab67616d0000b273881d8d8378cd01099babcd44",
     },
     {
         id: 3,
+        track_id: "2QeQNF182V61Im0QpjdVta",
         name: "Pornography",
         artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b2734f0fd9dad63977146e685700",
+        cover: "https://i.scdn.co/image/ab67616d0000b2736cfd9a7353f98f5165ea6160",
+    },
+    {
+        id: 4,
+        track_id: "4b7vk8SRcYgnxpk0JOIS7r",
+        name: "Drugs You Should Try It",
+        artist: "Travis Scott",
+        cover: "https://i.scdn.co/image/ab67616d0000b2730fc93fe41791c5aa51ae9645",
+    },
+    {
+        id: 5,
+        track_id: "7AQim7LbvFVZJE3O8TYgf2",
+        name: "Fuck Love",
+        artist: "XXXTENTACION, Trippie Redd",
+        cover: "https://i.scdn.co/image/ab67616d0000b273203c89bd4391468eea4cc3f5",
+    },
+    {
+        id: 6,
+        track_id: "0TzxcB6dK46vgXZT2P8qeR",
+        name: "Trap Queen",
+        artist: "Fetty Wap",
+        cover: "https://i.scdn.co/image/ab67616d0000b27302928b251e41844f5186920e",
+    },
+    {
+        id: 7,
+        track_id: "51EC3I1nQXpec4gDk0mQyP",
+        name: "90210 (feat. Kacy Hill)",
+        artist: "Travis Scott, Kacy Hill",
+        cover: "https://i.scdn.co/image/ab67616d0000b2736cfd9a7353f98f5165ea6160",
     },
 ]);
+
+function toggleAudio(trackId) {
+    //if we don't have the audio element yet, queue it up
+    if (!audioPreviewCache.value[trackId]) {
+        getSongFile(trackId);
+        return;
+    }
+
+    const audioElement = audioElements.value[trackId];
+    audioElement.volume = 0.3;
+
+    if (!audioElement) {
+        return;
+    }
+
+    //if this is the currently playing audio, toggle play/pause
+    if (currentPlayingId.value === trackId) {
+        if (isPlaying.value) {
+            audioElement.pause();
+            isPlaying.value = false;
+        } else {
+            audioElement.play();
+            isPlaying.value = true;
+        }
+    } else {
+        //if another audio is playing, pause it
+        if (
+            currentPlayingId.value &&
+            audioElements.value[currentPlayingId.value]
+        ) {
+            audioElements.value[currentPlayingId.value].pause();
+        }
+
+        //play the new audio
+        audioElement.play();
+        currentPlayingId.value = trackId;
+        isPlaying.value = true;
+    }
+}
+
+function handlePlay(trackId) {
+    //update state when an audio starts playing
+    currentPlayingId.value = trackId;
+    isPlaying.value = true;
+}
+
+async function getSongFile(trackId) {
+    //if already in cache, don't fetch again
+    if (audioPreviewCache.value[trackId]) {
+        return;
+    }
+
+    //check if track is already in the loading queue
+    if (loadingQueue.value.includes(trackId)) {
+        return;
+    }
+
+    //add track to the loading queue
+    loadingQueue.value.push(trackId);
+
+    //if another load is in progress, just queue this one
+    if (isLoading.value) {
+        return;
+    }
+
+    //if nothing is currently loading, start the loading process
+    processLoadingQueue();
+}
+
+async function processLoadingQueue() {
+    //if queue is empty, we're done
+    if (loadingQueue.value.length === 0) {
+        isLoading.value = false;
+        return;
+    }
+
+    //set loading flag to start loading process of track
+    isLoading.value = true;
+
+    //get the next track ID to load
+    const trackId = loadingQueue.value.shift();
+
+    try {
+        const response = await axios.post(route("api.spotify.track-preview"), {
+            track_id: trackId,
+        });
+
+        //store preview URL in cache
+        if (response.data && response.data.preview_url) {
+            audioPreviewCache.value[trackId] = response.data.preview_url;
+        }
+    } catch (error) {
+        console.error(`Error loading preview for track ${trackId}:`, error);
+    } finally {
+        //process next item in queue, this is done recursively.
+        processLoadingQueue();
+    }
+}
+
+onMounted(() => {
+    //initialize audio loading -- preload first song
+    if (songs.value.length > 0) {
+        const currentSong = songs.value[currentIndex.value];
+        getSongFile(currentSong.track_id);
+
+        //queue up next song if available after 1 second
+        if (songs.value.length > 1) {
+            setTimeout(() => {
+                getSongFile(songs.value[1].track_id);
+            }, 1000);
+        }
+
+        //queue remaining songs with a delay of 2 seconds
+        if (songs.value.length > 2) {
+            setTimeout(() => {
+                for (let i = 2; i < songs.value.length; i++) {
+                    getSongFile(songs.value[i].track_id);
+                }
+            }, 2000);
+        }
+    }
+});
+
+//watch for index changes to prefetch audio
+watch(currentIndex, (newIndex) => {
+    const nextIndex = newIndex + 1;
+    if (nextIndex < songs.value.length) {
+        getSongFile(songs.value[nextIndex].track_id);
+    }
+});
 </script>
 
 <style scoped>
