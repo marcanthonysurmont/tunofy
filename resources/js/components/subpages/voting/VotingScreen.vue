@@ -382,8 +382,10 @@ function kill() {
 }
 
 function nextSong() {
+    //if there are more songs, move to the next one
     if (currentIndex.value < songs.value.length - 1) {
-        // Pause current audio if playing
+        //pause current audio if playing because user swiped
+        //meaning that the user made their choice and audio should stop
         if (isPlaying.value && currentPlayingId.value) {
             audioElements.value[currentPlayingId.value]?.pause();
         }
@@ -391,17 +393,20 @@ function nextSong() {
         currentIndex.value++;
         isNewCardAnimating.value = true;
 
-        // Preload next song's audio if available
         const currentSong = songs.value[currentIndex.value];
         const nextSong = songs.value[currentIndex.value + 1];
 
-        // Make sure current song's audio is loaded
+        //check if current song audio is preloaded
+        //if not, load it immediately
         if (currentSong && !audioPreviewCache.value[currentSong.track_id]) {
+            console.log("loading current song");
             getSongFile(currentSong.track_id);
         }
 
-        // Preload next song's audio if it exists
+        //check if next song audio is preloaded
+        //if not, load it immediately
         if (nextSong && !audioPreviewCache.value[nextSong.track_id]) {
+            console.log("loading next song");
             getSongFile(nextSong.track_id);
         }
 
@@ -410,6 +415,7 @@ function nextSong() {
             isNewCardAnimating.value = false;
         }, 500);
     } else {
+        //no more songs = end voting
         emit("endVoting");
     }
 }
@@ -513,12 +519,12 @@ async function getSongFile(trackId) {
         return;
     }
 
-    //if already being loaded, don't duplicate the request
+    //check if track is already in the loading queue
     if (loadingQueue.value.includes(trackId)) {
         return;
     }
 
-    //add to loading queue
+    //add track to the loading queue
     loadingQueue.value.push(trackId);
 
     //if another load is in progress, just queue this one
@@ -526,7 +532,7 @@ async function getSongFile(trackId) {
         return;
     }
 
-    //process loading queue
+    //if nothing is currently loading, start the loading process
     processLoadingQueue();
 }
 
@@ -537,10 +543,10 @@ async function processLoadingQueue() {
         return;
     }
 
-    //set loading flag
+    //set loading flag to start loading process of track
     isLoading.value = true;
 
-    //get next track ID to load
+    //get the next track ID to load
     const trackId = loadingQueue.value.shift();
 
     try {
@@ -555,7 +561,7 @@ async function processLoadingQueue() {
     } catch (error) {
         console.error(`Error loading preview for track ${trackId}:`, error);
     } finally {
-        //process next item in queue
+        //process next item in queue, this is done recursively.
         processLoadingQueue();
     }
 }
@@ -566,14 +572,14 @@ onMounted(() => {
         const currentSong = songs.value[currentIndex.value];
         getSongFile(currentSong.track_id);
 
-        //queue up next song if available
+        //queue up next song if available after 1 second
         if (songs.value.length > 1) {
             setTimeout(() => {
                 getSongFile(songs.value[1].track_id);
             }, 1000);
         }
 
-        //queue remaining songs with a delay
+        //queue remaining songs with a delay of 2 seconds
         if (songs.value.length > 2) {
             setTimeout(() => {
                 for (let i = 2; i < songs.value.length; i++) {
