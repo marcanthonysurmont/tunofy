@@ -66,6 +66,7 @@ const props = defineProps({
     },
 });
 // Current state variables
+const songs = computed(() => props.mix.songs);
 const isMixActive = ref(props.mix?.is_active || false);
 const isLoading = ref(false);
 const isTransferingDevice = ref(false);
@@ -358,6 +359,14 @@ async function toggleMixActive() {
         if (selectedDevice.value === null && !isMixActive.value) {
             toast.add({
                 message: "You must select a device first to start the queue.",
+                type: "danger",
+            });
+            return;
+        }
+
+        if (songs.value.length === 0) {
+            toast.add({
+                message: `You must add at least one song to the mix.`,
                 type: "danger",
             });
             return;
