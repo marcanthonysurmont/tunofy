@@ -202,6 +202,10 @@ const emit = defineEmits(["endVoting"]);
 const SWIPE_THRESHOLD = 100;
 
 function startDrag(event) {
+    if (isNewCardAnimating.value || skullAnimation.value) {
+        return;
+    }
+
     isDragging.value = true;
     startX.value = getClientX(event);
     dragDirection.value = null;
@@ -448,6 +452,34 @@ const songs = ref([
         track_id: "2QeQNF182V61Im0QpjdVta",
         name: "Pornography",
         artist: "Travis Scott",
+        cover: "https://i.scdn.co/image/ab67616d0000b2736cfd9a7353f98f5165ea6160",
+    },
+    {
+        id: 4,
+        track_id: "4b7vk8SRcYgnxpk0JOIS7r",
+        name: "Drugs You Should Try It",
+        artist: "Travis Scott",
+        cover: "https://i.scdn.co/image/ab67616d0000b2730fc93fe41791c5aa51ae9645",
+    },
+    {
+        id: 5,
+        track_id: "7AQim7LbvFVZJE3O8TYgf2",
+        name: "Fuck Love",
+        artist: "XXXTENTACION, Trippie Redd",
+        cover: "https://i.scdn.co/image/ab67616d0000b273203c89bd4391468eea4cc3f5",
+    },
+    {
+        id: 6,
+        track_id: "0TzxcB6dK46vgXZT2P8qeR",
+        name: "Trap Queen",
+        artist: "Fetty Wap",
+        cover: "https://i.scdn.co/image/ab67616d0000b27302928b251e41844f5186920e",
+    },
+    {
+        id: 7,
+        track_id: "51EC3I1nQXpec4gDk0mQyP",
+        name: "90210 (feat. Kacy Hill)",
+        artist: "Travis Scott, Kacy Hill",
         cover: "https://i.scdn.co/image/ab67616d0000b2736cfd9a7353f98f5165ea6160",
     },
 ]);
