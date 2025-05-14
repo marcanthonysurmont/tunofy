@@ -8,10 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('themes', function (Blueprint $table) {
+        Schema::create('theme_setting_definitions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('mix_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('theme_setting_definition_id')->constrained()->cascadeOnDelete();
+            $table->string('name');
             $table->json('settings')->nullable();
             $table->timestamps();
         });
@@ -19,6 +18,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('themes');
+        Schema::dropIfExists('theme_setting_definitions');
     }
 };

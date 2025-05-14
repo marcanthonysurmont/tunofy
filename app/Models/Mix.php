@@ -157,4 +157,37 @@ class Mix extends Model
             ->generateSlugsFrom('name')
             ->saveSlugsTo('slug');
     }
+
+    public function getThemeSettings()
+    {
+        $definitions = ThemeSettingDefinition::all();
+
+        $customThemes = $this->themes->keyBy(function ($theme) {
+            return (string) $theme->theme_setting_definition_id;
+        });
+
+        return $definitions->map(function ($definition) use ($customThemes) {
+            $definitionId = (string) $definition->id;
+
+            $defaultSettings = $definition->settings ?? [];
+
+            $mergedSettings = $defaultSettings;
+
+            if ($customThemes->has($definitionId)) {
+                $customTheme = $customThemes->get($definitionId);
+
+                $customSettings = $customTheme->settings ?? [];
+
+                if (!empty($customSettings)) {
+                    $mergedSettings = array_replace_recursive($defaultSettings, $customSettings);
+                }
+            }
+
+            return [
+                'id' => $definition->id,
+                'name' => $definition->name,
+                'settings' => $mergedSettings,
+            ];
+        });
+    }
 }

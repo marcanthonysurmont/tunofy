@@ -19,7 +19,7 @@ class ShowMixController extends Controller
 
         $user = Auth::user();
 
-        $mix->load(['songs.user', 'presets', 'user', 'collaborators']);
+        $mix->load(['songs.user', 'presets', 'user', 'collaborators', 'themes']);
         $user->load(['mixes', 'accessibleMixes']);
 
         // Get Spotify devices for the mix owner
