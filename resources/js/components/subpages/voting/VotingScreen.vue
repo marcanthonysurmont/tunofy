@@ -17,7 +17,15 @@
                 backgroundImage: `url(${song.cover})`,
                 transform: cardTransform(index),
                 opacity: cardOpacity(index),
-                cursor: isDragging ? 'grabbing' : 'grab',
+                cursor:
+                    isFakeSwipeAnimating ||
+                    transitionToNext ||
+                    skullAnimation ||
+                    isNewCardAnimating
+                        ? 'not-allowed'
+                        : isDragging
+                        ? 'grabbing'
+                        : 'grab',
             }"
             v-show="index === currentIndex"
             @mousedown="startDrag"
@@ -88,11 +96,17 @@
         <!-- action buttons -->
         <div class="mt-5 flex gap-6">
             <div
-                class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700"
+                @click="clickLeft"
+                class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700 cursor-pointer"
             >
                 <button
-                    @click="clickLeft"
                     :class="{ bounce: bounceState.left }"
+                    class="cursor-pointer disabled:opacity-40"
+                    :disabled="
+                        isFakeSwipeAnimating ||
+                        isNewCardAnimating ||
+                        skullAnimation
+                    "
                 >
                     <XMarkIcon
                         class="size-8 text-[#e95a6c] stroke-2 stroke-[#e95a6c]"
@@ -100,12 +114,17 @@
                 </button>
             </div>
             <div
-                class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700"
+                @click="kill"
+                class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700 cursor-pointer"
             >
                 <button
-                    @click="kill"
                     :class="{ bounce: bounceState.kill }"
-                    class="text-white font-bold"
+                    :disabled="
+                        isFakeSwipeAnimating ||
+                        isNewCardAnimating ||
+                        skullAnimation
+                    "
+                    class="text-white font-bold cursor-pointer disabled:opacity-40"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -120,11 +139,17 @@
                 </button>
             </div>
             <div
-                class="w-16 h-16 rounded-full bg-zinc-800 border-1 border-zinc-700 flex items-center justify-center"
+                class="w-16 h-16 rounded-full bg-zinc-800 border-1 border-zinc-700 flex items-center justify-center cursor-pointer"
+                @click="clickRight"
             >
                 <button
-                    @click="clickRight"
                     :class="{ bounce: bounceState.right }"
+                    class="cursor-pointer disabled:opacity-40"
+                    :disabled="
+                        isFakeSwipeAnimating ||
+                        isNewCardAnimating ||
+                        skullAnimation
+                    "
                 >
                     <HeartIcon class="size-8 text-[#74e3b8]" />
                 </button>
@@ -188,6 +213,7 @@ const dragDirection = ref(null);
 const skullAnimation = ref(false);
 const skullAnimationFading = ref(false);
 const isNewCardAnimating = ref(false);
+const isFakeSwipeAnimating = ref(false);
 
 // Audio related state
 const audioPreviewCache = ref({});
@@ -202,7 +228,12 @@ const emit = defineEmits(["endVoting"]);
 const SWIPE_THRESHOLD = 100;
 
 function startDrag(event) {
-    if (isNewCardAnimating.value || skullAnimation.value) {
+    if (
+        isFakeSwipeAnimating.value ||
+        transitionToNext.value ||
+        skullAnimation.value ||
+        isNewCardAnimating.value
+    ) {
         return;
     }
 
@@ -287,6 +318,7 @@ function fakeSwipe(direction) {
     const maxDistance = 300;
     const multiplier = direction === "left" ? -1 : 1;
     const startTime = performance.now();
+    isFakeSwipeAnimating.value = true;
 
     const animate = (currentTime) => {
         const elapsed = currentTime - startTime;
@@ -301,11 +333,13 @@ function fakeSwipe(direction) {
             requestAnimationFrame(animate);
         } else {
             transitionToNext.value = true;
+            isFakeSwipeAnimating.value = true;
             setTimeout(() => {
                 if (direction === "left") swipeLeft();
                 else swipeRight();
                 swipeLengthX.value = 0;
                 transitionToNext.value = false;
+                isFakeSwipeAnimating.value = false;
             }, 200);
         }
     };
@@ -313,24 +347,38 @@ function fakeSwipe(direction) {
     requestAnimationFrame(animate);
 }
 
-function swipeLeft() {
-    bounceButton("left");
-    nextSong();
+function clickRight() {
+    if (
+        isFakeSwipeAnimating.value ||
+        transitionToNext.value ||
+        skullAnimation.value ||
+        isNewCardAnimating.value
+    ) {
+        return;
+    }
+    bounceButton("right");
+    fakeSwipe("right");
 }
 
 function clickLeft() {
+    if (
+        isFakeSwipeAnimating.value ||
+        transitionToNext.value ||
+        skullAnimation.value ||
+        isNewCardAnimating.value
+    ) {
+        return;
+    }
     bounceButton("left");
     fakeSwipe("left");
 }
 
-function swipeRight() {
-    bounceButton("right");
+function swipeLeft() {
     nextSong();
 }
 
-function clickRight() {
-    bounceButton("right");
-    fakeSwipe("right");
+function swipeRight() {
+    nextSong();
 }
 
 function kill() {
@@ -387,14 +435,12 @@ function nextSong() {
         //check if current song audio is preloaded
         //if not, load it immediately
         if (currentSong && !audioPreviewCache.value[currentSong.track_id]) {
-            console.log("loading current song");
             getSongFile(currentSong.track_id);
         }
 
         //check if next song audio is preloaded
         //if not, load it immediately
         if (nextSong && !audioPreviewCache.value[nextSong.track_id]) {
-            console.log("loading next song");
             getSongFile(nextSong.track_id);
         }
 
