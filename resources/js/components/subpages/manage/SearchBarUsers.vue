@@ -107,6 +107,7 @@ const performSearch = debounce(searchUsers, 300);
 
 async function searchUsers() {
     if (!query.value) {
+        emit("search-updated", {});
         isLoading.value = false;
         return;
     }

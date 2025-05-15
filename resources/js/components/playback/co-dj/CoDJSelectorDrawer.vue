@@ -72,10 +72,13 @@
                                             <SearchBarUsers
                                                 :premium-filter="true"
                                                 @clear-search="
-                                                    searchResult = {}
+                                                    searchResult = {};
+                                                    isSearching = false;
+                                                    selectedDJ = null;
                                                 "
                                                 @search-updated="
-                                                    searchResult = $event
+                                                    searchResult = $event;
+                                                    selectedDJ = null;
                                                 "
                                                 @is-searching="
                                                     isSearching = $event
@@ -94,7 +97,10 @@
                                                     <li
                                                         v-for="user in searchResult"
                                                         :key="user.id"
-                                                        class="flex items-center justify-between py-2 rounded-lg"
+                                                        class="flex items-center justify-between py-2 rounded-lg cursor-pointer hover:bg-zinc-800 transition px-4"
+                                                        @click.stop="
+                                                            selectDJ(user)
+                                                        "
                                                     >
                                                         <div
                                                             class="flex items-center gap-3"
@@ -120,9 +126,6 @@
                                                                 user.id
                                                                     ? 'border-primary'
                                                                     : 'border-zinc-700'
-                                                            "
-                                                            @click.stop="
-                                                                selectDJ(user)
                                                             "
                                                         >
                                                             <CheckIcon
@@ -225,6 +228,10 @@ const form = useForm({
 });
 
 function closeDrawer() {
+    searchResult.value = {};
+    selectedDJ.value = null;
+    isSearching.value = false;
+    form.reset();
     emit("close-drawer");
 }
 
@@ -253,6 +260,10 @@ function assignCoDJ() {
 }
 
 function selectDJ(user) {
-    selectedDJ.value = user;
+    if (selectedDJ.value?.id === user.id) {
+        selectedDJ.value = null;
+    } else {
+        selectedDJ.value = user;
+    }
 }
 </script>

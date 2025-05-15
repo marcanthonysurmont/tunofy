@@ -42,8 +42,15 @@
                     <div class="flex flex-col h-full">
                         <SearchBarUsers
                             :premium-filter="true"
-                            @clear-search="searchResult = {}"
-                            @search-updated="searchResult = $event"
+                            @clear-search="
+                                searchResult = {};
+                                isSearching = false;
+                                selectedDJ = null;
+                            "
+                            @search-updated="
+                                searchResult = $event;
+                                selectedDJ = null;
+                            "
                             @is-searching="isSearching = $event"
                         />
 
@@ -58,6 +65,7 @@
                                     v-for="user in searchResult"
                                     :key="user.id"
                                     class="flex items-center justify-between py-2 rounded-lg"
+                                    @click.stop="selectDJ(user)"
                                 >
                                     <div class="flex items-center gap-3">
                                         <img
@@ -79,7 +87,6 @@
                                                 ? 'border-primary'
                                                 : 'border-zinc-700'
                                         "
-                                        @click.stop="selectDJ(user)"
                                     >
                                         <CheckIcon
                                             v-if="selectedDJ?.id === user.id"
@@ -191,7 +198,11 @@ function assignCoDJ() {
 }
 
 function selectDJ(user) {
-    selectedDJ.value = user;
+    if (selectedDJ.value?.id === user.id) {
+        selectedDJ.value = null;
+    } else {
+        selectedDJ.value = user;
+    }
 }
 
 function closeModal() {
