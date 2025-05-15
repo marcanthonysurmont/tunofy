@@ -1,4 +1,15 @@
 <template>
+    <transition name="fade-with-slide">
+        <button
+            v-if="showButton"
+            @click="scrollToTop"
+            class="fixed top-5 right-6 py-2 px-4 bg-primary text-white rounded flex items-center gap-x-1 cursor-pointer z-[999999]"
+        >
+            <ArrowUpCircleIcon class="size-5 text-white" />
+            <span class="text-sm font-medium">Scroll to top</span>
+        </button>
+    </transition>
+
     <div>
         <div class="mt-8 flow-root mb-32">
             <div class="w-full">
@@ -145,14 +156,27 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { usePage, router } from "@inertiajs/vue3";
-import { TrashIcon } from "@heroicons/vue/24/outline";
+import {
+    ArrowUpIcon,
+    TrashIcon,
+    ArrowUpCircleIcon,
+} from "@heroicons/vue/24/outline";
+// import { ArrowUpCircleIcon } from "@heroicons/vue/24/solid";
 
 const page = usePage();
 const props = computed(() => page.props);
 const songs = computed(() => props.value.mix.songs);
 const authorization = computed(() => page.props.mix.authorized);
+const showButton = ref(false);
 
 const windowWidth = ref(window.innerWidth);
+
+function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function checkScroll() {
+    showButton.value = window.scrollY > 300;
+}
 
 function msToMinutes(ms) {
     let minutes = Math.floor(ms / 60000);
@@ -185,9 +209,11 @@ function updateWindowWidth() {
 
 onMounted(() => {
     window.addEventListener("resize", updateWindowWidth);
+    window.addEventListener("scroll", checkScroll);
 });
 
 onBeforeUnmount(() => {
     window.removeEventListener("resize", updateWindowWidth);
+    window.addEventListener("scroll", checkScroll);
 });
 </script>
