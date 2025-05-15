@@ -190,6 +190,7 @@ function updateTheme() {
         {
             onSuccess: () => {
                 isLoading.value = false;
+                emits("closeModal");
             },
             onError: (error) => {
                 console.error("Error updating theme:", error);

@@ -10,7 +10,11 @@
     <Pagination :elements="usersProp.meta" v-if="!isSearching" />
     <p
         class="text-sm text-zinc-300 border-t border-zinc-800 py-3"
-        v-if="usersProp.meta.total <= usersProp.meta.per_page && !isSearching"
+        v-if="
+            usersProp.meta.total <= usersProp.meta.per_page &&
+            !isSearching &&
+            usersProp.length > 0
+        "
     >
         Showing all results
     </p>
