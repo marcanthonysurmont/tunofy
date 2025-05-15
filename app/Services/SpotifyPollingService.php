@@ -376,7 +376,7 @@ class SpotifyPollingService
                 } else {
                     // Only advance if there are more songs
                     $this->songPlaybackService->advanceToNextSong($mix->id);
-                    event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+                    // event(new PlaybackDataUpdatedEvent($mix, $playbackData));
                 }
                 break;
 
