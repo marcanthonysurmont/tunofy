@@ -1,8 +1,4 @@
 <template>
-    <BirthdayTheme
-        v-if="currentTheme.name === 'Birthday'"
-        :theme-settings="JSON.parse(currentTheme.settings)"
-    />
 </template>
 
 <script setup>
@@ -12,6 +8,6 @@ import BirthdayTheme from "@/components/themes/BirthdayTheme.vue";
 
 const page = usePage();
 const currentTheme = computed(() => {
-    return page.props.themes[0] || {};
+    return page.props.themes.find(theme => theme.is_active === true);
 });
 </script>
