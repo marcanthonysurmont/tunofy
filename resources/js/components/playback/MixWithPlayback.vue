@@ -27,7 +27,7 @@
         >
             <div class="flex items-center justify-center">
                 <SpinningCircle />
-                <p>Syncing with Spotify...p</p>
+                <p>Syncing with Spotify...</p>
             </div>
         </div>
 
