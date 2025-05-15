@@ -19,7 +19,7 @@ class ShowMixController extends Controller
 
         $user = Auth::user();
 
-        $mix->load(['songs.user', 'presets', 'user', 'collaborators']);
+        $mix->load(['songs.user', 'presets', 'user', 'collaborators', 'themes']);
         $user->load(['mixes', 'accessibleMixes']);
 
         // Get Spotify devices for the mix owner
@@ -29,7 +29,7 @@ class ShowMixController extends Controller
         return Inertia::render('MixSlugPage', [
             'mix' => fn() => MixResource::make($mix)->jsonSerialize(),
             'collaborators' => fn() => CollaboratorResource::collection($collaborators),
-            'themes' => fn() => $mix->themes,
+            'themes' => fn() => $mix->getThemeSettings(),
             'presets' => fn() => $mix->all_presets,
             'your_mixes' => fn() => $user->mixes,
             'joined_mixes' => fn() => $user->accessibleMixes,

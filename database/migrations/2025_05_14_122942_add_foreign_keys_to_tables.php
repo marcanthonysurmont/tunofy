@@ -17,6 +17,7 @@ return new class extends Migration
 
         Schema::table('mixes', function (Blueprint $table) {
             $table->foreign('preset_id')->references('id')->on('presets')->onDelete('set null');
+            $table->foreign('theme_setting_definition_id')->references('id')->on('theme_setting_definitions')->onDelete('set null');
         });
     }
 

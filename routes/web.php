@@ -44,6 +44,7 @@ use App\Http\Controllers\Application\Mixes\ToggleMixIsPublicController;
 use App\Http\Controllers\Application\Mixes\SearchUserController;
 use App\Http\Controllers\Application\Mixes\RemoveUserMixAccessController;
 use App\Http\Controllers\Application\Mixes\ImportSpotifyPlaylistController;
+use App\Http\Controllers\Application\Mixes\UpdateMixThemeController;
 
 Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function () {
     Route::middleware('auth')->group(function () {
@@ -62,6 +63,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
             Route::get('/search-user/{mix}', SearchUserController::class)->name('search-user');
             Route::post('/remove-user-access/{mix}', RemoveUserMixAccessController::class)->name('remove-user-access');
             Route::post('/import-spotify-playlist/{mix}', ImportSpotifyPlaylistController::class)->name('import-spotify-playlist');
+            Route::post('/update-theme/{mix}', UpdateMixThemeController::class)->name('update-theme');
 
             // app/mix/presets (mix.presets)
             Route::prefix('/presets')->name('presets.')->group(function () {
@@ -69,6 +71,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
                 Route::post('/update-selected/{mix}', UpdateSelectedPresetController::class)->name('update-selected');
                 Route::delete('/destroy/{preset}', DestroyPresetController::class)->name('destroy');
             });
+
         });
 
         Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
