@@ -128,6 +128,14 @@ watch(() => selectedTheme.value, (newTheme) => {
     }
 });
 
+// Watch for changes in themes
+watch(
+  () => page.props.themes,
+  (newVal) => {
+    console.log('themes updated:', newVal);
+  }
+);
+
 // Emit event to close modal
 const emits = defineEmits(["closeModal"]);
 
@@ -162,7 +170,6 @@ function updateTheme() {
     }, {
         onSuccess: () => {
             isLoading.value = false;
-            emits('closeModal');
         },
         onError: (error) => {
             console.error("Error updating theme:", error);

@@ -172,7 +172,7 @@ class Mix extends Model
     public function getThemeSettings()
     {
         $definitions = ThemeSettingDefinition::all();
-        $customThemes = $this->themes->keyBy(function ($theme) {
+        $customThemes = $this->themes()->get()->keyBy(function ($theme) {
             return (string) $theme->theme_setting_definition_id;
         });
 
