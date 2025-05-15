@@ -109,8 +109,11 @@
                         ]"
                     />
                 </div>
-                <div class="w-5" v-if="currentTrack === null"></div>
-                <CoDJSelector @click.stop="showCoDjSelector" v-else />
+                <CoDJSelector
+                    @click.stop="showCoDjSelector"
+                    v-if="currentTrack !== null && mix.authorized.isOwner"
+                />
+                <div class="w-5" v-else></div>
             </div>
         </div>
     </Transition>
