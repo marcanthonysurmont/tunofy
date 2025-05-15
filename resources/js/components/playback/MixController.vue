@@ -532,6 +532,9 @@ onMounted(() => {
                     // Show queue completed modal
                     showQueueCompletedModal.value = true;
                 }
+            })
+            .listen(".device.updated", () => {
+                refreshDevices();
             });
 
         Echo.private("user." + page.props.user.id).listen(

@@ -103,6 +103,9 @@ class ResumeMixPlaybackController extends Controller
             }
         }
 
+        // Clear any device failure flags on successful playback
+        Cache::forget("mix:{$mix->id}:device_failure");
+
         // Add a label at the end of your method before the return:
         resume_playback_complete:
 

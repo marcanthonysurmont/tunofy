@@ -110,15 +110,15 @@ class Mix extends Model
         $user = Auth::user();
 
         return new Attribute(fn () => [
-            'canView' => $user->can('view', $this),
-            'canAddSong' => $user->can('addSongs', $this),
-            'canRemoveSong' => $user->can('removeSongs', $this),
-            'canDelete' => $user->can('delete', $this),
-            'canManageCollaborators' => $user->can('manageCollaborators', $this),
-            'canGenerateSessionCode' => $user->can('generateSessionCode', $this),
-            'canCopySessionCode' => $user->can('copySessionCode', $this),
-            'canControlPlayback' => $user->can('controlPlayback', $this),
-            'isOwner' => $user->id === $this->user_id,
+            'canView' => $user ? $user->can('view', $this) : false,
+            'canAddSong' => $user ? $user->can('addSongs', $this) : false,
+            'canRemoveSong' => $user ? $user->can('removeSongs', $this) : false,
+            'canDelete' => $user ? $user->can('delete', $this) : false,
+            'canManageCollaborators' => $user ? $user->can('manageCollaborators', $this) : false,
+            'canGenerateSessionCode' => $user ? $user->can('generateSessionCode', $this) : false,
+            'canCopySessionCode' => $user ? $user->can('copySessionCode', $this) : false,
+            'canControlPlayback' => $user ? $user->can('controlPlayback', $this) : false,
+            'isOwner' => $user ? $user->id === $this->user_id : false,
         ]);
     }
 
