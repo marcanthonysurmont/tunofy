@@ -84,29 +84,6 @@
                             collaborators.length > 0
                         "
                     >
-                        <!-- <MenuItem
-                            v-slot="{ active }"
-                            v-if="authorization.isOwner"
-                        >
-                            <button
-                                @click="showAssignDJModal = true"
-                                :class="[
-                                    active
-                                        ? 'bg-card-background-lighter text-dark-white cursor-pointer'
-                                        : 'text-white',
-                                    'group flex w-full items-center rounded-md px-2 py-2 text-sm',
-                                ]"
-                            >
-                                <MusicalNoteIcon
-                                    :active="active"
-                                    class="mr-2 h-5 w-5 text-white"
-                                    aria-hidden="true"
-                                />
-                                <span class="font-medium align-middle"
-                                    >Assign a co-dj</span
-                                >
-                            </button>
-                        </MenuItem> -->
                         <MenuItem
                             v-slot="{ active }"
                             v-if="
@@ -179,6 +156,31 @@
                                 />
                                 <span class="font-medium align-middle"
                                     >Make public</span
+                                >
+                            </button>
+                        </MenuItem>
+                    </div>
+                    <div class="px-1.5 py-1.5">
+                        <MenuItem
+                            v-slot="{ active }"
+                            v-if="authorization.isOwner"
+                        >
+                            <button
+                                @click="importFromSpotify"
+                                :class="[
+                                    active
+                                        ? 'bg-card-background-lighter text-dark-white cursor-pointer'
+                                        : 'text-white',
+                                    'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                                ]"
+                            >
+                                <ArrowDownOnSquareIcon
+                                    :active="active"
+                                    class="mr-2 h-5 w-5 text-white"
+                                    aria-hidden="true"
+                                />
+                                <span class="font-medium align-middle"
+                                    >Import from Spotify</span
                                 >
                             </button>
                         </MenuItem>
@@ -295,13 +297,14 @@
             :is-visible="showUpdateMixModal"
             @close-modal="showUpdateMixModal = false"
         />
-        <!-- <AssignDJModal
-            :is-visible="showAssignDJModal"
-            @close-modal="showAssignDJModal = false"
-        /> -->
         <UpdateThemeModal
             :is-visible="showUpdateThemeModal"
             @close-modal="showUpdateThemeModal = false"
+        />
+        <ImportSpotifyModal
+            :is-visible="showImportSpotifyModal"
+            :mix="mix"
+            @close-modal="showImportSpotifyModal = false"
         />
     </teleport>
 </template>
@@ -317,6 +320,7 @@ import {
     MinusCircleIcon,
     LockOpenIcon,
     SparklesIcon,
+    ArrowDownOnSquareIcon,
 } from "@heroicons/vue/24/outline";
 
 import MenuDropdown from "@/components/menus/MenuDropdown.vue";
@@ -328,6 +332,7 @@ import toast from "@/stores/StoreToast.js";
 import UpdateMixModal from "@/components/modals/mixes/UpdateMixModal.vue";
 import { StoreConfirmationModal } from "@/stores/StoreConfirmationModal";
 import { XMarkIcon } from "@heroicons/vue/24/solid";
+import ImportSpotifyModal from "@/components/modals/mixes/ImportSpotifyModal.vue";
 
 const storeConfirmationModal = StoreConfirmationModal();
 
@@ -341,6 +346,7 @@ const collaborators = computed(() => page.props.collaborators);
 const showCreateSessionModal = ref(false);
 const showUpdateMixModal = ref(false);
 const showUpdateThemeModal = ref(false);
+const showImportSpotifyModal = ref(false);
 
 const readableTime = computed(() => {
     const totalMs = mix.value.songs.reduce(
@@ -360,6 +366,10 @@ const showMenuDropdown = computed(() => {
         (authorization.value.isOwner && authorization.value.canCopySessionCode)
     );
 });
+
+function importFromSpotify() {
+    showImportSpotifyModal.value = true;
+}
 
 function getImageUrl(song) {
     return song.avatar === null

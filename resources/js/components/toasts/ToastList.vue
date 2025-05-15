@@ -6,7 +6,7 @@
         enter-active-class="transition-all duration-300"
         move-class="transition-all duration-300"
         leave-active-class="hidden"
-        class="fixed top-0 z-[41] flex max-h-screen w-full flex-col-reverse p-4 lg:bottom-0 lg:right-0 lg:top-auto lg:flex-col lg:max-w-[400px]"
+        class="fixed top-0 z-[99999] flex max-h-screen w-full flex-col-reverse p-4 lg:bottom-0 lg:right-0 lg:top-auto lg:flex-col lg:max-w-[400px]"
     >
         <ToastListItem
             v-for="(item, index) in toast.items"

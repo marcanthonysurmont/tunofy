@@ -150,3 +150,13 @@
     background-color: var(--color-card-background-lighter);
     /* thumb on hover */
 }
+
+
+/* make sure inertia's progress bar is above all possible elements */
+#nprogress {
+    z-index: 99999 !important;
+}
+
+#nprogress .bar {
+    z-index: 99999 !important;
+}
