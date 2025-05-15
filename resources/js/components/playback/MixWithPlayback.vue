@@ -156,6 +156,7 @@
                 </div>
                 <div class="relative w-[30%] justify-end items-center flex">
                     <CoDJSelector
+                        v-if="authorization.isOwner"
                         class="mr-3 mb-0.5"
                         @click="showCoDJSelectorDrawer = true"
                     />
@@ -187,8 +188,11 @@ import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
 import DeviceDropdown from "@/components/playback/device/DeviceDropdown.vue";
 import CoDJSelector from "@/components/playback/co-dj/CoDJSelector.vue";
 import CoDJSelectorDrawer from "@/components/playback/co-dj/CoDJSelectorDrawer.vue";
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import { usePage } from "@inertiajs/vue3";
 
+const page = usePage();
+const authorization = computed(() => page.props.mix.authorized);
 const showCoDJSelectorDrawer = ref(false);
 
 const props = defineProps({
