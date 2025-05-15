@@ -2,6 +2,8 @@ import "./bootstrap";
 import "../css/app.css";
 import "../css/vue-animations.css";
 import "../css/hovers.css";
+import "../css/tippy.css";
+import "../css/scrollbars.css";
 
 import { createApp, h } from "vue";
 import { createInertiaApp, router } from "@inertiajs/vue3";
