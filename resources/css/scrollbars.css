@@ -1,0 +1,73 @@
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* always visible custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--color-scrollbar-track);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--color-scrollbar-thumb);
+    border: 2px solid var(--color-scrollbar-track);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-scrollbar-thumb-hover);
+}
+
+.custom-scrollbar {
+    scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+}
+
+/* only visible on hover custom scrollbar */
+.custom-scrollbar-hover {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.3s ease;
+}
+
+.custom-scrollbar-hover::-webkit-scrollbar {
+    width: 8px;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.custom-scrollbar-hover::-webkit-scrollbar-track {
+    background: transparent;
+    transition: background 0.3s ease;
+}
+
+.custom-scrollbar-hover::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border: 2px solid transparent;
+    transition: background-color 0.3s ease, border 0.3s ease;
+}
+
+.custom-scrollbar-hover:hover {
+    scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+}
+
+.custom-scrollbar-hover:hover::-webkit-scrollbar {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.custom-scrollbar-hover:hover::-webkit-scrollbar-track {
+    background: var(--color-scrollbar-track);
+}
+
+.custom-scrollbar-hover:hover::-webkit-scrollbar-thumb {
+    background-color: var(--color-scrollbar-thumb);
+    border: 2px solid var(--color-scrollbar-track);
+}
+
+.custom-scrollbar-hover:hover::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-scrollbar-thumb-hover);
+}

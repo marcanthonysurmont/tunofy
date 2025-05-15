@@ -109,39 +109,6 @@
     }
 }
 
-.tippy-box[data-theme~='tunofy'] {
-    background-color: rgb(46, 46, 46);
-    color: white;
-    font-family: var(--font-body);
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-.hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: var(--color-scrollbar-track);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: var(--color-scrollbar-thumb);
-    border: 2px solid var(--color-scrollbar-track);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: var(--color-scrollbar-thumb-hover);
-}
-
-.custom-scrollbar {
-    scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
-}
-
 /* make sure inertia's progress bar is above all possible elements */
 #nprogress {
     z-index: 99999 !important;
