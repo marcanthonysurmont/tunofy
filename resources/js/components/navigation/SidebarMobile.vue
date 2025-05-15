@@ -1,6 +1,6 @@
 <template>
     <div
-        class="flex grow flex-col gap-y-5 overflow-y-auto bg-navbar-background px-6 pb-2 ring-1 ring-white/10"
+        class="flex grow flex-col gap-y-5 bg-navbar-background px-6 pb-2 ring-1 h-[100dvh] ring-white/10"
     >
         <div class="flex h-16 shrink-0 items-center">
             <Link :href="route('app')">
@@ -12,8 +12,8 @@
             </Link>
         </div>
         <nav class="flex flex-1 flex-col">
-            <ul role="list" class="flex flex-1 flex-col gap-y-7">
-                <li class="min-h-[200px] mb-8">
+            <ul role="list" class="flex flex-1 flex-col gap-y-4">
+                <li class="min-h-[200px] mb-4">
                     <div
                         class="flex flex-row justify-between items-center mb-6"
                     >
@@ -25,12 +25,17 @@
                             class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
                         />
                     </div>
-                    <ul role="list" class="flex flex-col gap-y-4">
+                    <ul
+                        role="list"
+                        class="flex flex-col gap-y-4 overflow-y-auto max-h-[calc(50dvh-160px)]"
+                    >
                         <YourMixesList />
                     </ul>
                 </li>
-                <li class="min-h-[200px] mb-8">
-                    <div class="flex flex-row justify-between items-center">
+                <li class="min-h-[200px]">
+                    <div
+                        class="flex flex-row justify-between items-center mb-6"
+                    >
                         <h1 class="text-2xl font-medium heading-center">
                             Joined Mixes
                         </h1>
@@ -39,7 +44,10 @@
                             class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
                         />
                     </div>
-                    <ul role="list" class="flex flex-col gap-y-4">
+                    <ul
+                        role="list"
+                        class="flex flex-col gap-y-4 overflow-y-auto max-h-[calc(50dvh-160px)]"
+                    >
                         <JoinedMixesList />
                     </ul>
                 </li>

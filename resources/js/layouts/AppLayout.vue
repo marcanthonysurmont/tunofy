@@ -83,7 +83,7 @@
         >
             <button
                 type="button"
-                class="-m-2.5 p-2.5 text-gray-400 lg:hidden"
+                class="inline-flex items-center justify-center p-2.5 text-gray-400 lg:hidden"
                 @click="sidebarOpen = true"
             >
                 <span class="sr-only">Open sidebar</span>
