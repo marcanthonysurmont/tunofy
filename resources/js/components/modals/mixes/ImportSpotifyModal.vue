@@ -4,7 +4,7 @@
             <h1 class="text-4xl">Import from Spotify</h1>
         </template>
         <template #body>
-            <template v-if="!isProcessing">
+            <template v-if="!isProcessing && availablePlaylists.length > 0">
                 <label class="block text-sm/6 font-medium text-white mb-3">
                     Available playlists
                 </label>
@@ -55,6 +55,13 @@
                         </div>
                     </template>
                 </div>
+            </template>
+            <template
+                v-else-if="
+                    !isFetchingPlaylists && availablePlaylists.length === 0
+                "
+            >
+                <p class="text-white text-md mb-4">No playlists available!</p>
             </template>
             <template v-else>
                 <div class="flex flex-col items-center justify-center mb-4">
