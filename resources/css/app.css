@@ -49,6 +49,10 @@
 
     --color-image-upload-button-background: #141414;
     --color-image-upload-button-stroke: #2C2C2C;
+
+    --color-scrollbar-thumb: #444444;
+    --color-scrollbar-thumb-hover: #666666;
+    --color-scrollbar-track: #1A1A1A;
 }
 
 
@@ -121,36 +125,22 @@
     display: none;
 }
 
-/* Custom scrollbar class for dark mode */
-.custom-scrollbar {
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-card-stroke) var(--color-navbar-background);
-    /* Firefox */
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-}
-
 .custom-scrollbar::-webkit-scrollbar-track {
-    background: var(--color-navbar-background);
-    /* dark bg */
+    background: var(--color-scrollbar-track);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: var(--color-card-stroke);
-    /* subtle thumb */
-    border-radius: 4px;
-    border: 2px solid var(--color-navbar-background);
-    /* inset look */
+    background-color: var(--color-scrollbar-thumb);
+    border: 2px solid var(--color-scrollbar-track);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: var(--color-card-background-lighter);
-    /* thumb on hover */
+    background-color: var(--color-scrollbar-thumb-hover);
 }
 
+.custom-scrollbar {
+    scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+}
 
 /* make sure inertia's progress bar is above all possible elements */
 #nprogress {

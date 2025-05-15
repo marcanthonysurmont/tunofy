@@ -12,5 +12,8 @@ export default reactive({
     },
     remove(index) {
         this.items.splice(index, 1);
+    },
+    clear(){
+        this.items = [];
     }
 });
