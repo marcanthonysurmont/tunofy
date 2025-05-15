@@ -18,7 +18,7 @@ class ImportSpotifyPlaylistController extends Controller
 
         $playlistSongs = $spotifyService->getPlaylistTracks($user, $validated['playlist_id']);
 
-        foreach ($playlistSongs as $song) {
+        foreach ($playlistSongs as $song) {            
             $artistNames = collect($song['track']['artists'])
                 ->pluck('name')
                 ->filter()
@@ -34,6 +34,8 @@ class ImportSpotifyPlaylistController extends Controller
                 'image_url' => $song['track']['album']['images']['0']['url'],
             ]);
         }
+
+        $mix->update(['mix_count' => $mix->mix_count + collect($playlistSongs)->count()]);
 
         return redirect()->back()
             ->with('success', 'Playlist imported successfully!');
