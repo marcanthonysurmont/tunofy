@@ -489,8 +489,8 @@ class SpotifyPollingService
             return true;
         }
 
-        // Detect significant progress change (e.g., seek)
-        if (abs(($previousData['progress_ms'] ?? 0) - ($playbackData['progress_ms'] ?? 0)) > 2000) {
+        // Only consider a seek significant if it's a big jump (e.g., >5s)
+        if (abs(($previousData['progress_ms'] ?? 0) - ($playbackData['progress_ms'] ?? 0)) > 5000) {
             return true;
         }
 
