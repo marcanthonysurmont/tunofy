@@ -2,7 +2,7 @@
     <div>
         <TransitionRoot as="template" :show="sidebarOpen">
             <Dialog
-                class="relative z-50 lg:hidden"
+                class="relative z-[100000] lg:hidden"
                 @close="sidebarOpen = false"
             >
                 <TransitionChild
@@ -79,7 +79,7 @@
 
         <!-- top part of navigation mobile-->
         <div
-            class="sticky top-0 z-40 flex items-center gap-x-6 bg-navbar-background px-2 py-1 shadow-xs sm:px-4 lg:hidden border-b-2 border-regular-stroke"
+            class="sticky top-0 z-40 flex items-center gap-x-6 bg-navbar-background px-2 py-2 shadow-xs sm:px-4 lg:hidden border-b-2 border-regular-stroke"
         >
             <button
                 type="button"

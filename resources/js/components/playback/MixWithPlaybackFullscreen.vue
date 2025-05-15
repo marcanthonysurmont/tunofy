@@ -180,8 +180,7 @@ watch(
         } else {
             document.body.style.overflow = "auto";
         }
-    },
-    { immediate: true }
+    }
 );
 
 const dominantColor = ref("rgb(18, 18, 18)");
