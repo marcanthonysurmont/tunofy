@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\DeviceUpdatedEvent;
 use App\Models\Mix;
 use App\Models\QueueSong;
 use App\Models\User;
@@ -54,6 +55,17 @@ class SpotifyPollingService
             if (Cache::has("mix:{$mix->id}:queue_completed")) {
                 Log::info("Mix {$mix->id} queue completed, skipping polling");
                 return;
+            }
+
+            if (Cache::has("mix:{$mix->id}:device_failure")) {
+                // event(new DeviceUpdatedEvent($mix));
+
+                Log::info("Mix {$mix->id} has device failure flag, stopping polling until user action");
+                return [
+                    'success' => false,
+                    'action' => 'waiting_for_device_selection',
+                    'message' => 'Waiting for user to select device and resume playback'
+                ];
             }
 
             // Get the mix owner

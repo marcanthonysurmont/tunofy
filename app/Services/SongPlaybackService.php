@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use App\Events\MixStatusChangedEvent;
+use App\Events\DeviceUpdatedEvent;
 
 class SongPlaybackService
 {
@@ -102,7 +103,6 @@ class SongPlaybackService
         if ($deviceId) {
             $playResult = $this->spotifyService->playTrackOnDevice($user, $nextSong->song->spotify_id, $deviceId);
         }
-
         // Add error handling - fixed to check boolean instead of array
         if (!$playResult) {
             Log::error("Failed to start playback for mix {$mixId}");
@@ -112,6 +112,9 @@ class SongPlaybackService
                 'message' => 'Failed to start playback'
             ];
         }
+
+        // Clear device failure flag on success
+        Cache::forget("mix:{$mixId}:device_failure");
 
         sleep(1.5);
 
@@ -488,11 +491,18 @@ class SongPlaybackService
 
         if (!$playResult) {
             Log::error("Failed to resume intended track {$currentQueueSong->song->spotify_id}");
+
+            event(new DeviceUpdatedEvent($mix));
+
+            Cache::put("mix:{$mixId}:device_failure", true);
+
             return [
                 'success' => false,
                 'message' => 'Failed to resume intended track'
             ];
         }
+
+        Cache::forget("mix:{$mixId}:device_failure");
 
         // Cache the device ID again to ensure persistence
         if ($deviceId) {
