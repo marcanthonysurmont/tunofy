@@ -29,7 +29,7 @@ class ShowMixController extends Controller
         return Inertia::render('MixSlugPage', [
             'mix' => fn() => MixResource::make($mix)->jsonSerialize(),
             'collaborators' => fn() => CollaboratorResource::collection($collaborators),
-            'themes' => fn() => $mix->themes,
+            'themes' => fn() => $mix->getThemeSettings(),
             'presets' => fn() => $mix->all_presets,
             'your_mixes' => fn() => $user->mixes,
             'joined_mixes' => fn() => $user->accessibleMixes,
