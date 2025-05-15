@@ -96,6 +96,11 @@ class Mix extends Model
         return $this->belongsTo(ThemeSettingDefinition::class);
     }
 
+    public function theme()
+    {
+        return $this->hasOne(Theme::class);
+    }
+
     /**************************************/
     /*       Accessors / Mutators         */
     /**************************************/

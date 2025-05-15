@@ -131,6 +131,7 @@ watch(() => selectedTheme.value, (newTheme) => {
 // Emit event to close modal
 const emits = defineEmits(["closeModal"]);
 
+// Update your function to handle both boolean and 0/1 values
 function updateTheme() {
     if (isLoading.value) return;
     isLoading.value = true;
@@ -143,16 +144,28 @@ function updateTheme() {
         return;
     }
     
-    // Send update request with dynamic settings
-    router.post(route('mix.updateTheme', mix.value.id), {
+    // Convert form settings to ensure boolean values are sent as true/false
+    const normalizedSettings = {};
+    
+    for (const key in themeFormSettings.value) {
+        // Convert numeric 0/1 to boolean true/false
+        const value = themeFormSettings.value[key];
+        normalizedSettings[key] = typeof value === 'number' ? Boolean(value) : value;
+    }
+    
+    console.log('Sending settings:', normalizedSettings);
+    
+    // Send update request with normalized settings
+    router.post(route('mix.update-theme', mix.value.id), {
         theme_setting_definition_id: selectedThemeObj.id,
-        settings: themeFormSettings.value
+        settings: normalizedSettings
     }, {
         onSuccess: () => {
             isLoading.value = false;
             emits('closeModal');
         },
-        onError: () => {
+        onError: (error) => {
+            console.error("Error updating theme:", error);
             isLoading.value = false;
         }
     });
