@@ -15,7 +15,7 @@
             <ul role="list" class="flex flex-1 flex-col gap-y-4">
                 <li class="min-h-[200px] mb-4">
                     <div
-                        class="flex flex-row justify-between items-center mb-6"
+                        class="flex flex-row justify-between items-center mb-3"
                     >
                         <h1 class="text-2xl font-medium heading-center">
                             Your Mixes
@@ -34,7 +34,7 @@
                 </li>
                 <li class="min-h-[200px]">
                     <div
-                        class="flex flex-row justify-between items-center mb-6"
+                        class="flex flex-row justify-between items-center mb-3"
                     >
                         <h1 class="text-2xl font-medium heading-center">
                             Joined Mixes

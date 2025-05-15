@@ -79,7 +79,7 @@
 
         <!-- top part of navigation mobile-->
         <div
-            class="sticky top-0 z-40 flex items-center gap-x-6 bg-navbar-background px-4 py-4 shadow-xs sm:px-6 lg:hidden border-b-2 border-regular-stroke"
+            class="sticky top-0 z-40 flex items-center gap-x-6 bg-navbar-background px-2 py-1 shadow-xs sm:px-4 lg:hidden border-b-2 border-regular-stroke"
         >
             <button
                 type="button"
@@ -89,17 +89,6 @@
                 <span class="sr-only">Open sidebar</span>
                 <Bars3Icon class="size-6" aria-hidden="true" />
             </button>
-            <!-- <div class="flex-1 text-sm/6 font-semibold text-white">
-                Dashboard
-            </div> -->
-            <!-- <a href="#">
-                <span class="sr-only">Your profile</span>
-                <img
-                    class="size-8 rounded-full bg-zinc-700"
-                    :src="user.avatar"
-                    alt="Avatar of logged in user"
-                />
-            </a> -->
         </div>
 
         <main class="py-10 lg:pl-80 max-w-[1955px] mx-auto">
@@ -134,19 +123,19 @@ import {
     TransitionRoot,
 } from "@headlessui/vue";
 import { Bars3Icon, XMarkIcon } from "@heroicons/vue/24/outline";
-
 import { ref } from "vue";
 import CreateMixModal from "@/components/modals/mixes/CreateMixModal.vue";
 import JoinMixModal from "@/components/modals/mixes/JoinMixModal.vue";
 import ToastList from "@/components/toasts/ToastList.vue";
-import { usePage } from "@inertiajs/vue3";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal.vue";
 import { StoreConfirmationModal } from "@/stores/StoreConfirmationModal";
 import SidebarDesktop from "@/components/navigation/SidebarDesktop.vue";
 import SidebarMobile from "@/components/navigation/SidebarMobile.vue";
+
 const storeConfirmationModal = StoreConfirmationModal();
 
 const sidebarOpen = ref(false);
+let lastScrollY = 0;
 
 const isAddMixModalVisible = ref(false);
 function closeAddMixModal() {

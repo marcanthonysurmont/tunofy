@@ -3,7 +3,7 @@
         <button
             v-if="showButton"
             @click="scrollToTop"
-            class="fixed top-5 right-6 py-2 px-4 bg-primary text-white rounded flex items-center gap-x-1 cursor-pointer z-[999999]"
+            class="fixed top-2.5 right-2.5 py-2 px-4 bg-primary text-white rounded flex items-center gap-x-1 cursor-pointer z-[99998]"
         >
             <ArrowUpCircleIcon class="size-5 text-white" />
             <span class="text-sm font-medium">Scroll to top</span>
@@ -175,7 +175,7 @@ function scrollToTop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 function checkScroll() {
-    showButton.value = window.scrollY > 300;
+    showButton.value = window.scrollY > 600;
 }
 
 function msToMinutes(ms) {
