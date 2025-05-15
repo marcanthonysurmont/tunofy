@@ -101,7 +101,10 @@
     </ul>
 
     <!-- When there are no users -->
-    <p class="text-zinc-300" v-else-if="!isSearching && users.length === 0">
+    <p
+        class="text-zinc-300 mb-4"
+        v-else-if="!isSearching && users.length === 0"
+    >
         No users found.
     </p>
 
