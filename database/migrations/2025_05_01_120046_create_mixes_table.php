@@ -5,9 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class () extends Migration {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('mixes', function (Blueprint $table) {
@@ -22,6 +19,7 @@ return new class () extends Migration {
             $table->boolean('is_active')->default(false);
             $table->foreignId('co_dj_id')->nullable()->constrained('users')->onDelete('set null');
             $table->unsignedBigInteger('preset_id')->nullable()->default(1);
+            $table->unsignedBigInteger('theme_setting_definition_id')->nullable()->default(1);
             $table->string('avatar')->nullable();
             $table->integer('mix_count')->default(0);
             $table->timestamps();
@@ -30,9 +28,6 @@ return new class () extends Migration {
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('mixes');

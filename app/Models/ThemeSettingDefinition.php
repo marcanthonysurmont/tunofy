@@ -4,35 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Theme extends Model
+class ThemeSettingDefinition extends Model
 {
-    /**************************************/
-    /*             Attributes             */
-    /**************************************/
-
-    protected $fillable = [
-        'mix_id',
-        'theme_setting_definition_id',
-        'settings',
-    ];
-
     protected $casts = [
         'settings' => 'array',
     ];
 
     /**************************************/
-    /*           Relationships            */
+    /*             Attributes             */
     /**************************************/
 
-    public function mix()
-    {
-        return $this->belongsTo(Mix::class);
-    }
-
-    public function themeSettingDefinition()
-    {
-        return $this->belongsTo(ThemeSettingDefinition::class);
-    }
+    /**************************************/
+    /*           Relationships            */
+    /**************************************/
 
     /**************************************/
     /*       Accessors / Mutators         */

@@ -27,6 +27,7 @@ class Mix extends Model
         'is_active',
         'co_dj_id',
         'preset_id',
+        'theme_setting_definition_id',
         'avatar',
         'mix_count',
     ];
@@ -88,6 +89,16 @@ class Mix extends Model
     public function coDJ()
     {
         return $this->belongsTo(User::class, 'co_dj_id');
+    }
+
+    public function themeSettingDefinition()
+    {
+        return $this->belongsTo(ThemeSettingDefinition::class);
+    }
+
+    public function theme()
+    {
+        return $this->hasOne(Theme::class);
     }
 
     /**************************************/
@@ -156,5 +167,39 @@ class Mix extends Model
         return SlugOptions::create()
             ->generateSlugsFrom('name')
             ->saveSlugsTo('slug');
+    }
+
+    public function getThemeSettings()
+    {
+        $definitions = ThemeSettingDefinition::all();
+        $customThemes = $this->themes()->get()->keyBy(function ($theme) {
+            return (string) $theme->theme_setting_definition_id;
+        });
+
+        return $definitions->map(function ($definition) use ($customThemes) {
+            $definitionId = (string) $definition->id;
+            $defaultSettings = $definition->settings ?? [];
+            $mergedSettings = $defaultSettings;
+
+            // Check for custom overrides
+            if ($customThemes->has($definitionId)) {
+                $customTheme = $customThemes->get($definitionId);
+                $customSettings = $customTheme->settings ?? [];
+
+                if (!empty($customSettings)) {
+                    $mergedSettings = array_replace_recursive($defaultSettings, $customSettings);
+                }
+            }
+
+            // Determine if this theme is the active one
+            $isActive = (string)$this->theme_setting_definition_id === $definitionId;
+
+            return [
+                'id' => $definition->id,
+                'name' => $definition->name,
+                'settings' => $mergedSettings,
+                'is_active' => $isActive,
+            ];
+        });
     }
 }
