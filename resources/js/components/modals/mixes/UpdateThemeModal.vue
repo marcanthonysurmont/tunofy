@@ -13,28 +13,30 @@
                     v-model="selectedTheme"
                     label="Theme"
                     placeholderText="Select a theme"
-                    :options="['Birthday', 'Halloween', 'Christmas']"
+                    :options="['Default', 'Birthday']"
                 />
             </div>
-            <div class="mb-6">
-                <ToggleSwitchDescription
-                    :label="'Background image'"
-                    :disabled="true"
-                    v-model="hasSelectedBackgroundImage"
-                />
-            </div>
-            <div class="mb-6">
-                <ToggleSwitchDescription
-                    :label="'Falling confetti'"
-                    v-model="hasSelectedConfetti"
-                />
-            </div>
-            <div class="mb-6">
-                <ToggleSwitchDescription
-                    :label="'Random fireworks'"
-                    v-model="hasSelectedFireworks"
-                />
-            </div>
+            <template v-if="selectedTheme === 'Birthday'">
+                <div class="mb-6">
+                    <ToggleSwitchDescription
+                        :label="'Background image'"
+                        :disabled="true"
+                        v-model="hasSelectedBackgroundImage"
+                    />
+                </div>
+                <div class="mb-6">
+                    <ToggleSwitchDescription
+                        :label="'Falling confetti'"
+                        v-model="hasSelectedConfetti"
+                    />
+                </div>
+                <div class="mb-6">
+                    <ToggleSwitchDescription
+                        :label="'Random fireworks'"
+                        v-model="hasSelectedFireworks"
+                    />
+                </div>
+            </template>
         </template>
         <template #footer>
             <RegularButton

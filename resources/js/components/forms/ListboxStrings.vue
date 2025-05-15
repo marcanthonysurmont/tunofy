@@ -43,7 +43,7 @@
                 leave-to-class="opacity-0"
             >
                 <ListboxOptions
-                    class="relative z-10 mt-2 max-h-56 w-full overflow-auto rounded-md bg-inputfield-background py-1 text-base shadow-lg ring-1 ring-inputfield-stroke focus:outline-hidden sm:text-sm"
+                    class="absolute z-10 mt-2 max-h-56 w-full overflow-auto rounded-md bg-inputfield-background py-1 text-base shadow-lg ring-1 ring-inputfield-stroke focus:outline-hidden sm:text-sm"
                 >
                     <ListboxOption
                         v-for="option in normalizedOptions"
