@@ -330,11 +330,14 @@ class SpotifyPollingService
                 $mix->update(['is_active' => false]);
                 Log::info("Marked mix {$mix->id} as inactive after queue completion");
 
-                if ($mix->co_dj_id) {
+                $coDj = $mix->coDj;
+
+                if ($coDj) {
                     $mix->update(['co_dj_id' => null]);
                 }
 
                 CoDJUpdatedEvent::dispatch($mix->user);
+                CODJUpdatedEvent::dispatch($coDj);
 
                 // Pause playback
                 try {
