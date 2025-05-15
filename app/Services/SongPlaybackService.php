@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\PlaybackDataUpdatedEvent;
 use App\Models\QueueSong;
 use App\Models\Mix;
 use App\Models\User;
@@ -100,8 +101,6 @@ class SongPlaybackService
         $playResult = false;
         if ($deviceId) {
             $playResult = $this->spotifyService->playTrackOnDevice($user, $nextSong->song->spotify_id, $deviceId);
-        } else {
-            $playResult = $this->spotifyService->playSong($user, $nextSong->song->spotify_id);
         }
 
         // Add error handling - fixed to check boolean instead of array
@@ -114,7 +113,13 @@ class SongPlaybackService
             ];
         }
 
+        sleep(1.5);
+
         $playbackData = $this->spotifyService->getCurrentPlayback($user);
+
+        Cache::put("mix:playback:" . $mix->id, $playbackData);
+
+        event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
         if (!$playbackData) {
             Log::error("Failed to get current playback data for mix {$mixId}");

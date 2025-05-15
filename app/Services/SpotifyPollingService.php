@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use App\Events\PlaybackDataUpdatedEvent;
 use App\Events\MixStatusChangedEvent;
+use App\Events\CoDJUpdatedEvent;
 
 class SpotifyPollingService
 {
@@ -30,6 +31,7 @@ class SpotifyPollingService
     public const PLAYER_STATE_PLAYING_TOO_LONG = 'playing_too_long';
     public const PLAYER_STATE_QUEUE_COMPLETED = 'queue_completed';
     public const PLAYER_STATE_TRACK_ENDED = 'track_ended';
+    public const PLAYER_STATE_PAUSED = 'paused';
 
     protected $changeReason = '';
 
@@ -93,7 +95,7 @@ class SpotifyPollingService
             $playerState = $this->analyzePlayerState($mix, $user, $currentQueueSong, $playbackData, $previousData);
 
             // Handle the player state - now with return value
-            $result = $this->handlePlayerState($mix, $playerState, $playbackData, $currentQueueSong);
+            $result = $this->handlePlayerState($mix, $playerState, $playbackData, $currentQueueSong, $previousData);
 
             // Check for queue completion signal
             if ($result === self::PLAYER_STATE_QUEUE_COMPLETED) {
@@ -135,6 +137,11 @@ class SpotifyPollingService
         if ($playbackData['item']['id'] !== $currentQueueSong->song->spotify_id) {
             Log::info("Track mismatch detected. Expected: {$currentQueueSong->song->spotify_id}, playing: {$playbackData['item']['id']}");
             return self::PLAYER_STATE_TRACK_MISMATCH;
+        }
+
+        // CASE: Paused in Spotify
+        if (isset($playbackData['is_playing']) && $playbackData['is_playing'] === false) {
+            return self::PLAYER_STATE_PAUSED;
         }
 
         // CASE 3: Manual seek detection
@@ -251,11 +258,18 @@ class SpotifyPollingService
      */
     private function isPlaybackStuck(?array $previousData, ?array $playbackData): bool
     {
-        if (!$previousData ||
+        if (
+            !$previousData ||
             !isset($previousData['progress_ms']) ||
             !isset($playbackData['progress_ms']) ||
             !isset($previousData['item']['id']) ||
-            $previousData['item']['id'] !== $playbackData['item']['id']) {
+            $previousData['item']['id'] !== $playbackData['item']['id']
+        ) {
+            return false;
+        }
+
+        // Only consider stuck if Spotify says it's playing
+        if (isset($playbackData['is_playing']) && !$playbackData['is_playing']) {
             return false;
         }
 
@@ -268,7 +282,7 @@ class SpotifyPollingService
     /**
      * Handle the player state based on analysis
      */
-    private function handlePlayerState(Mix $mix, string $playerState, ?array $playbackData = null, ?QueueSong $currentQueueSong = null)
+    private function handlePlayerState(Mix $mix, string $playerState, ?array $playbackData = null, ?QueueSong $currentQueueSong = null, ?array $previousData = null)
     {
         // Try harder to find device ID - check multiple patterns
         $deviceId = Cache::get("mix:{$mix->id}:device_id");
@@ -316,6 +330,12 @@ class SpotifyPollingService
                 $mix->update(['is_active' => false]);
                 Log::info("Marked mix {$mix->id} as inactive after queue completion");
 
+                if ($mix->co_dj_id) {
+                    $mix->update(['co_dj_id' => null]);
+                }
+
+                CoDJUpdatedEvent::dispatch($mix->user);
+
                 // Pause playback
                 try {
                     $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
@@ -353,6 +373,7 @@ class SpotifyPollingService
                 } else {
                     // Only advance if there are more songs
                     $this->songPlaybackService->advanceToNextSong($mix->id);
+                    event(new PlaybackDataUpdatedEvent($mix, $playbackData));
                 }
                 break;
 
@@ -381,6 +402,26 @@ class SpotifyPollingService
                 if ($this->songPlaybackService->getCurrentlyPlayingSong($mix->id)) {
                     Log::info("No playback detected but song should be playing for mix {$mix->id}, resuming playback");
                     $this->songPlaybackService->resumeIntendedTrack($mix->id);
+                }
+                break;
+
+            case self::PLAYER_STATE_PAUSED:
+                Log::info("Detected paused playback for mix {$mix->id}, broadcasting pause event");
+
+                if ($this->hasSignificantChanges($previousData, $playbackData)) {
+                    event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+                } else {
+                    Log::debug("Paused state unchanged for mix {$mix->id}, skipping broadcast");
+                }
+                break;
+
+            case self::PLAYER_STATE_NORMAL:
+                Log::info("Detected normal (playing) playback for mix {$mix->id}, broadcasting play event");
+
+                if ($this->hasSignificantChanges($previousData, $playbackData)) {
+                    event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+                } else {
+                    Log::debug("Play state unchanged for mix {$mix->id}, skipping broadcast");
                 }
                 break;
         }
@@ -432,62 +473,27 @@ class SpotifyPollingService
     /**
      * Determine if there are significant changes between previous and current playback data
      */
-    private function hasSignificantChanges($previous, $current): bool
+    private function hasSignificantChanges(?array $previousData, ?array $playbackData): bool
     {
-        if (!$previous) {
-            $this->changeReason = "first broadcast";
+        if (!$previousData || !$playbackData) {
             return true;
         }
 
-        // Check for play state change
-        if (($previous['is_playing'] ?? false) !== ($current['is_playing'] ?? false)) {
-            $this->changeReason = "play state changed";
+        // Detect change in play/pause state
+        if (($previousData['is_playing'] ?? null) !== ($playbackData['is_playing'] ?? null)) {
             return true;
         }
 
-        // Check for track change
-        if (($previous['item']['id'] ?? null) !== ($current['item']['id'] ?? null)) {
-            $this->changeReason = "track changed";
+        // Detect change in track
+        if (($previousData['item']['id'] ?? null) !== ($playbackData['item']['id'] ?? null)) {
             return true;
         }
 
-        // Check for device change
-        if (($previous['device']['id'] ?? null) !== ($current['device']['id'] ?? null)) {
-            $this->changeReason = "device changed";
+        // Detect significant progress change (e.g., seek)
+        if (abs(($previousData['progress_ms'] ?? 0) - ($playbackData['progress_ms'] ?? 0)) > 2000) {
             return true;
         }
 
-        // Check for ownership change flag
-        if (($current['_ownership_changed'] ?? false)) {
-            $this->changeReason = "ownership changed";
-            return true;
-        }
-
-        // Only consider progress changes significant in specific cases:
-        // 1. Large jumps (seeking) of more than 10 seconds
-        // 2. When approaching the end of the track (last 15%)
-        if (isset($previous['progress_ms']) && isset($current['progress_ms'])) {
-            $progressDiff = abs($current['progress_ms'] - $previous['progress_ms']);
-
-            // Case 1: Large jump (seeking)
-            if ($progressDiff > 10000) { // 10 seconds
-                $this->changeReason = "seeking detected";
-                return true;
-            }
-
-            // Case 2: Near end of track
-            if (isset($current['item']['duration_ms']) && $current['item']['duration_ms'] > 0) {
-                $remainingPercent = ($current['item']['duration_ms'] - $current['progress_ms']) / $current['item']['duration_ms'] * 100;
-                if ($remainingPercent <= 15) {
-                    $this->changeReason = "approaching track end";
-                    return true;
-                }
-            }
-
-            // Normal playback progression - don't broadcast
-        }
-
-        // Not significant enough to broadcast
         return false;
     }
 }

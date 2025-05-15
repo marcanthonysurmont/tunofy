@@ -539,7 +539,7 @@ onMounted(() => {
             async () => {
                 await refreshDevices();
 
-                router.reload({ only: ["mix"] });
+                router.reload({ only: ["mix" , "success", "error"] });
             }
         );
     }
