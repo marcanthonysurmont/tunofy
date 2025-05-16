@@ -59,10 +59,12 @@
                             </TransitionChild>
                             <SidebarMobile
                                 @show-join-mix-modal="
-                                    isJoinMixModalVisible = true
+                                    sidebarOpen = false;
+                                    isJoinMixModalVisible = true;
                                 "
                                 @show-add-mix-modal="
-                                    isAddMixModalVisible = true
+                                    sidebarOpen = false;
+                                    isAddMixModalVisible = true;
                                 "
                             />
                         </DialogPanel>
