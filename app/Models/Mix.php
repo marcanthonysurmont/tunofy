@@ -151,35 +151,46 @@ class Mix extends Model
             ->where('session_code_expires_at', '>', now());
     }
 
-    public function scopeConflictingActiveMixes($query, $excludeMixId = null)
+    public function scopeConflictingActiveMixes($query, $mixIdToExclude = null, $controllingUserId = null)
     {
-        $controllingUser = $this->co_dj_id ? $this->coDj : $this->user;
+        // If not provided, try to get the controlling user from this instance
+        if ($controllingUserId === null && isset($this->id)) {
+            $controllingUserId = $this->co_dj_id ?: $this->user_id;
+        }
+
+        // If still not available (static call without user ID), return empty query
+        if ($controllingUserId === null) {
+            return $query->whereRaw('1 = 0'); // Return empty result
+        }
 
         $query = $query->where('is_active', true);
-        
-        if ($excludeMixId) {
-            $query = $query->where('id', '!=', $excludeMixId);
+
+        if ($mixIdToExclude) {
+            $query = $query->where('id', '!=', $mixIdToExclude);
         }
-        
-        return $query->where(function ($query) use ($controllingUser) {
-            $query->where('user_id', $controllingUser)
-                ->orWhere('co_dj_id', $controllingUser);
+
+        return $query->where(function ($query) use ($controllingUserId) {
+            $query->where('user_id', $controllingUserId)
+                ->orWhere('co_dj_id', $controllingUserId);
         });
     }
 
     public function scopeOtherMixesForUser($query, $excludeMixId = null)
     {
-        $controllingUser = $this->co_dj_id ? $this->coDj : $this->user;
+        // Get the controlling user ID (co-DJ if assigned, otherwise owner)
+        $controllingUserId = $this->co_dj_id ?: $this->user_id;
 
-        $query = $query->where(function($query) use ($controllingUser) {
-            $query->where('user_id', $controllingUser)
-                ->orWhere('co_dj_id', $controllingUser);
+        // Find mixes where controlling user is involved (either as owner or co-dj)
+        $query->where(function ($query) use ($controllingUserId) {
+            $query->where('user_id', $controllingUserId)
+                ->orWhere('co_dj_id', $controllingUserId);
         });
-        
+
+        // Exclude the current mix
         if ($excludeMixId) {
-            $query = $query->where('id', '!=', $excludeMixId);
+            $query->where('id', '!=', $excludeMixId);
         }
-        
+
         return $query;
     }
 
