@@ -379,9 +379,9 @@ class SongPlaybackService
     /**
      * Check if a mix has pending songs
      */
-    public function hasPendingSongs(int $mixId): bool
+    public function hasPendingSongs(Mix $mix): bool
     {
-        return QueueSong::where('mix_id', $mixId)
+        return QueueSong::where('mix_id', $mix->id)
             ->where('status', 'pending')
             ->where('is_killed', false)
             ->exists();

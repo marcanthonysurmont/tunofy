@@ -381,9 +381,7 @@ class SpotifyPollingService
                 }
 
                 // Check if there are any more songs in the queue
-                $hasPendingSongs = QueueSong::where('mix_id', $mix->id)
-                    ->where('status', 'pending')
-                    ->exists();
+                $hasPendingSongs = $this->songPlaybackService->hasPendingSongs($mix);
 
                 if (!$hasPendingSongs) {
                     $this->handlePlayerState($mix, self::PLAYER_STATE_QUEUE_COMPLETED);
