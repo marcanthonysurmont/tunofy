@@ -22,6 +22,15 @@ class ShowMixController extends Controller
         $mix->load(['songs.user', 'presets', 'user', 'collaborators', 'themes']);
         $user->load(['mixes', 'accessibleMixes']);
 
+        $activeConflictingMixes = Mix::where('is_active', true)
+            ->where('id', '!=', $mix->id)
+            ->where(function($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('co_dj_id', $user->id);
+            })
+            ->select(['id', 'name', 'slug'])
+            ->get();
+
         // Get Spotify devices for the mix owner
         $devices = $spotifyService->getUserDevices($user);
         $collaborators = $mix->collaborators()->orderBy('created_at', 'desc')->paginate(2);
@@ -30,6 +39,7 @@ class ShowMixController extends Controller
         return Inertia::render('MixSlugPage', [
             'mix' => fn() => MixResource::make($mix)->jsonSerialize(),
             'collaborators' => fn() => CollaboratorResource::collection($collaborators),
+            'activeConflictingMixes' => fn() => $activeConflictingMixes,
             'themes' => fn() => $mix->getThemeSettings(),
             'presets' => fn() => $mix->all_presets,
             'your_mixes' => fn() => $user->mixes,

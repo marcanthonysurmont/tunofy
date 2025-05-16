@@ -6,7 +6,7 @@
         <div class="mb-4 flex flex-row justify-between items-center">
             <ToggleSwitchReadValue
                 :model-value="isMixActive"
-                :disabled="isLoading"
+                :disabled="isLoading || queueActivationDisabled"
                 :label="isMixActive ? 'Queue active' : 'Queue inactive'"
                 @click.stop="emit('toggle-mix-active')"
             />
@@ -205,6 +205,10 @@ const props = defineProps({
         type: Boolean,
         required: true,
     },
+    queueActivationDisabled: {
+        type: Boolean,
+        required: true,
+    }
 });
 
 const emit = defineEmits([

@@ -35,6 +35,31 @@ class SetMixActiveController extends Controller
                 'reset_queue' => 'sometimes|boolean',
             ]);
 
+            // When activating a mix, check for conflicts FIRST
+            if ($validated['active'] === true) {
+                // Get the controlling user (owner or co-dj)
+                $controllingUser = $mix->co_dj_id ? $mix->coDj : $mix->user;
+
+                // Find any active mixes for this user
+                $activeConflictingMixes = Mix::where('is_active', true)
+                    ->where('id', '!=', $mix->id)
+                    ->where(function ($query) use ($controllingUser) {
+                        $query->where('user_id', $controllingUser->id)
+                              ->orWhere('co_dj_id', $controllingUser->id);
+                    })
+                    ->get();
+
+                // If there are active mixes, prevent activation and return error
+                if ($activeConflictingMixes->isNotEmpty()) {
+                    $conflictingMix = $activeConflictingMixes->first();
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => "You already have an active mix with '{$conflictingMix->name}'.",
+                    ], 400);
+                }
+            }
+
             // Log the device ID
             if ($deviceId) {
                 Log::info("SetMixActiveController received deviceId: " . $deviceId);

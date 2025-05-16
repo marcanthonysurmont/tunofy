@@ -10,6 +10,7 @@
         :isTransferingDevice="isTransferingDevice"
         :isLoadingDevices="isLoadingDevices"
         :isSyncingWithSpotify="isSyncingWithSpotify"
+        :queueActivationDisabled="queueActivationDisabled"
         @pause-mix="pauseMix"
         @resume-mix="resumeMix"
         @refresh-devices="refreshDevices"
@@ -30,6 +31,7 @@
         :isTransferingDevice="isTransferingDevice"
         :isLoadingDevices="isLoadingDevices"
         :isSyncingWithSpotify="isSyncingWithSpotify"
+        :queueActivationDisabled="queueActivationDisabled"
         @pause-mix="pauseMix"
         @resume-mix="resumeMix"
         @refresh-devices="refreshDevices"
@@ -45,6 +47,7 @@
         :isMixActive="isMixActive"
         :currentTrack="currentTrack"
         :isPlaying="isPlaying"
+        :queueActivationDisabled="queueActivationDisabled"
         v-else
     />
 </template>
@@ -113,6 +116,17 @@ watch(
 
 // Find initially active device from the devices array
 const selectedDevice = ref(devices.value.find((d) => d.is_active) || null);
+
+const hasActiveConflictingMixes = computed(() => {
+    return page.props.activeConflictingMixes && page.props.activeConflictingMixes.length > 0;
+});
+
+const queueActivationDisabled = computed(() => {
+    // Disable the button if there are conflicting mixes and the mix isn't active already
+    return (hasActiveConflictingMixes.value && !isMixActive.value) || 
+           isLoading.value || 
+           songs.value.length === 0;
+});
 
 watch(
     () => devices.value,
