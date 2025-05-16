@@ -77,8 +77,19 @@
             </div>
             <div class="relative z-10 text-white text-left px-4 pt-2 pb-5">
                 <h2 class="text-2xl font-semibold">{{ song.name }}</h2>
-                <p class="text-zinc-300">{{ song.artist }}</p>
+                <p class="text-zinc-300 mb-6">{{ song.artist }}</p>
+                <div class="flex items-center gap-2 text-xs text-zinc-300">
+                    <img
+                        :src="song.avatar_url"
+                        alt="Avatar"
+                        class="w-5 h-5 rounded-full object-cover"
+                    />
+                    <span class="font-medium text-zinc-400">{{
+                        song.requested_by
+                    }}</span>
+                </div>
             </div>
+
             <div
                 :style="{ opacity: likeOpacity }"
                 class="absolute z-10 text-[#74e3b8] text-left px-4 pt-2 pb-5 top-0 right-0"
@@ -485,6 +496,9 @@ const songs = ref([
         name: "The Prayer",
         artist: "Travis Scott",
         cover: "https://i.scdn.co/image/ab67616d0000b2730fc93fe41791c5aa51ae9645",
+        requested_by: "Gilles Serrien",
+        avatar_url:
+            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
     },
     {
         id: 2,
@@ -492,6 +506,9 @@ const songs = ref([
         name: "FE!N",
         artist: "Travis Scott",
         cover: "https://i.scdn.co/image/ab67616d0000b273881d8d8378cd01099babcd44",
+        requested_by: "Gilles Serrien",
+        avatar_url:
+            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
     },
     {
         id: 3,
@@ -499,6 +516,9 @@ const songs = ref([
         name: "Pornography",
         artist: "Travis Scott",
         cover: "https://i.scdn.co/image/ab67616d0000b2736cfd9a7353f98f5165ea6160",
+        requested_by: "Gilles Serrien",
+        avatar_url:
+            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
     },
     {
         id: 4,
@@ -506,6 +526,9 @@ const songs = ref([
         name: "Drugs You Should Try It",
         artist: "Travis Scott",
         cover: "https://i.scdn.co/image/ab67616d0000b2730fc93fe41791c5aa51ae9645",
+        requested_by: "Gilles Serrien",
+        avatar_url:
+            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
     },
     {
         id: 5,
@@ -513,6 +536,9 @@ const songs = ref([
         name: "Fuck Love",
         artist: "XXXTENTACION, Trippie Redd",
         cover: "https://i.scdn.co/image/ab67616d0000b273203c89bd4391468eea4cc3f5",
+        requested_by: "Gilles Serrien",
+        avatar_url:
+            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
     },
     {
         id: 6,
@@ -520,6 +546,9 @@ const songs = ref([
         name: "Trap Queen",
         artist: "Fetty Wap",
         cover: "https://i.scdn.co/image/ab67616d0000b27302928b251e41844f5186920e",
+        requested_by: "Gilles Serrien",
+        avatar_url:
+            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
     },
     {
         id: 7,
@@ -527,6 +556,9 @@ const songs = ref([
         name: "90210 (feat. Kacy Hill)",
         artist: "Travis Scott, Kacy Hill",
         cover: "https://i.scdn.co/image/ab67616d0000b2736cfd9a7353f98f5165ea6160",
+        requested_by: "Gilles Serrien",
+        avatar_url:
+            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
     },
 ]);
 
