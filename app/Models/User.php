@@ -64,6 +64,11 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function mixAccesses()
+    {
+        return $this->hasMany(MixAccess::class);
+    }
+
     /**************************************/
     /*       Accessors / Mutators         */
     /**************************************/
