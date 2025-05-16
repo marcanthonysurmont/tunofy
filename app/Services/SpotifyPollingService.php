@@ -104,7 +104,7 @@ class SpotifyPollingService
             Cache::put($cacheKey, $playbackData, now()->addMinutes(5));
 
             // Get the currently playing song according to our queue
-            $currentQueueSong = $this->songPlaybackService->getCurrentlyPlayingSong($mix->id);
+            $currentQueueSong = $this->songPlaybackService->getCurrentlyPlayingSong($mix);
 
             // Analyze the current playback state
             $playerState = $this->analyzePlayerState($mix, $user, $currentQueueSong, $playbackData, $previousData);
@@ -398,7 +398,7 @@ class SpotifyPollingService
                 // Only try to fix mismatches if we're not in a device change grace period
                 if (!Cache::has("mix:{$mix->id}:device_changed")) {
                     Log::info("Detected track mismatch for mix {$mix->id}, resuming intended track");
-                    $this->songPlaybackService->resumeIntendedTrack($mix->id);
+                    $this->songPlaybackService->resumeIntendedTrack($mix);
                 } else {
                     Log::info("Track mismatch detected but ignoring due to recent device change for mix {$mix->id}");
                 }
@@ -406,7 +406,7 @@ class SpotifyPollingService
 
             case self::PLAYER_STATE_STUCK:
                 Log::info("Detected stuck playback for mix {$mix->id}, resuming playback");
-                $this->songPlaybackService->resumeIntendedTrack($mix->id);
+                $this->songPlaybackService->resumeIntendedTrack($mix);
                 break;
 
             case self::PLAYER_STATE_MANUAL_SEEK_END:
@@ -416,9 +416,9 @@ class SpotifyPollingService
 
             case self::PLAYER_STATE_NO_PLAYBACK:
                 // If we know a song should be playing but nothing is playing
-                if ($this->songPlaybackService->getCurrentlyPlayingSong($mix->id)) {
+                if ($this->songPlaybackService->getCurrentlyPlayingSong($mix)) {
                     Log::info("No playback detected but song should be playing for mix {$mix->id}, resuming playback");
-                    $this->songPlaybackService->resumeIntendedTrack($mix->id);
+                    $this->songPlaybackService->resumeIntendedTrack($mix);
                 }
                 break;
 

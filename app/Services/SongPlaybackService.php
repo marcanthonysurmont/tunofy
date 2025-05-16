@@ -368,9 +368,9 @@ class SongPlaybackService
     /**
      * Get the currently playing song for a mix
      */
-    public function getCurrentlyPlayingSong(int $mixId): ?QueueSong
+    public function getCurrentlyPlayingSong(Mix $mix): ?QueueSong
     {
-        return QueueSong::where('mix_id', $mixId)
+        return QueueSong::where('mix_id', $mix->id)
             ->where('status', 'playing')
             ->with('song')
             ->first();
@@ -417,24 +417,22 @@ class SongPlaybackService
     /**
      * Attempt to resume the intended track with maximum device reliability
      */
-    public function resumeIntendedTrack(int $mixId): array
+    public function resumeIntendedTrack(Mix $mix): array
     {
-        $mix = Mix::findOrFail($mixId);
-
         $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
         // Try multiple ways to get device ID
         $deviceId = $this->playbackStateManager->getDeviceId($mix);
 
         if ($deviceId) {
-            Log::info("Resuming intended track for mix {$mixId} with device ID {$deviceId}");
+            Log::info("Resuming intended track for mix {$mix->id} with device ID {$deviceId}");
             $this->playbackStateManager->setDeviceChanged($mix);
         } else {
-            Log::info("Resuming intended track for mix {$mixId} with no specific device");
+            Log::info("Resuming intended track for mix {$mix->id} with no specific device");
         }
 
         // Get what we think should be playing
-        $currentQueueSong = QueueSong::where('mix_id', $mixId)
+        $currentQueueSong = QueueSong::where('mix_id', $mix->id)
             ->where('status', 'playing')
             ->with('song')
             ->first();
@@ -467,11 +465,11 @@ class SongPlaybackService
             ];
         }
 
-        Cache::forget("mix:{$mixId}:device_failure");
+        Cache::forget("mix:{$mix->id}:device_failure");
 
         // Cache the device ID again to ensure persistence
         if ($deviceId) {
-            Cache::put("mix:{$mixId}:device_id", $deviceId, now()->addHours(1));
+            Cache::put("mix:{$mix->id}:device_id", $deviceId, now()->addHours(1));
         }
 
         Log::info("Successfully resumed intended track {$currentQueueSong->song->spotify_id}" . ($deviceId ? " on device {$deviceId}" : ""));
