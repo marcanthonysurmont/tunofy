@@ -7,7 +7,7 @@
             @click="isVisible = true"
             external-class="hidden lg:inline-flex mb-2 ml-6"
         >
-            Vote now!
+            Vote Now
         </RegularButton>
     </div>
 
@@ -86,7 +86,7 @@
                 { 'animate-pulse': !isVisible },
             ]"
         >
-            Vote now!
+            Vote Now
         </RegularButton>
     </teleport>
 
