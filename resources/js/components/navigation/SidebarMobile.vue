@@ -53,14 +53,45 @@
                 </li>
             </ul>
         </nav>
+        <li
+            class="-mx-6 mt-auto flex flex-row items-center justify-between border-t border-regular-stroke px-6 py-3"
+        >
+            <a
+                href="#"
+                class="flex items-center gap-x-2 text-md/6 font-bold text-white"
+            >
+                <img
+                    class="size-10 border-regular-stroke border-2 rounded-full bg-zinc-700"
+                    :src="user.avatar || '/images/default-avatar.jpg'"
+                    alt="User avatar of logged in user"
+                />
+                <span class="sr-only">Your profile</span>
+                <span aria-hidden="true" class="font-medium">{{
+                    user.name
+                }}</span>
+            </a>
+            <div class="flex items-center gap-x-2">
+                <Link :href="route('logout')" method="POST">
+                    <ArrowLeftEndOnRectangleIcon
+                        class="size-6 stroke-2 text-white font-bold cursor-pointer custom-item-hover"
+                    />
+                </Link>
+            </div>
+        </li>
     </div>
 </template>
 
 <script setup>
 import JoinedMixesList from "@/components/mixes/JoinedMixesList.vue";
 import YourMixesList from "@/components/mixes/YourMixesList.vue";
-import { Link } from "@inertiajs/vue3";
-import { PlusIcon } from "@heroicons/vue/24/outline";
+import { Link, usePage } from "@inertiajs/vue3";
+import {
+    PlusIcon,
+    ArrowLeftEndOnRectangleIcon,
+} from "@heroicons/vue/24/outline";
 
 const emit = defineEmits(["show-join-mix-modal", "show-add-mix-modal"]);
+
+const page = usePage();
+const user = page.props.user;
 </script>
