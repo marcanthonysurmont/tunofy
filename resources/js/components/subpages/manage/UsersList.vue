@@ -54,6 +54,7 @@
                         >
                             <MenuItem v-slot="{ active }">
                                 <button
+                                    @click="showPermissionModal(user)"
                                     :class="[
                                         active
                                             ? 'bg-card-background-lighter text-dark-white cursor-pointer'
@@ -221,8 +222,9 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
 import { EllipsisVerticalIcon } from "@heroicons/vue/20/solid";
 import { router, usePage } from "@inertiajs/vue3";
-import { computed, watch } from "vue";
+import { computed, ref } from "vue";
 import { ShieldCheckIcon, XMarkIcon } from "@heroicons/vue/24/outline";
+import { StoreConfirmationModal } from "@/stores/StoreConfirmationModal";
 
 const props = defineProps({
     searchResult: {
@@ -234,25 +236,31 @@ const props = defineProps({
     },
 });
 
-watch(
-    () => props.searchResult,
-    (newValue) => {
-        console.log("Search result updated:", newValue);
-    }
-);
-
 const page = usePage();
 const users = computed(() => page.props.collaborators.data);
 
-function kickUser(user) {
-    router.post(
-        `/mix/remove-user-access/${page.props.mix.id}`,
-        {
-            user_id: user.id,
-        },
-        {
-            preserveScroll: true,
-        }
-    );
+const storeConfirmationModal = StoreConfirmationModal();
+
+async function kickUser(user) {
+    const confirmed = await storeConfirmationModal.confirm({
+        title: "Kick this user?",
+        text: "This user will be removed from the mix. Are you sure?",
+    });
+
+    if (confirmed) {
+        router.post(
+            `/mix/remove-user-access/${page.props.mix.id}`,
+            {
+                user_id: user.id,
+            },
+            {
+                preserveScroll: true,
+            }
+        );
+    }
+}
+
+function showPermissionModal(user) {
+    console.log("showing modal");
 }
 </script>
