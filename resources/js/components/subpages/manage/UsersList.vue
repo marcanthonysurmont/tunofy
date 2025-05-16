@@ -257,7 +257,7 @@ async function kickUser(user) {
 
     if (confirmed) {
         router.post(
-            `/mix/remove-user-access/${page.props.mix.id}`,
+            route("mix.remove-user-access", page.props.mix.id),
             {
                 user_id: user.id,
             },
