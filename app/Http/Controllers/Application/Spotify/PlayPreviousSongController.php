@@ -16,7 +16,7 @@ class PlayPreviousSongController extends Controller
     {
         $this->authorize('controlPlayback', $mix);
 
-        $result = $songPlaybackService->returnToPreviousSong($mix->id);
+        $result = $songPlaybackService->returnToPreviousSong($mix);
 
         if ($result['success']) {
             // Update playback data in cache with the previous track

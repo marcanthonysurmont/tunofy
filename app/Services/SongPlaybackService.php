@@ -269,10 +269,8 @@ class SongPlaybackService
         return $result;
     }
 
-    public function returnToPreviousSong(int $mixId): array
+    public function returnToPreviousSong(Mix $mix): array
     {
-        $mix = Mix::findOrFail($mixId);
-
         $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
 
@@ -280,7 +278,7 @@ class SongPlaybackService
         $deviceId = Cache::get("mix:{$mix->id}:device_id");
 
         // Get the currently playing song
-        $currentSong = QueueSong::where('mix_id', $mixId)
+        $currentSong = QueueSong::where('mix_id', $mix->id)
             ->where('status', 'playing')
             ->first();
 
@@ -292,7 +290,7 @@ class SongPlaybackService
         }
 
         // Find the active session for this mix
-        $activeSession = PlaybackSession::where('mix_id', $mixId)
+        $activeSession = PlaybackSession::where('mix_id', $mix->id)
             ->where('is_active', true)
             ->first();
 
@@ -304,7 +302,7 @@ class SongPlaybackService
         }
 
         // Find the previous song in the SAME SESSION
-        $previousSong = QueueSong::where('mix_id', $mixId)
+        $previousSong = QueueSong::where('mix_id', $mix->id)
             ->where('playback_session_id', $activeSession->id)
             ->where('status', 'finished')
             ->where('order', '<', $currentSong->order)
@@ -336,7 +334,7 @@ class SongPlaybackService
         }
 
         // Set a flag to indicate we're changing tracks to prevent false mismatch detection
-        Cache::put("mix:{$mixId}:device_changed", true, now()->addSeconds(5));
+        Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(5));
 
         // Explicitly play this song on Spotify with the same device ID
         $playResult = false;
@@ -347,7 +345,7 @@ class SongPlaybackService
         }
 
         // IMPORTANT: Clear the paused flag to ensure polling resumes
-        Cache::forget("mix:{$mixId}:paused");
+        Cache::forget("mix:{$mix->id}:paused");
 
         if (!$playResult) {
             // Revert the status changes if we failed to play
