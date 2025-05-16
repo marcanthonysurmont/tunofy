@@ -11,6 +11,10 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use App\Services\SpotifyService;
+use App\Services\SongPlaybackService;
+use App\Services\QueueBuilderService;
+use App\Events\DeviceUpdatedEvent;
 
 /**
  * Central service for all queue operations
@@ -25,7 +29,7 @@ class QueueManagementService
         protected SpotifyService $spotifyService,
         protected SongPlaybackService $songPlaybackService,
         protected QueueBuilderService $queueBuilderService,
-        protected QueueStateService $queueStateService
+        protected PlaybackStateManager $playbackStateManager
     ) {
     }
 
@@ -97,7 +101,7 @@ class QueueManagementService
             }
 
             // Reset queue position
-            $this->queueStateService->resetPosition($mix->id);
+            $this->playbackStateManager->resetQueuePosition($mix);
 
             Log::info("Queue initialization complete with {$queueBatchesCount} batches and {$songCount} songs");
 
@@ -214,7 +218,20 @@ class QueueManagementService
         event(new PlaybackDataUpdatedEvent($mix, $simpleActivationData));
 
         // Then use the standard playback method, passing the deviceId
-        return $this->songPlaybackService->startPlayback($mixId, $deviceId);
+        $result = $this->songPlaybackService->startPlayback($mixId, $deviceId);
+
+        // Add this check:
+        if (!$result['success']) {
+            // If playback failed and we were trying to use a specific device
+            if ($deviceId) {
+                Log::error("Failed to start playback on device {$deviceId} for mix {$mixId}");
+                Cache::put("mix:{$mixId}:device_failure", true);
+                event(new DeviceUpdatedEvent($mix));
+            }
+            return $result;
+        }
+
+        return $result;
     }
 
     /**

@@ -107,6 +107,13 @@ class SongPlaybackService
         if (!$playResult) {
             Log::error("Failed to start playback for mix {$mixId}");
             $nextSong->update(['status' => 'pending', 'playback_session_id' => null]);
+
+            // ADD THIS LINE to set the device failure flag:
+            Cache::put("mix:{$mixId}:device_failure", true);
+
+            // And ensure this event is dispatched
+            event(new DeviceUpdatedEvent($mix));
+
             return [
                 'success' => false,
                 'message' => 'Failed to start playback'
@@ -395,56 +402,6 @@ class SongPlaybackService
                 'message' => 'Error playing song: ' . $e->getMessage()
             ];
         }
-    }
-
-    /**
-     * Mark all queue songs for a mix as finished
-     */
-    public function clearQueue(int $mixId): void
-    {
-        QueueSong::where('mix_id', $mixId)
-            ->whereIn('status', ['playing', 'pending'])
-            ->update([
-                'status' => 'finished',
-                'played_at' => Carbon::now()
-            ]);
-
-        Log::info("Cleared queue for mix {$mixId}");
-    }
-
-    /**
-     * Verify that the expected song is actually playing
-     */
-    public function verifyPlaybackIntegrity(int $mixId, array $playbackData): bool
-    {
-        // Get what we think is playing
-        $currentQueueSong = QueueSong::where('mix_id', $mixId)
-            ->where('status', 'playing')
-            ->with('song')
-            ->first();
-
-        if (!$currentQueueSong) {
-            return true; // Nothing playing in our system, so no mismatch
-        }
-
-        // Get what's actually playing on Spotify
-        $spotifyTrackUri = $playbackData['item']['uri'] ?? null;
-        $expectedTrackUri = "spotify:track:" . $currentQueueSong->song->spotify_id;
-
-        // Compare the two
-        if ($spotifyTrackUri && $spotifyTrackUri !== $expectedTrackUri) {
-            Log::warning("Playback mismatch detected: Expected {$expectedTrackUri}, playing {$spotifyTrackUri}");
-
-            // Update the queue to reflect reality
-            $currentQueueSong->update([
-                'status' => 'interrupted',
-                'played_at' => Carbon::now()
-            ]);
-
-            return false;
-        }
-
-        return true;
     }
 
     /**

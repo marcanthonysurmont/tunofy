@@ -52,7 +52,8 @@ class SpotifyPollingService
 
         try {
             // Check if the queue has been completed - skip polling entirely
-            if (Cache::has("mix:{$mix->id}:queue_completed")) {
+            $playbackState = app(PlaybackStateManager::class);
+            if ($playbackState->isQueueCompleted($mix)) {
                 Log::info("Mix {$mix->id} queue completed, skipping polling");
                 return;
             }
@@ -73,8 +74,10 @@ class SpotifyPollingService
             $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
             // Check if we recently changed devices - if so, skip this poll cycle
-            if (Cache::has("mix:{$mix->id}:device_changed")) {
+            if ($playbackState->has($mix, PlaybackStateManager::DEVICE_CHANGED)) {
                 Log::info("Mix {$mix->id} was just manually changed, skipping this poll");
+                // Consume the flag after using it
+                $playbackState->forget($mix, PlaybackStateManager::DEVICE_CHANGED);
                 return;
             }
 
@@ -112,7 +115,7 @@ class SpotifyPollingService
             // Check for queue completion signal
             if ($result === self::PLAYER_STATE_QUEUE_COMPLETED) {
                 // Set the queue_completed flag in cache
-                Cache::put("mix:{$mix->id}:queue_completed", true, now()->addHours(1));
+                $playbackState->setQueueCompleted($mix, true);
                 return "stop_polling";
             }
 
@@ -336,7 +339,8 @@ class SpotifyPollingService
                     ]);
 
                 // Set cache flag
-                Cache::put("mix:{$mix->id}:queue_completed", true, now()->addHours(1));
+                $playbackState = app(PlaybackStateManager::class);
+                $playbackState->setQueueCompleted($mix, true);
 
                 // *** IMPORTANT: Mark the mix itself as inactive ***
                 $mix->update(['is_active' => false]);

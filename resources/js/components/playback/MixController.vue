@@ -251,6 +251,11 @@ async function refreshDevices() {
         if (activeDevice) {
             selectedDevice.value = activeDevice;
         }
+
+        if(!activeDevice) {
+            selectedDevice.value = null;
+        }
+
         // else if (!selectedDevice.value && devices.value.length === 1) {
         //     // Auto-select the only device if no active device
         //     selectedDevice.value = devices.value[0];
@@ -533,8 +538,8 @@ onMounted(() => {
                     showQueueCompletedModal.value = true;
                 }
             })
-            .listen(".device.updated", () => {
-                refreshDevices();
+            .listen(".device.updated", async () => {
+                await refreshDevices();
             });
 
         Echo.private("user." + page.props.user.id).listen(
