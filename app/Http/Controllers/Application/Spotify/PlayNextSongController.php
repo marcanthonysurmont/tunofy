@@ -23,6 +23,24 @@ class PlayNextSongController extends Controller
     ): JsonResponse {
         $this->authorize('controlPlayback', $mix);
 
+        // RACE CONDITION CHECK: Only allow one command per second per mix
+        $lastCommandKey = "mix:{$mix->id}:last_command";
+        $lastCommandTime = Cache::get($lastCommandKey, 0);
+        $now = microtime(true);
+
+        // If less than 500ms has passed since last command, throttle
+        if ($now - $lastCommandTime < 0.5) {
+            Log::info("Throttling next song command - too soon after previous command");
+            return response()->json([
+                'success' => true,
+                'throttled' => true,
+                'message' => 'Command throttled to prevent race conditions'
+            ]);
+        }
+
+        // Set last command time
+        Cache::put($lastCommandKey, $now, now()->addMinutes(5));
+
         // 1. Get the next song data first (fast database query)
         $nextSong = $songPlaybackService->getNextSongToPlay($mix->id);
 

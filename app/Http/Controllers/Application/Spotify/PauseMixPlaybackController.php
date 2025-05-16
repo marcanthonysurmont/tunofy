@@ -3,58 +3,90 @@
 namespace App\Http\Controllers\Application\Spotify;
 
 use App\Http\Controllers\Controller;
-use App\Services\SpotifyService;
 use App\Models\Mix;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
+use App\Events\PlaybackDataUpdatedEvent;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use App\Events\PlaybackDataUpdatedEvent;
+use Illuminate\Support\Facades\Auth;
+use App\Services\SpotifyService;
 use App\Services\PlaybackStateManager;
 
 class PauseMixPlaybackController extends Controller
 {
-    public function __invoke(Mix $mix, SpotifyService $spotifyService): JsonResponse
-    {
+    public function __invoke(
+        Mix $mix,
+        SpotifyService $spotifyService,
+        PlaybackStateManager $playbackStateManager
+    ): JsonResponse {
         $this->authorize('controlPlayback', $mix);
 
-        // Check if already paused to avoid unnecessary API calls
-        $alreadyPaused = Cache::has("mix:{$mix->id}:paused");
+        // RACE CONDITION CHECK: Only allow one command per second per mix
+        $lastCommandKey = "mix:{$mix->id}:last_command";
+        $lastCommandTime = Cache::get($lastCommandKey, 0);
+        $now = microtime(true);
 
-        // Only call the Spotify API if not already paused
-        if (!$alreadyPaused) {
-            $pauseResult = $spotifyService->pausePlayback(Auth::user());
-            if (!$pauseResult) {
-                return response()->json(['error' => 'Failed to pause playback'], 500);
-            }
+        // If less than 500ms has passed since last command, throttle
+        if ($now - $lastCommandTime < 0.5) {
+            Log::info("Throttling pause command - too soon after previous command");
+            return response()->json([
+                'success' => true,
+                'is_playing' => false,
+                'action' => 'pause',
+                'throttled' => true
+            ]);
         }
 
-        // Get FRESH playback data instead of using potentially stale cache
-        $freshPlaybackData = $spotifyService->getCurrentPlayback(Auth::user());
+        // Set last command time
+        Cache::put($lastCommandKey, $now, now()->addMinutes(5));
 
-        // Use fresh data or fall back to cached if fresh is unavailable
+        Log::info("Pausing Spotify playback for user " . Auth::id());
+
+        // 1. Get current playback data from cache if available
         $cacheKey = "mix:playback:" . $mix->id;
-        $playbackData = $freshPlaybackData ?: Cache::get($cacheKey, []);
+        $playbackData = Cache::get($cacheKey, []);
 
-        // Set minimum required fields for a pause event
+        // 2. First update the playback data with paused state
         $playbackData['is_playing'] = false;
         $playbackData['_timestamp'] = now()->timestamp;
+        $playbackData['_action'] = 'pause';
 
-        // Broadcast the pause event with fresh data
-        Log::info("Broadcasting pause event for mix {$mix->id}");
+        // 3. Update cache and broadcast IMMEDIATELY
+        Cache::put($cacheKey, $playbackData);
         event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
-        // Update cache with the fresh data
-        Cache::put($cacheKey, $playbackData);
-        $playbackState = app(PlaybackStateManager::class);
-        $playbackState->setPaused($mix, true);
-        Cache::put("mix:{$mix->id}:user_paused", true, now()->addSeconds(60));
+        // 4. Set the paused state in PlaybackStateManager
+        $playbackStateManager->setPaused($mix, true);
+        $playbackStateManager->setManualChange($mix);
 
-        Log::info("Playback paused for mix {$mix->id}");
+        // 5. Store in cache that user manually paused
+        Cache::put("mix:{$mix->id}:user_paused", true, now()->addMinutes(30));
 
-        return response()->json([
-            'success' => true,
-            'is_playing' => false
-        ]);
+        // 6. Send pause command to Spotify AFTER broadcasting
+        try {
+            // Get the appropriate user
+            $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+
+            // Get device ID if available
+            $deviceId = $playbackStateManager->getDeviceId($mix);
+
+            // Call Spotify API to pause
+            $spotifyService->pausePlayback($user, $deviceId);
+
+            return response()->json([
+                'success' => true,
+                'is_playing' => false,
+                'action' => 'pause'
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error pausing playback: " . $e->getMessage());
+
+            // Even if Spotify pause fails, we've already updated the UI
+            return response()->json([
+                'success' => true,
+                'is_playing' => false,
+                'action' => 'pause'
+            ]);
+        }
     }
 }

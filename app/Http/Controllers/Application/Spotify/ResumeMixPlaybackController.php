@@ -20,6 +20,25 @@ class ResumeMixPlaybackController extends Controller
     {
         $this->authorize('controlPlayback', $mix);
 
+        // RACE CONDITION CHECK: Only allow one command per second per mix
+        $lastCommandKey = "mix:{$mix->id}:last_command";
+        $lastCommandTime = Cache::get($lastCommandKey, 0);
+        $now = microtime(true);
+
+        // If less than 500ms has passed since last command, throttle
+        if ($now - $lastCommandTime < 0.5) {
+            Log::info("Throttling resume command - too soon after previous command");
+            return response()->json([
+                'success' => true,
+                'is_playing' => true,
+                'action' => 'resume',
+                'throttled' => true
+            ]);
+        }
+
+        // Set last command time
+        Cache::put($lastCommandKey, $now, now()->addMinutes(5));
+
         // Get device_id from request if provided
         $deviceId = $request->input('device_id');
 
@@ -28,113 +47,111 @@ class ResumeMixPlaybackController extends Controller
             $playbackState = app(PlaybackStateManager::class);
             $playbackState->setDeviceId($mix, $deviceId);
             Log::info("Using device ID {$deviceId} to resume playback for mix {$mix->id}");
+        } else {
+            // Get stored device ID if none provided
+            $playbackState = app(PlaybackStateManager::class);
+            $deviceId = $playbackState->getDeviceId($mix);
         }
+
+        // Update playback data in cache and broadcast IMMEDIATELY
+        $cacheKey = "mix:playback:" . $mix->id;
+        $playbackData = Cache::get($cacheKey, []);
+
+        // Ensure we have the minimum required fields
+        if (!isset($playbackData['item'])) {
+            // Get current playing song to populate missing data
+            $currentSong = QueueSong::where('mix_id', $mix->id)
+                ->where('status', 'playing')
+                ->with('song')
+                ->first();
+
+            if ($currentSong) {
+                $playbackData['item'] = [
+                    'id' => $currentSong->song->spotify_id,
+                    'name' => $currentSong->song->name,
+                    'duration_ms' => $currentSong->song->duration_ms,
+                    'artists' => [['name' => $currentSong->song->artist]],
+                    'album' => [
+                        'images' => [['url' => $currentSong->song->image_url]]
+                    ]
+                ];
+            }
+        }
+
+        // Set playing state, timestamp and action
+        $playbackData['is_playing'] = true;
+        $playbackData['_timestamp'] = now()->timestamp;
+        $playbackData['_action'] = 'resume';
+
+        // Remove paused flag immediately
+        $playbackState->setPaused($mix, false);
+        $playbackState->setManualChange($mix);
+
+        // Broadcast the resume event BEFORE Spotify API call
+        Log::info("Broadcasting resume event for mix {$mix->id}");
+        event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+        Cache::put($cacheKey, $playbackData);
 
         // Check if this was a regular user pause (not a co-DJ change pause)
         $wasUserPaused = Cache::has("mix:{$mix->id}:user_paused");
 
-        // If it was a regular pause, use resumePlayback instead of trying to play a specific track
-        if ($wasUserPaused) {
-            Cache::forget("mix:{$mix->id}:user_paused");
+        try {
+            // AFTER UI update, handle the Spotify playback (possibly slow operation)
+            if ($wasUserPaused) {
+                Cache::forget("mix:{$mix->id}:user_paused");
 
-            // Just resume whatever was playing
-            $resumeResult = $spotifyService->resumePlayback(Auth::user(), $deviceId);
-            if (!$resumeResult) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Failed to resume playback'
-                ], 500);
-            }
-
-            // Skip to the rest of the code that handles the cache and events
-            goto resume_playback_complete;
-        }
-
-        // Get the current playing song from the queue
-        $currentSong = QueueSong::where('mix_id', $mix->id)
-            ->where('status', 'playing')
-            ->first();
-
-        if ($currentSong) {
-            // If we have a song that should be playing, play it specifically
-            Log::info("Playing specific track {$currentSong->song->spotify_id} for mix {$mix->id}");
-
-            $spotifyUri = "spotify:track:{$currentSong->song->spotify_id}";
-            $playResult = $spotifyService->playSong(Auth::user(), $spotifyUri, $deviceId);
-
-            if (!$playResult) {
-                Log::error("Failed to play specific track");
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Failed to play track'
-                ], 500);
-            }
-        } else {
-            // If no song is currently playing, try to get the next song in queue
-            $nextSong = QueueSong::where('mix_id', $mix->id)
-                ->where('status', 'pending')
-                ->orderBy('order') // Using 'order' column instead
-                ->first();
-
-            if ($nextSong) {
-                // Update status to playing
-                $nextSong->update(['status' => 'playing']);
-
-                // Play this song
-                Log::info("Playing next track {$nextSong->song->spotify_id} for mix {$mix->id}");
-
-                $spotifyUri = "spotify:track:{$nextSong->song->spotify_id}";
-                $playResult = $spotifyService->playSong(Auth::user(), $spotifyUri, $deviceId);
-
-                if (!$playResult) {
-                    Log::error("Failed to play next track");
-                    return response()->json([
-                        'success' => false,
-                        'error' => 'Failed to play next track'
-                    ], 500);
-                }
+                // Just resume what was playing before
+                $spotifyService->resumePlayback(Auth::user(), $deviceId);
             } else {
-                // No songs in queue, just resume whatever was playing
-                $resumeResult = $spotifyService->resumePlayback(Auth::user(), $deviceId);
-                if (!$resumeResult) {
-                    return response()->json([
-                        'success' => false,
-                        'error' => 'Failed to resume playback'
-                    ], 500);
+                // Get the current playing song from the queue
+                $currentSong = QueueSong::where('mix_id', $mix->id)
+                    ->where('status', 'playing')
+                    ->with('song')
+                    ->first();
+
+                if ($currentSong) {
+                    // If we have a song that should be playing, play it specifically
+                    Log::info("Playing specific track {$currentSong->song->spotify_id} for mix {$mix->id}");
+                    $spotifyService->playSong(Auth::user(), $currentSong->song->spotify_id, $deviceId);
+                } else {
+                    // If no song is currently playing, try to get the next song in queue
+                    $nextSong = QueueSong::where('mix_id', $mix->id)
+                        ->where('status', 'pending')
+                        ->orderBy('order')
+                        ->with('song')
+                        ->first();
+
+                    if ($nextSong) {
+                        // Update status to playing
+                        $nextSong->update(['status' => 'playing']);
+
+                        // Play this song
+                        Log::info("Playing next track {$nextSong->song->spotify_id} for mix {$mix->id}");
+                        $spotifyService->playSong(Auth::user(), $nextSong->song->spotify_id, $deviceId);
+                    } else {
+                        // No songs in queue, just resume whatever was playing
+                        $spotifyService->resumePlayback(Auth::user(), $deviceId);
+                    }
                 }
             }
+
+            // Clear any device failure flags on successful playback
+            Cache::forget("mix:{$mix->id}:device_failure");
+
+            Log::info("Playback resumed for mix {$mix->id}");
+
+            return response()->json([
+                'success' => true,
+                'is_playing' => true
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error resuming playback: " . $e->getMessage());
+
+            // Even if Spotify API calls fail, we've already updated the UI
+            return response()->json([
+                'success' => true,
+                'is_playing' => true
+            ]);
         }
-
-        // Clear any device failure flags on successful playback
-        Cache::forget("mix:{$mix->id}:device_failure");
-
-        // Add a label at the end of your method before the return:
-        resume_playback_complete:
-
-        // Get playback state manager
-        $playbackState = app(PlaybackStateManager::class);
-
-        // Remove paused flag
-        $playbackState->setPaused($mix, false);
-
-        // Update playback data in cache and broadcast
-        $cacheKey = "mix:playback:" . $mix->id;
-        $playbackData = Cache::get($cacheKey, []);
-        $playbackData['is_playing'] = true;
-        $playbackData['_timestamp'] = now()->timestamp;
-
-        Log::info("Broadcasting resume event for mix {$mix->id}");
-        event(new PlaybackDataUpdatedEvent($mix, $playbackData));
-
-        Cache::put($cacheKey, $playbackData);
-
-        $playbackState->setManualChange($mix);
-
-        Log::info("Playback resumed for mix {$mix->id}");
-
-        return response()->json([
-            'success' => true,
-            'is_playing' => true
-        ]);
     }
 }
