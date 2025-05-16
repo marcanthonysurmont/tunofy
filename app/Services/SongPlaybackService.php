@@ -34,6 +34,20 @@ class SongPlaybackService
     }
 
     /**
+     * Get the previous song in the same session
+     */
+    public function getPreviousSong(Mix $mix, QueueSong $currentSong): ?QueueSong
+    {
+        return QueueSong::where('mix_id', $mix->id)
+            ->where('playback_session_id', $currentSong->playback_session_id)
+            ->where('status', 'finished')
+            ->where('order', '<', $currentSong->order)
+            ->orderBy('order', 'desc')
+            ->with('song')
+            ->first();
+    }
+
+    /**
      * Start playback of the next song in the queue
      */
     public function startPlayback(Mix $mix, ?string $deviceId = null, ?string $spotifyTrackId = null): array
@@ -302,12 +316,7 @@ class SongPlaybackService
         }
 
         // Find the previous song in the SAME SESSION
-        $previousSong = QueueSong::where('mix_id', $mix->id)
-            ->where('playback_session_id', $activeSession->id)
-            ->where('status', 'finished')
-            ->where('order', '<', $currentSong->order)
-            ->orderBy('order', 'desc')
-            ->first();
+        $previousSong = $this->getPreviousSong($mix, $currentSong);
 
         if (!$previousSong) {
             return [
