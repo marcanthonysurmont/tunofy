@@ -121,6 +121,38 @@ class QueueManagementService
      */
     public function startPlayback(int $mixId, bool $resetQueue = false, ?string $deviceId = null): array
     {
+        // Get the mix and user
+        $mix = Mix::findOrFail($mixId);
+
+        // Determine who's controlling playback (owner or co-dj)
+        $controllingUser = $mix->co_dj_id ? $mix->coDj : $mix->user;
+        $controllingUserId = $controllingUser->id;
+
+        // IMPORTANT: Check if this user already has any active mixes
+        $activeConflictingMixes = Mix::where('is_active', true)
+            ->where(function ($query) use ($controllingUserId, $mixId) {
+                // Exclude current mix
+                $query->where('id', '!=', $mixId)
+                    // Check for mixes where this user is either the owner or co-dj
+                    ->where(function ($q) use ($controllingUserId) {
+                        $q->where('user_id', $controllingUserId)
+                          ->orWhere('co_dj_id', $controllingUserId);
+                    });
+            })
+            ->get();
+
+        if ($activeConflictingMixes->isNotEmpty()) {
+            $conflictIds = $activeConflictingMixes->pluck('id')->implode(', ');
+            Log::warning("User {$controllingUserId} attempted to activate mix {$mixId} but already has active mixes: {$conflictIds}");
+
+            return [
+                'success' => false,
+                'message' => 'You already have another active mix. Please deactivate it first.',
+                'conflict' => true,
+                'conflicting_mixes' => $activeConflictingMixes
+            ];
+        }
+
         // Get the active session
         $session = PlaybackSession::where('mix_id', $mixId)
             ->where('is_active', true)
@@ -212,7 +244,7 @@ class QueueManagementService
         event(new PlaybackDataUpdatedEvent($mix, $simpleActivationData));
 
         // Then use the standard playback method, passing the deviceId
-        $result = $this->songPlaybackService->startPlayback($mixId, $deviceId);
+        $result = $this->songPlaybackService->startPlayback($mix, $deviceId);
 
         // Add this check:
         if (!$result['success'] && $deviceId) {

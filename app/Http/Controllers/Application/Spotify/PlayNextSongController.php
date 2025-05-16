@@ -35,7 +35,7 @@ class PlayNextSongController extends Controller
 
         // Get the result from advancing to the next song
         // We should modify SongPlaybackService to accept a deviceId parameter
-        $result = $songPlaybackService->advanceToNextSong($mix->id, $deviceId);
+        $result = $songPlaybackService->advanceToNextSong($mix, $deviceId);
 
         // Ensure the manual change flag is still set after advancing
         $playbackStateManager->setManualChange($mix);

@@ -389,7 +389,7 @@ class SpotifyPollingService
                     $this->handlePlayerState($mix, self::PLAYER_STATE_QUEUE_COMPLETED);
                 } else {
                     // Only advance if there are more songs
-                    $this->songPlaybackService->advanceToNextSong($mix->id);
+                    $this->songPlaybackService->advanceToNextSong($mix);
                     // event(new PlaybackDataUpdatedEvent($mix, $playbackData));
                 }
                 break;
@@ -411,7 +411,7 @@ class SpotifyPollingService
 
             case self::PLAYER_STATE_MANUAL_SEEK_END:
                 Log::info("Detected manual seek to end for mix {$mix->id}, advancing to next song");
-                $this->songPlaybackService->advanceToNextSong($mix->id);
+                $this->songPlaybackService->advanceToNextSong($mix);
                 break;
 
             case self::PLAYER_STATE_NO_PLAYBACK:
