@@ -129,17 +129,8 @@ class QueueManagementService
         $controllingUserId = $controllingUser->id;
 
         // IMPORTANT: Check if this user already has any active mixes
-        $activeConflictingMixes = Mix::where('is_active', true)
-            ->where(function ($query) use ($controllingUserId, $mixId) {
-                // Exclude current mix
-                $query->where('id', '!=', $mixId)
-                    // Check for mixes where this user is either the owner or co-dj
-                    ->where(function ($q) use ($controllingUserId) {
-                        $q->where('user_id', $controllingUserId)
-                          ->orWhere('co_dj_id', $controllingUserId);
-                    });
-            })
-            ->get();
+        $activeConflictingMixes = Mix::conflictingActiveMixes($mix->id)->get();
+
 
         if ($activeConflictingMixes->isNotEmpty()) {
             $conflictIds = $activeConflictingMixes->pluck('id')->implode(', ');

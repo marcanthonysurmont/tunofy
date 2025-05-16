@@ -22,14 +22,7 @@ class ShowMixController extends Controller
         $mix->load(['songs.user', 'presets', 'user', 'collaborators', 'themes']);
         $user->load(['mixes', 'accessibleMixes']);
 
-        $activeConflictingMixes = Mix::where('is_active', true)
-            ->where('id', '!=', $mix->id)
-            ->where(function($query) use ($user) {
-                $query->where('user_id', $user->id)
-                    ->orWhere('co_dj_id', $user->id);
-            })
-            ->select(['id', 'name', 'slug'])
-            ->get();
+        $activeConflictingMixes = Mix::conflictingActiveMixes($mix->id)->get();
 
         // Get Spotify devices for the mix owner
         $devices = $spotifyService->getUserDevices($user);

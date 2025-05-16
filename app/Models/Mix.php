@@ -151,6 +151,22 @@ class Mix extends Model
             ->where('session_code_expires_at', '>', now());
     }
 
+    public function scopeConflictingActiveMixes($query, $excludeMixId = null)
+    {
+        $controllingUser = $this->co_dj_id ? $this->coDj : $this->user;
+
+        $query = $query->where('is_active', true);
+        
+        if ($excludeMixId) {
+            $query = $query->where('id', '!=', $excludeMixId);
+        }
+        
+        return $query->where(function ($query) use ($controllingUser) {
+            $query->where('user_id', $controllingUser)
+                ->orWhere('co_dj_id', $controllingUser);
+        });
+    }
+
     /**************************************/
     /*              Helpers               */
     /**************************************/
