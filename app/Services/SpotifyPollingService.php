@@ -215,7 +215,7 @@ class SpotifyPollingService
                 // IMPORTANT: Force a queue extension check BEFORE deciding queue is completed
                 if ($pendingSongCount === 0) {
                     // Try to extend the queue using the public wrapper
-                    $queueExtended = $this->songPlaybackService->extendQueueIfNeeded($mix->id);
+                    $this->songPlaybackService->extendQueueIfNeeded($mix);
 
                     // Check AGAIN after attempted extension
                     $pendingSongCount = QueueSong::where('mix_id', $mix->id)

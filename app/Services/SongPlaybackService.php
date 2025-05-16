@@ -205,7 +205,7 @@ class SongPlaybackService
 
             // If we're getting low on songs, extend the queue BEFORE trying to get the next song
             if ($pendingSongCount <= 5) {
-                $this->extendQueueIfNeeded($mix->id);
+                $this->extendQueueIfNeeded($mix);
             }
         }
 
@@ -480,17 +480,17 @@ class SongPlaybackService
         ];
     }
 
-    public function prepareQueueForUserSwitch(int $mixId): void
+    public function prepareQueueForUserSwitch(Mix $mix): void
     {
         // Only reset songs that are currently playing, NOT finished ones
-        QueueSong::where('mix_id', $mixId)
+        QueueSong::where('mix_id', $mix->id)
             ->where('status', 'playing')
             ->update(['status' => 'pending']);
 
         // Important: don't touch 'finished' songs
 
         // Add debug log to trace ownership transition
-        Log::info("Reset queue state for user switch on mix {$mixId} - only changed 'playing' to 'pending'");
+        Log::info("Reset queue state for user switch on mix {$mix->id} - only changed 'playing' to 'pending'");
     }
 
     /**
@@ -540,22 +540,21 @@ class SongPlaybackService
     /**
      * Public wrapper to check and extend queue
      */
-    public function extendQueueIfNeeded(int $mixId): bool
+    public function extendQueueIfNeeded(Mix $mix): bool
     {
         // Add debug logging to trace execution
-        Log::info("Checking if queue needs extension for mix {$mixId}");
+        Log::info("Checking if queue needs extension for mix {$mix->id}");
 
         // Check pending song count
-        $pendingSongs = QueueSong::where('mix_id', $mixId)
+        $pendingSongs = QueueSong::where('mix_id', $mix->id)
             ->where('status', 'pending')
             ->count();
 
-        Log::info("Mix {$mixId} has {$pendingSongs} pending songs left");
+        Log::info("Mix {$mix->id} has {$pendingSongs} pending songs left");
 
         // Get the mix
-        $mix = Mix::find($mixId);
         if (!$mix) {
-            Log::warning("Cannot extend queue: Mix {$mixId} not found");
+            Log::warning("Cannot extend queue: Mix {$mix->id} not found");
             return false;
         }
 
@@ -565,27 +564,27 @@ class SongPlaybackService
         // IMPORTANT: Use a much higher threshold when fewer songs remain
         // If we only have 3 or fewer songs OR less than threshold, extend
         if ($pendingSongs <= 3 || $pendingSongs <= ($batchSize * 0.5)) {
-            Log::info("Queue for mix {$mixId} is running low ({$pendingSongs} songs left). Adding more rounds.");
+            Log::info("Queue for mix {$mix->id} is running low ({$pendingSongs} songs left). Adding more rounds.");
 
             // Force add 2 more rounds
             $result = app(QueueManagementService::class)->appendRoundsToQueue($mix, 2);
 
             if (isset($result['success']) && $result['success']) {
                 // Force update the cache after extending
-                $newCount = QueueSong::where('mix_id', $mixId)
+                $newCount = QueueSong::where('mix_id', $mix->id)
                     ->where('status', 'pending')
                     ->count();
 
-                Log::info("Successfully extended queue for mix {$mixId}. Now has {$newCount} pending songs");
-                Cache::put("mix:{$mixId}:pending_count", $newCount, now()->addMinutes(5));
+                Log::info("Successfully extended queue for mix {$mix->id}. Now has {$newCount} pending songs");
+                Cache::put("mix:{$mix->id}:pending_count", $newCount, now()->addMinutes(5));
                 return true;
             } else {
-                Log::warning("Failed to extend queue for mix {$mixId}");
+                Log::warning("Failed to extend queue for mix {$mix->id}");
                 return false;
             }
         }
 
-        Log::info("Queue extension not needed for mix {$mixId} ({$pendingSongs} pending songs)");
+        Log::info("Queue extension not needed for mix {$mix->id} ({$pendingSongs} pending songs)");
         return false;
     }
 

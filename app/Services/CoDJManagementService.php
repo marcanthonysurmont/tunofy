@@ -27,7 +27,7 @@ class CoDJManagementService
         $mix->update(['co_dj_id' => $user->id]);
 
         // Prepare queue for user switch
-        $this->songPlaybackService->prepareQueueForUserSwitch($mix->id);
+        $this->songPlaybackService->prepareQueueForUserSwitch($mix);
 
         // If there was a playing song, ensure it's correctly set after transition
         if ($currentlyPlaying) {
@@ -64,7 +64,7 @@ class CoDJManagementService
         $mix->update(['co_dj_id' => null]);
 
         // Prepare queue for user switch
-        $this->songPlaybackService->prepareQueueForUserSwitch($mix->id);
+        $this->songPlaybackService->prepareQueueForUserSwitch($mix);
 
         // If there was a playing song, ensure it's correctly set after transition
         if ($currentlyPlaying) {
