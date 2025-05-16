@@ -171,6 +171,7 @@
                         >
                             <MenuItem v-slot="{ active }">
                                 <button
+                                    @click="showPermissionModal(user)"
                                     :class="[
                                         active
                                             ? 'bg-card-background-lighter text-dark-white cursor-pointer'
@@ -216,6 +217,12 @@
             </div>
         </li>
     </ul>
+    <ManagePermissionModal
+        :is-visible="isManagePermissionModalVisible"
+        :user="userToEdit"
+        :mix="page.props.mix"
+        @close-modal="isManagePermissionModalVisible = false"
+    />
 </template>
 
 <script setup>
@@ -225,6 +232,7 @@ import { router, usePage } from "@inertiajs/vue3";
 import { computed, ref } from "vue";
 import { ShieldCheckIcon, XMarkIcon } from "@heroicons/vue/24/outline";
 import { StoreConfirmationModal } from "@/stores/StoreConfirmationModal";
+import ManagePermissionModal from "../../modals/manage/ManagePermissionModal.vue";
 
 const props = defineProps({
     searchResult: {
@@ -260,7 +268,10 @@ async function kickUser(user) {
     }
 }
 
+const isManagePermissionModalVisible = ref(false);
+const userToEdit = ref(null);
 function showPermissionModal(user) {
-    console.log("showing modal");
+    userToEdit.value = user;
+    isManagePermissionModalVisible.value = true;
 }
 </script>

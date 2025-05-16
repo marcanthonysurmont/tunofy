@@ -7,7 +7,7 @@
             {{ description }}
         </p>
         <div
-            class="mt-6 space-y-6 sm:flex sm:items-center sm:space-y-0 sm:space-x-10"
+            class="mt-4 space-y-6 sm:flex sm:items-center sm:space-y-0 sm:space-x-10"
         >
             <div
                 v-for="option in options"
