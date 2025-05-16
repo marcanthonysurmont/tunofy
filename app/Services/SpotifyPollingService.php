@@ -347,21 +347,19 @@ class SpotifyPollingService
                 Log::info("Marked mix {$mix->id} as inactive after queue completion");
 
                 $coDj = $mix->coDj;
-
                 if ($coDj) {
                     $mix->update(['co_dj_id' => null]);
+                    CoDJUpdatedEvent::dispatch($coDj);
                 }
 
                 CoDJUpdatedEvent::dispatch($mix->user);
-                CODJUpdatedEvent::dispatch($coDj);
 
-                // Pause playback
                 try {
-                    $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+                    $user = $mix->user; // Use the owner for pausing when queue completes
                     $this->spotifyService->pausePlayback($user);
-                    Log::info("Paused playback after queue completion");
+                    Log::info("Paused playback after queue completion for mix {$mix->id}");
                 } catch (\Exception $e) {
-                    Log::error("Failed to pause playback: " . $e->getMessage());
+                    Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
                 }
 
                 // Broadcast queue completion AND deactivation

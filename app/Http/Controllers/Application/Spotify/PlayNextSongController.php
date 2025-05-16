@@ -11,27 +11,34 @@ use App\Events\MixStatusChangedEvent;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use App\Services\PlaybackStateManager;
 
 class PlayNextSongController extends Controller
 {
     public function __invoke(
-        Request $request,
         Mix $mix,
-        SongPlaybackService $songPlaybackService
+        SongPlaybackService $songPlaybackService,
+        PlaybackStateManager $playbackStateManager
     ): JsonResponse {
         $this->authorize('controlPlayback', $mix);
 
-        // First, clear any previous skip flags to ensure fresh state
-        Cache::forget("mix:{$mix->id}:manual_change");
+        // Get device ID from PlaybackStateManager
+        $deviceId = $playbackStateManager->getDeviceId($mix);
 
-        // Set the skip flag with a longer TTL to cover rapid skips
-        Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
+        if ($deviceId) {
+            Log::info("PlayNextSongController using device ID {$deviceId} for mix {$mix->id}");
+        }
+
+        // Clear previous skip flags before creating a new one
+        $playbackStateManager->forget($mix, 'manual_change');
+        $playbackStateManager->setManualChange($mix);
 
         // Get the result from advancing to the next song
-        $result = $songPlaybackService->advanceToNextSong($mix->id);
+        // We should modify SongPlaybackService to accept a deviceId parameter
+        $result = $songPlaybackService->advanceToNextSong($mix->id, $deviceId);
 
-        // After skip, ensure the flag is still set to prevent polling right after
-        Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
+        // Ensure the manual change flag is still set after advancing
+        $playbackStateManager->setManualChange($mix);
 
         // IMPORTANT: Check if this was the last song
         if (!$result['success'] && isset($result['queue_completed']) && $result['queue_completed']) {
@@ -85,7 +92,7 @@ class PlayNextSongController extends Controller
             event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
             // Flag as manual change to prevent immediate polling
-            Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
+            $playbackStateManager->setManualChange($mix);
         }
 
         return response()->json($result);

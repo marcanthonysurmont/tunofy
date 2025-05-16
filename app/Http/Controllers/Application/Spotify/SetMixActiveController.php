@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use App\Events\PlaybackDataUpdatedEvent;
 use App\Jobs\PollSpotifyMixJob;
 use App\Models\PlaybackSession;
+use App\Services\PlaybackStateManager;
 
 class SetMixActiveController extends Controller
 {
@@ -21,7 +22,8 @@ class SetMixActiveController extends Controller
         Request $request,
         Mix $mix,
         QueueManagementService $queueManagementService,
-        SpotifyService $spotifyService
+        SpotifyService $spotifyService,
+        PlaybackStateManager $playbackStateManager
     ): JsonResponse {
         try {
             // Get the deviceId from the request
@@ -37,11 +39,11 @@ class SetMixActiveController extends Controller
             if ($deviceId) {
                 Log::info("SetMixActiveController received deviceId: " . $deviceId);
                 // Store it even before queue initialization
-                Cache::put("mix:{$mix->id}:device_id", $deviceId, now()->addDay());
+                $playbackStateManager->setDeviceId($mix, $deviceId);
             }
 
             // Update the mix status
-            $result = $mix->update(['is_active' => $validated['active']]);
+            $mix->update(['is_active' => $validated['active']]);
 
             // Log status change
             Log::info($validated['active'] ? "Mix {$mix->id} activated" : "Mix {$mix->id} deactivated");
@@ -60,14 +62,13 @@ class SetMixActiveController extends Controller
 
                     try {
                         if ($lock->get()) {
-                            // Clear any existing pause flags
-                            Cache::forget("mix:{$mix->id}:paused");
+                            // Get the playback state manager
+                            $playbackState = app(PlaybackStateManager::class);
 
-                            // IMPORTANT: Clear the queue completed flag when activating
-                            Cache::forget("mix:{$mix->id}:queue_completed");
-
-                            // Set the manual change flag (with a longer duration)
-                            Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(10));
+                            // Clear key flags
+                            $playbackState->setPaused($mix, false);
+                            $playbackState->setQueueCompleted($mix, false);
+                            $playbackState->setManualChange($mix);
 
                             // Initialize queue first
                             $queueManagementService->initializeQueue($mix, $resetQueue);
@@ -94,10 +95,10 @@ class SetMixActiveController extends Controller
                                 Log::info("Broadcasting initial playback data for newly activated mix {$mix->id}");
                                 event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
-                                // Set manual change flag
-                                Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(10));
+                                // Set manual change flag using the local variable
+                                $playbackState->setManualChange($mix);
                             } else {
-                                Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
+                                $playbackState->setManualChange($mix);
                                 Log::info("Unable to get immediate playback data for mix {$mix->id}, will rely on polling");
                             }
 
@@ -135,21 +136,36 @@ class SetMixActiveController extends Controller
                     'message' => 'Playback starting...'
                 ]);
             } else {
-                // Deactivation - can be handled synchronously as it's faster
-                $queueResult = $queueManagementService->stopPlayback($mix->id);
+                // First try to pause the current playback
+                try {
+                    $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+                    $spotifyService->pausePlayback($user);
+                    Log::info("Paused Spotify playback during mix deactivation for mix {$mix->id}");
+                } catch (\Exception $e) {
+                    Log::error("Failed to pause playback during deactivation: " . $e->getMessage());
+                    // Continue with deactivation even if pause fails
+                }
 
-                // Use the method that preserves device ID
-                $queueManagementService->clearMixCache($mix->id);
+                // Get the playback state manager
+                $playbackState = app(PlaybackStateManager::class);
 
-                // IMPORTANT: Broadcast an event to notify other browsers about deactivation
+                // Clear all states except device ID
+                $playbackState->clearAllStates($mix);
+
+                // End active sessions
+                PlaybackSession::where('mix_id', $mix->id)
+                    ->where('is_active', true)
+                    ->update([
+                        'is_active' => false,
+                        'ended_at' => now()
+                    ]);
+
+                // Broadcast deactivation event
                 event(new MixStatusChangedEvent($mix, false));
 
                 return response()->json([
-                    'activation' => [
-                        'success' => true
-                    ],
-                    'status' => 'deactivated',
-                    'message' => 'Playback stopped'
+                    'success' => true,
+                    'status' => 'deactivated'
                 ]);
             }
         } catch (\Exception $e) {
@@ -175,6 +191,23 @@ class SetMixActiveController extends Controller
 
         // Log status change
         Log::info("Mix {$mix->id} automatically deactivated after queue completion");
+
+        // First try to pause the current playback
+        try {
+            $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+            $spotifyService = app(SpotifyService::class);
+            $spotifyService->pausePlayback($user);
+            Log::info("Paused Spotify playback during automatic mix deactivation for mix {$mix->id}");
+        } catch (\Exception $e) {
+            Log::error("Failed to pause playback during automatic deactivation: " . $e->getMessage());
+            // Continue with deactivation even if pause fails
+        }
+
+        // Get the playback state manager
+        $playbackState = app(PlaybackStateManager::class);
+
+        // Clear all states except device ID
+        $playbackState->clearAllStates($mix);
 
         // End active sessions
         PlaybackSession::where('mix_id', $mix->id)

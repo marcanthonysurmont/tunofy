@@ -15,7 +15,7 @@ use App\Events\DeviceUpdatedEvent;
 
 class SongPlaybackService
 {
-    public function __construct(protected SpotifyService $spotifyService)
+    public function __construct(protected SpotifyService $spotifyService, protected PlaybackStateManager $playbackStateManager)
     {
     }
 
@@ -36,8 +36,23 @@ class SongPlaybackService
     /**
      * Start playback of the next song in the queue
      */
-    public function startPlayback(int $mixId, ?string $deviceId = null): array
+    public function startPlayback(int $mixId, ?string $deviceId = null, ?string $spotifyTrackId = null): array
     {
+        $mix = Mix::findOrFail($mixId);
+
+        // If no device ID was passed, check if one is stored in PlaybackStateManager
+        if (!$deviceId) {
+            $playbackState = app(PlaybackStateManager::class);
+            $deviceId = $playbackState->getDeviceId($mix);
+
+            if ($deviceId) {
+                Log::info("Retrieved stored device ID {$deviceId} for mix {$mixId} from PlaybackStateManager");
+            } else {
+                // No device ID available, log for debugging
+                Log::warning("No device ID available for mix {$mixId}, playback may fail");
+            }
+        }
+
         // Get the mix
         $mix = Mix::findOrFail($mixId);
 
@@ -108,10 +123,8 @@ class SongPlaybackService
             Log::error("Failed to start playback for mix {$mixId}");
             $nextSong->update(['status' => 'pending', 'playback_session_id' => null]);
 
-            // ADD THIS LINE to set the device failure flag:
-            Cache::put("mix:{$mixId}:device_failure", true);
-
-            // And ensure this event is dispatched
+            // Use PlaybackStateManager:
+            $this->playbackStateManager->set($mix, 'device_failure', true);
             event(new DeviceUpdatedEvent($mix));
 
             return [
@@ -151,12 +164,17 @@ class SongPlaybackService
     /**
      * Advance to the next song in the queue
      */
-    public function advanceToNextSong(int $mixId): array
+    public function advanceToNextSong(int $mixId, ?string $deviceId = null): array
     {
         $mix = Mix::findOrFail($mixId);
 
-        // Retrieve the cached device ID if present
-        $deviceId = Cache::get("mix:{$mix->id}:device_id");
+        // If no device ID was passed, get it from PlaybackStateManager
+        if (!$deviceId) {
+            $deviceId = $this->playbackStateManager->getDeviceId($mix);
+            if ($deviceId) {
+                Log::info("Retrieved device ID {$deviceId} from PlaybackStateManager for mix {$mixId}");
+            }
+        }
 
         // Get the active session
         $activeSession = PlaybackSession::where('mix_id', $mixId)
@@ -197,10 +215,9 @@ class SongPlaybackService
         }
 
         // Set a flag indicating we're changing tracks to prevent false mismatch detection
-        Cache::put("mix:{$mixId}:device_changed", true, now()->addSeconds(5));
-
-        // IMPORTANT: Clear the paused flag to ensure polling resumes
-        Cache::forget("mix:{$mixId}:paused");
+        $playbackState = app(PlaybackStateManager::class);
+        $playbackState->setDeviceChanged($mix);
+        $playbackState->setPaused($mix, false);
 
         // Get and play the next song, passing the device ID
         $result = $this->startPlayback($mixId, $deviceId);
@@ -414,13 +431,11 @@ class SongPlaybackService
         $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
         // Try multiple ways to get device ID
-        $deviceId = Cache::get("mix:{$mix->id}:device_id");
+        $deviceId = $this->playbackStateManager->getDeviceId($mix);
 
         if ($deviceId) {
             Log::info("Resuming intended track for mix {$mixId} with device ID {$deviceId}");
-
-            // Set a flag to indicate we're using a specific device
-            Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(10));
+            $this->playbackStateManager->setDeviceChanged($mix);
         } else {
             Log::info("Resuming intended track for mix {$mixId} with no specific device");
         }
@@ -451,7 +466,7 @@ class SongPlaybackService
 
             event(new DeviceUpdatedEvent($mix));
 
-            Cache::put("mix:{$mixId}:device_failure", true);
+            $this->playbackStateManager->set($mix, 'device_failure', true);
 
             return [
                 'success' => false,

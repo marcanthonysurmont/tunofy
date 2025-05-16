@@ -244,4 +244,24 @@ class PlaybackStateManager
         $this->set($mix, 'queue_position', 0);
         Log::info("Reset queue position for mix {$mix->id}");
     }
+
+    /**
+     * Update tracking for song progress
+     */
+    public function setSongProgress(Mix $mix, int $progressMs, int $durationMs): void
+    {
+        $this->set($mix, self::SONG_PROGRESS, $progressMs);
+        $this->set($mix, self::SONG_DURATION, $durationMs);
+
+        // Calculate remaining percentage
+        $remainingMs = $durationMs - $progressMs;
+        $percentRemaining = ($remainingMs / $durationMs) * 100;
+
+        // Flag if song is nearing end (less than 15% remaining)
+        if ($percentRemaining <= 15) {
+            $this->set($mix, self::SONG_NEARING_END, true);
+        } else {
+            $this->forget($mix, self::SONG_NEARING_END);
+        }
+    }
 }

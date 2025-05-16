@@ -11,9 +11,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use App\Services\SpotifyService;
-use App\Services\SongPlaybackService;
-use App\Services\QueueBuilderService;
 use App\Events\DeviceUpdatedEvent;
 
 /**
@@ -170,11 +167,8 @@ class QueueManagementService
 
         // If device ID is provided, store it
         if ($deviceId) {
-            // Make sure this key format matches what you're checking in SpotifyPollingService
-            Cache::put("mix:{$mix->id}:device_id", $deviceId, now()->addHours(1));
-
-            // Set the device changed flag
-            Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(5));
+            $this->playbackStateManager->setDeviceId($mix, $deviceId);
+            $this->playbackStateManager->setDeviceChanged($mix);
         }
 
         // If device ID is provided, activate it FIRST
@@ -221,13 +215,10 @@ class QueueManagementService
         $result = $this->songPlaybackService->startPlayback($mixId, $deviceId);
 
         // Add this check:
-        if (!$result['success']) {
-            // If playback failed and we were trying to use a specific device
-            if ($deviceId) {
-                Log::error("Failed to start playback on device {$deviceId} for mix {$mixId}");
-                Cache::put("mix:{$mixId}:device_failure", true);
-                event(new DeviceUpdatedEvent($mix));
-            }
+        if (!$result['success'] && $deviceId) {
+            Log::error("Failed to start playback on device {$deviceId} for mix {$mixId}");
+            $this->playbackStateManager->set($mix, 'device_failure', true);
+            event(new DeviceUpdatedEvent($mix));
             return $result;
         }
 
@@ -316,35 +307,6 @@ class QueueManagementService
             Log::error("Failed to activate Spotify device: " . $e->getMessage());
             return false;
         }
-    }
-
-    /**
-     * Clear all cache for a mix except for device selection
-     */
-    public function clearMixCache(int $mixId): void
-    {
-        // Remember the device ID before clearing cache
-        $deviceId = Cache::get("mix:{$mixId}:device_id");
-
-        // Clear specific prefixed keys without relying on patterns
-        $keysToForget = [
-            "mix:{$mixId}:paused",
-            "mix:{$mixId}:device_changed",
-            "mix:{$mixId}:device_mismatch",
-            "mix_{$mixId}_queue_position"
-        ];
-
-        foreach ($keysToForget as $key) {
-            Cache::forget($key);
-        }
-
-        // IMPORTANT: Restore the device ID if it existed
-        if ($deviceId) {
-            Cache::put("mix:{$mixId}:device_id", $deviceId, now()->addDay());
-            Log::info("Preserved device ID {$deviceId} for mix {$mixId} during cache clearing");
-        }
-
-        Log::info("Cleared cache entries for mix {$mixId} while preserving device selection");
     }
 
     public function appendRoundsToQueue(Mix $mix, int $rounds = 1): array

@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Events\CoDJUpdatedEvent;
 use App\Events\PlaybackDataUpdatedEvent;
-use App\Events\MixStatusChangedEvent;
 use App\Models\Mix;
 use App\Models\User;
 use App\Models\QueueSong;
@@ -132,7 +131,9 @@ class CoDJManagementService
 
         // Update cache
         Cache::put($cacheKey, $playbackData);
-        Cache::put("mix:{$mix->id}:paused", true);
-        Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
+
+        $playbackState = app(PlaybackStateManager::class);
+        $playbackState->setPaused($mix, true);
+        $playbackState->setManualChange($mix);
     }
 }

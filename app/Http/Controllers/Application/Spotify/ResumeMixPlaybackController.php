@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use App\Services\PlaybackStateManager;
 
 class ResumeMixPlaybackController extends Controller
 {
@@ -24,7 +25,8 @@ class ResumeMixPlaybackController extends Controller
 
         // If device ID was provided, store it in cache
         if ($deviceId) {
-            Cache::put("mix:{$mix->id}:device_id", $deviceId, now()->addHours(12));
+            $playbackState = app(PlaybackStateManager::class);
+            $playbackState->setDeviceId($mix, $deviceId);
             Log::info("Using device ID {$deviceId} to resume playback for mix {$mix->id}");
         }
 
@@ -109,8 +111,11 @@ class ResumeMixPlaybackController extends Controller
         // Add a label at the end of your method before the return:
         resume_playback_complete:
 
+        // Get playback state manager
+        $playbackState = app(PlaybackStateManager::class);
+
         // Remove paused flag
-        Cache::forget("mix:{$mix->id}:paused");
+        $playbackState->setPaused($mix, false);
 
         // Update playback data in cache and broadcast
         $cacheKey = "mix:playback:" . $mix->id;
@@ -122,7 +127,8 @@ class ResumeMixPlaybackController extends Controller
         event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
         Cache::put($cacheKey, $playbackData);
-        Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
+
+        $playbackState->setManualChange($mix);
 
         Log::info("Playback resumed for mix {$mix->id}");
 

@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use App\Services\PlaybackStateManager;
 
 class TransferPlaybackController extends Controller
 {
@@ -25,11 +26,10 @@ class TransferPlaybackController extends Controller
             return response()->json(['error' => 'Device ID is required'], 400);
         }
 
-        // Store the new device ID in cache
-        Cache::put("mix:{$mix->id}:device_id", $deviceId, now()->addDay());
-
-        // Set a flag to prevent track mismatch detection during device change
-        Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(10));
+        // Store the new device ID and set device changed flag
+        $playbackState = app(PlaybackStateManager::class);
+        $playbackState->setDeviceId($mix, $deviceId);
+        $playbackState->setDeviceChanged($mix);
 
         Log::info("Transferring playback for mix {$mix->id} to device {$deviceId}");
 
