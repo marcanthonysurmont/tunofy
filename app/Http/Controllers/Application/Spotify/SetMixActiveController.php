@@ -51,7 +51,7 @@ class SetMixActiveController extends Controller
                         'message' => "You already have an active mix with '{$conflictingMix->name}'.",
                     ], 400);
                 }
-            } 
+            }
 
             // Log the device ID
             if ($deviceId) {
@@ -98,48 +98,85 @@ class SetMixActiveController extends Controller
                             // Initialize queue first
                             $queueManagementService->initializeQueue($mix, $resetQueue);
 
-                            // Start playback after initialization is complete - PASS DEVICE ID!
-                            $queueManagementService->startPlayback($mix->id, $resetQueue, $deviceId);
+                            // Get the first song to play
+                            $firstSong = $mix->queueSongs()
+                                ->where('status', 'pending')
+                                ->orderBy('order')
+                                ->with('song')
+                                ->first();
 
-                            // Get current playback data to broadcast after a short delay
-                            sleep(0.5);
+                            if ($firstSong) {
+                                // Mark the song as playing
+                                $firstSong->update(['status' => 'playing']);
 
-                            $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+                                // Send an intermediate "loading" state if you want (optional)
+                                $loadingData = [
+                                    'is_playing' => true,
+                                    'is_loading' => true,  // Add this flag for your loading indicator
+                                    'item' => [
+                                        'id' => $firstSong->song->spotify_id,
+                                        'name' => $firstSong->song->name,
+                                        'duration_ms' => $firstSong->song->duration_ms,
+                                        'artists' => [['name' => $firstSong->song->artist]],
+                                        'album' => [
+                                            'images' => [['url' => $firstSong->song->image_url]]
+                                        ]
+                                    ],
+                                    '_timestamp' => now()->timestamp,
+                                    '_action' => 'activating',  // Different action for loading state
+                                ];
 
-                            $playbackData = $spotifyService->getCurrentPlayback($user);
-
-                            if ($playbackData) {
-                                $playbackData['_timestamp'] = now()->timestamp;
-                                $playbackData['is_initial_activation'] = true;
-
-                                // Set cache for future polls
                                 $cacheKey = "mix:playback:" . $mix->id;
-                                Cache::put($cacheKey, $playbackData);
+                                Cache::put($cacheKey, $loadingData);
+                                Log::info("Broadcasting loading state for mix {$mix->id}");
+                                event(new PlaybackDataUpdatedEvent($mix, $loadingData));
 
-                                // Broadcast playback data
-                                Log::info("Broadcasting initial playback data for newly activated mix {$mix->id}");
+                                // Start playback (this is the slow operation)
+                                $queueManagementService->startPlayback($mix->id, $resetQueue, $deviceId);
+
+                                // AFTER playback has started, send the actual playback data
+                                $playbackData = [
+                                    'is_playing' => true,
+                                    'is_loading' => false,  // Clear loading flag
+                                    'item' => [
+                                        'id' => $firstSong->song->spotify_id,
+                                        'name' => $firstSong->song->name,
+                                        'duration_ms' => $firstSong->song->duration_ms,
+                                        'artists' => [['name' => $firstSong->song->artist]],
+                                        'album' => [
+                                            'images' => [['url' => $firstSong->song->image_url]]
+                                        ]
+                                    ],
+                                    '_timestamp' => now()->timestamp,
+                                    '_action' => 'activate',
+                                    'playback_started' => true
+                                ];
+
+                                Cache::put($cacheKey, $playbackData);
+                                Log::info("Broadcasting actual playback data for mix {$mix->id} after playback started");
                                 event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
-                                // Set manual change flag using the local variable
+                                // Flag manual change to prevent polling override
                                 $playbackState->setManualChange($mix);
                             } else {
-                                $playbackState->setManualChange($mix);
-                                Log::info("Unable to get immediate playback data for mix {$mix->id}, will rely on polling");
-                            }
+                                // No songs in queue
+                                Log::info("No songs in queue for mix {$mix->id}");
 
-                            // After removing co-DJ
-                            // Force a full state refresh
-                            $playbackData = $spotifyService->getCurrentPlayback($mix->user);
-                            if ($playbackData) {
-                                $playbackData['_ownership_changed'] = true;
-                                $playbackData['_timestamp'] = now()->timestamp;
+                                // Create empty playback data
+                                $emptyPlaybackData = [
+                                    'is_playing' => false,
+                                    '_timestamp' => now()->timestamp,
+                                    '_action' => 'activate',
+                                    'queue_empty' => true,
+                                    'is_initial_activation' => true
+                                ];
 
-                                // Update cache
+                                // Set cache and broadcast
                                 $cacheKey = "mix:playback:" . $mix->id;
-                                Cache::put($cacheKey, $playbackData);
+                                Cache::put($cacheKey, $emptyPlaybackData);
+                                event(new PlaybackDataUpdatedEvent($mix, $emptyPlaybackData));
 
-                                // Force broadcast
-                                event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+                                // Don't try to start playback if queue is empty
                             }
                         }
                         // Make sure to release the lock when done

@@ -2,16 +2,13 @@
 
 namespace App\Services;
 
-use App\Events\PlaybackDataUpdatedEvent;
 use App\Models\Mix;
 use App\Models\QueueSong;
 use App\Models\User;
 use App\Models\PlaybackSession;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use App\Events\DeviceUpdatedEvent;
 
 /**
  * Central service for all queue operations
@@ -119,133 +116,38 @@ class QueueManagementService
     /**
      * Start or resume queue playback
      */
-    public function startPlayback(int $mixId, bool $resetQueue = false, ?string $deviceId = null): array
+    public function startPlayback(int $mixId, bool $resetQueue = false, ?string $deviceId = null): bool
     {
-        // Get the mix and user
         $mix = Mix::findOrFail($mixId);
 
-        // Determine who's controlling playback (owner or co-dj)
-        $controllingUser = $mix->co_dj_id ? $mix->coDj : $mix->user;
-        $controllingUserId = $controllingUser->id;
-
-        // IMPORTANT: Check if this user already has any active mixes
-        $activeConflictingMixes = Mix::conflictingActiveMixes($mix->id)->get();
-
-
-        if ($activeConflictingMixes->isNotEmpty()) {
-            $conflictIds = $activeConflictingMixes->pluck('id')->implode(', ');
-            Log::warning("User {$controllingUserId} attempted to activate mix {$mixId} but already has active mixes: {$conflictIds}");
-
-            return [
-                'success' => false,
-                'message' => 'You already have another active mix. Please deactivate it first.',
-                'conflict' => true,
-                'conflicting_mixes' => $activeConflictingMixes
-            ];
-        }
-
-        // Get the active session
-        $session = PlaybackSession::where('mix_id', $mixId)
-            ->where('is_active', true)
-            ->latest('started_at')
+        // Get the current playing song directly - minimal query
+        $currentSong = QueueSong::where('mix_id', $mixId)
+            ->where('status', 'playing')
+            ->with('song')
             ->first();
 
-        // Add defensive check here too
-        $sessionId = null;
-        if (is_array($session)) {
-            Log::warning("Session was returned as array instead of object in startPlayback");
-            $sessionId = $session['id'] ?? null;
-        } elseif ($session) {
-            $sessionId = $session->id;
+        if (!$currentSong) {
+            Log::error("No playing song found for mix $mixId during startPlayback");
+            return false;
         }
 
-        if (!$sessionId) {
-            // Create new session if none exists
-            $sessionObj = PlaybackSession::create([
-                'mix_id' => $mixId,
-                'started_at' => now(),
-                'is_active' => true
-            ]);
+        // Get user
+        $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
-            if (is_array($sessionObj)) {
-                $sessionId = $sessionObj['id'];
-            } else {
-                $sessionId = $sessionObj->id;
-            }
+        // Call Spotify API directly - no other operations
+        try {
+            $spotifyService = app(SpotifyService::class);
 
-            if (!$sessionId) {
-                Log::error("Failed to create valid session in startPlayback for mix {$mixId}");
-                return ['success' => false, 'message' => 'Session creation failed'];
-            }
+            // Direct API call without any intermediate steps
+            return $spotifyService->playTrackOnDevice(
+                $user,
+                $currentSong->song->spotify_id,
+                $deviceId
+            );
+        } catch (\Exception $e) {
+            Log::error("Error in QueueManagementService::startPlayback: " . $e->getMessage());
+            return false;
         }
-
-        // Use $sessionId instead of $session->id
-
-        Log::info("Starting playback for mix {$mixId}, resetQueue: " . ($resetQueue ? 'true' : 'false') .
-                  ($deviceId ? ", deviceId: {$deviceId}" : ""));
-
-        // Get the mix and user
-        $mix = Mix::findOrFail($mixId);
-        $user = User::findOrFail(Auth::id() ?? $mix->user_id);
-
-        // If device ID is provided, store it
-        if ($deviceId) {
-            $this->playbackStateManager->setDeviceId($mix, $deviceId);
-            $this->playbackStateManager->setDeviceChanged($mix);
-        }
-
-        // If device ID is provided, activate it FIRST
-        if ($deviceId) {
-            // Activate the device via the SpotifyService and make sure it's fully ready
-            // This is the key change - force the device activation to complete before playing
-            $activated = $this->spotifyService->activateSpecificDevice($user, $deviceId);
-
-            // Add a small extra delay for desktop clients
-            usleep(200000); // 200ms extra delay
-
-            if (!$activated) {
-                Log::warning("Device activation failed, falling back to default device");
-            }
-        } else {
-            // No specific device, use default behavior
-            $this->spotifyService->activateDevice($user);
-        }
-
-        // If resetQueue is true, ensure we start from the beginning
-        if ($resetQueue) {
-            // Reset the position to ensure we start from the first song
-            Cache::put("mix_{$mixId}_queue_position", 0, 3600);
-            Log::info("Queue position reset to 0 for mix {$mixId} before playback");
-        }
-
-        // Send an IMMEDIATE simplified activation event to update UI faster
-        $simpleActivationData = [
-            'is_playing' => true,
-            'is_initial_activation' => true,
-            '_timestamp' => now()->timestamp,
-            'item' => [
-                'name' => 'Starting playback...',
-                'artists' => [['name' => 'Your mix is starting']],
-                'album' => ['images' => []]
-            ]
-        ];
-
-        // Broadcast this simple event immediately
-        Log::info("Broadcasting immediate activation signal for mix {$mixId}");
-        event(new PlaybackDataUpdatedEvent($mix, $simpleActivationData));
-
-        // Then use the standard playback method, passing the deviceId
-        $result = $this->songPlaybackService->startPlayback($mix, $deviceId);
-
-        // Add this check:
-        if (!$result['success'] && $deviceId) {
-            Log::error("Failed to start playback on device {$deviceId} for mix {$mixId}");
-            $this->playbackStateManager->set($mix, 'device_failure', true);
-            event(new DeviceUpdatedEvent($mix));
-            return $result;
-        }
-
-        return $result;
     }
 
     /**
