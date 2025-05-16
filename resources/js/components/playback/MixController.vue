@@ -551,6 +551,10 @@ onMounted(() => {
                     // Show queue completed modal
                     showQueueCompletedModal.value = true;
                 }
+
+                if(e.reason === "other_mix") {
+                    router.reload({ only: ["activeConflictingMixes" , "success", "error"] });
+                }
             })
             .listen(".device.updated", async () => {
                 await refreshDevices();

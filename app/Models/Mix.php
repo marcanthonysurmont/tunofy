@@ -167,6 +167,22 @@ class Mix extends Model
         });
     }
 
+    public function scopeOtherMixesForUser($query, $excludeMixId = null)
+    {
+        $controllingUser = $this->co_dj_id ? $this->coDj : $this->user;
+
+        $query = $query->where(function($query) use ($controllingUser) {
+            $query->where('user_id', $controllingUser)
+                ->orWhere('co_dj_id', $controllingUser);
+        });
+        
+        if ($excludeMixId) {
+            $query = $query->where('id', '!=', $excludeMixId);
+        }
+        
+        return $query;
+    }
+
     /**************************************/
     /*              Helpers               */
     /**************************************/

@@ -51,7 +51,7 @@ class SetMixActiveController extends Controller
                         'message' => "You already have an active mix with '{$conflictingMix->name}'.",
                     ], 400);
                 }
-            }
+            } 
 
             // Log the device ID
             if ($deviceId) {
@@ -65,6 +65,13 @@ class SetMixActiveController extends Controller
 
             // Log status change
             Log::info($validated['active'] ? "Mix {$mix->id} activated" : "Mix {$mix->id} deactivated");
+
+            $otherMixes = Mix::otherMixesForUser($mix->id)->get();
+            $changeReason = 'other_mix';
+
+            foreach ($otherMixes as $otherMix) {
+                event(new MixStatusChangedEvent($otherMix, $otherMix->is_active, $changeReason));
+            }
 
             if ($validated['active'] === true) {
                 $resetQueue = $request->input('reset_queue', true);
@@ -199,49 +206,5 @@ class SetMixActiveController extends Controller
                 'type' => get_class($e)
             ], 500);
         }
-    }
-
-    // Add this method to handle automatic deactivation when queue completes
-    public function deactivateMixAfterQueueCompletion(Mix $mix)
-    {
-        // Update the mix status to inactive
-        $mix->update(['is_active' => false]);
-
-        // Log status change
-        Log::info("Mix {$mix->id} automatically deactivated after queue completion");
-
-        // First try to pause the current playback
-        try {
-            $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
-            $spotifyService = app(SpotifyService::class);
-            $spotifyService->pausePlayback($user);
-            Log::info("Paused Spotify playback during automatic mix deactivation for mix {$mix->id}");
-        } catch (\Exception $e) {
-            Log::error("Failed to pause playback during automatic deactivation: " . $e->getMessage());
-            // Continue with deactivation even if pause fails
-        }
-
-        // Get the playback state manager
-        $playbackState = app(PlaybackStateManager::class);
-
-        // Clear all states except device ID
-        $playbackState->clearAllStates($mix);
-
-        // End active sessions
-        PlaybackSession::where('mix_id', $mix->id)
-            ->where('is_active', true)
-            ->update([
-                'is_active' => false,
-                'ended_at' => now()
-            ]);
-
-        // Broadcast deactivation event
-        event(new MixStatusChangedEvent($mix, false));
-
-        return response()->json([
-            'success' => true,
-            'status' => 'deactivated',
-            'message' => 'Mix automatically deactivated after queue completion'
-        ]);
     }
 }
