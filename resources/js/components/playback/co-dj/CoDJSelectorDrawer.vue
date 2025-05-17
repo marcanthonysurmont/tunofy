@@ -60,9 +60,15 @@
                                                         class="size-5 shrink-0"
                                                     />
                                                     <span
+                                                        v-if="users.length > 0"
                                                         >Search results are
                                                         exclusively for premium
                                                         users.</span
+                                                    >
+                                                    <span v-else
+                                                        >No available premium
+                                                        users found in
+                                                        playlist.</span
                                                     >
                                                 </p>
                                             </div>
@@ -196,7 +202,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import {
     Dialog,
     DialogPanel,
@@ -211,11 +217,15 @@ import {
 import { useForm } from "@inertiajs/vue3";
 import SearchBarUsers from "@/components/subpages/manage/SearchBarUsers.vue";
 import RegularButton from "@/components/buttons/RegularButton.vue";
+import { usePage } from "@inertiajs/vue3";
 
 const props = defineProps({
     isVisible: Boolean,
     mix: Object,
 });
+
+const page = usePage();
+const users = computed(() => page.props.collaborators.data);
 
 const emit = defineEmits(["close-drawer"]);
 
