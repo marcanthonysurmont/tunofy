@@ -44,7 +44,7 @@
                 <div
                     class="min-w-0 max-w-[75%] sm:max-w-xs md:max-w-md lg:max-w-lg"
                 >
-                    <div class="font-medium truncate text-sm">
+                    <div class="font-medium truncate text-sm mb-1">
                         {{ song.name }}
                     </div>
                     <div class="text-zinc-400 text-xs sm:text-sm truncate">
