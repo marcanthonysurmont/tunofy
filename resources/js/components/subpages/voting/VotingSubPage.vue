@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-row items-center mb-6 lg:mb-8">
-        <LiveIndicator :isLive="true" class="mb-2 mr-4" />
+        <!-- <LiveIndicator :isLive="true" class="mb-2 mr-4" /> -->
         <h1 class="text-4xl sm:text-5xl font-medium mb-2">Live Rankings</h1>
         <RegularButton
             color="blue"
@@ -12,68 +12,75 @@
     </div>
 
     <ul class="flex flex-col gap-3">
-        <div
-            v-for="(song, index) in props.mix.songs"
-            class="flex flex-row justify-between px-2 py-2 rounded-lg bg-card-background border-2 border-card-stroke"
+        <li
+            class="flex flex-row justify-between px-2 py-2 rounded-lg bg-card-background border-2 border-card-stroke text-zinc-200 font-semibold text-sm"
         >
-            <div>
-                <div class="flex items-center gap-2 sm:gap-3">
-                    <img
-                        v-lazy="{
-                            src: song.image_url,
-                            error: '/images/default-song.png',
-                            loading: '/images/default-song.png',
-                        }"
-                        alt="cover"
-                        class="size-14 rounded flex-shrink-0"
-                    />
-                    <div
-                        class="min-w-0 flex-1 max-w-[75%] sm:max-w-xs md:max-w-md lg:max-w-lg"
-                    >
-                        <div class="font-medium truncate text-sm">
-                            {{ song.name }}
-                        </div>
-                        <div class="text-zinc-400 text-xs sm:text-sm truncate">
-                            {{ song.artist }}
-                        </div>
-                        <div class="flex flex-row items-center gap-2 mt-2">
-                            <!-- <HandThumbUpIcon class="size-4 text-zinc-400" /> -->
-                            <svg
-                                rpl=""
-                                fill="currentColor"
-                                icon-name="upvote-outline"
-                                viewBox="0 0 20 20"
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="text-zinc-400 size-3"
-                            >
-                                <path
-                                    d="M10 19c-.072 0-.145 0-.218-.006A4.1 4.1 0 0 1 6 14.816V11H2.862a1.751 1.751 0 0 1-1.234-2.993L9.41.28a.836.836 0 0 1 1.18 0l7.782 7.727A1.751 1.751 0 0 1 17.139 11H14v3.882a4.134 4.134 0 0 1-.854 2.592A3.99 3.99 0 0 1 10 19Zm0-17.193L2.685 9.071a.251.251 0 0 0 .177.429H7.5v5.316A2.63 2.63 0 0 0 9.864 17.5a2.441 2.441 0 0 0 1.856-.682A2.478 2.478 0 0 0 12.5 15V9.5h4.639a.25.25 0 0 0 .176-.429L10 1.807Z"
-                                ></path>
-                            </svg>
-                            <p class="text-xs text-zinc-400">
-                                {{
-                                    Math.floor(Math.random() * (10 - -5 + 1)) +
-                                    -5
-                                }}
-                            </p>
-                            <svg
-                                rpl=""
-                                fill="currentColor"
-                                icon-name="downvote-outline"
-                                viewBox="0 0 20 20"
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="text-zinc-400 size-3"
-                            >
-                                <path
-                                    d="M10 1c.072 0 .145 0 .218.006A4.1 4.1 0 0 1 14 5.184V9h3.138a1.751 1.751 0 0 1 1.234 2.993L10.59 19.72a.836.836 0 0 1-1.18 0l-7.782-7.727A1.751 1.751 0 0 1 2.861 9H6V5.118a4.134 4.134 0 0 1 .854-2.592A3.99 3.99 0 0 1 10 1Zm0 17.193 7.315-7.264a.251.251 0 0 0-.177-.429H12.5V5.184A2.631 2.631 0 0 0 10.136 2.5a2.441 2.441 0 0 0-1.856.682A2.478 2.478 0 0 0 7.5 5v5.5H2.861a.251.251 0 0 0-.176.429L10 18.193Z"
-                                ></path>
-                            </svg>
-                            <!-- <HandThumbDownIcon class="size-4 text-zinc-400" /> -->
-                        </div>
+            <div class="w-8 text-center">#</div>
+            <div class="flex-1 pl-2">Song</div>
+            <div class="w-16 text-center">Rank</div>
+        </li>
+
+        <li
+            v-for="(song, index) in songsWithRankChange"
+            :key="song.id || index"
+            class="flex flex-row justify-between items-center px-1 py-2 rounded-lg bg-card-background border-2 border-card-stroke"
+        >
+            <!-- Rank number -->
+            <div class="w-8 text-center font-medium text-sm mr-2">
+                {{ index + 1 }}
+            </div>
+
+            <!-- Cover + Song info -->
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+                <img
+                    v-lazy="{
+                        src: song.image_url,
+                        error: '/images/default-song.png',
+                        loading: '/images/default-song.png',
+                    }"
+                    alt="cover"
+                    class="size-14 rounded flex-shrink-0"
+                />
+                <div
+                    class="min-w-0 max-w-[75%] sm:max-w-xs md:max-w-md lg:max-w-lg"
+                >
+                    <div class="font-medium truncate text-sm">
+                        {{ song.name }}
+                    </div>
+                    <div class="text-zinc-400 text-xs sm:text-sm truncate">
+                        {{ song.artist }}
                     </div>
                 </div>
             </div>
-        </div>
+
+            <div
+                class="w-16 flex items-start justify-center gap-1 text-sm font-medium text-zinc-400"
+            >
+                <template v-if="song.rankChange > 0">
+                    <svg
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="size-5 text-green-400"
+                    >
+                        <path d="M10 5l5 7H5l5-7z" />
+                    </svg>
+                    <p>{{ song.rankChange }}</p>
+                </template>
+                <template v-else-if="song.rankChange < 0">
+                    <svg
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="size-5 text-red-400"
+                    >
+                        <path d="M10 15l-5-7h10l-5 7z" />
+                    </svg>
+                    <p>{{ song.rankChange }}</p>
+                </template>
+                <template v-else> — </template>
+            </div>
+        </li>
     </ul>
 
     <!-- floating vote button for mobile -->
@@ -108,4 +115,13 @@ const page = usePage();
 const props = computed(() => page.props);
 
 const isVisible = ref(false);
+
+const songsWithRankChange = computed(() => {
+    return props.value.mix.songs
+        .map((song) => ({
+            ...song,
+            rankChange: Math.floor(Math.random() * 21) - 10,
+        }))
+        .sort((a, b) => b.rankChange - a.rankChange);
+});
 </script>
