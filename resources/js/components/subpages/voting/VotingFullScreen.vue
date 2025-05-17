@@ -14,7 +14,7 @@
             >
                 <span
                     class="absolute right-0 top-0 cursor-pointer p-4 text-xl z-[10000]"
-                    @click="isVisible = false"
+                    @click="emit('close-fullscreen')"
                 >
                     <XMarkIcon class="size-10 text-white" />
                 </span>
@@ -45,13 +45,14 @@ import IntroductionScreen from "./IntroductionScreen.vue";
 import VotingScreen from "./VotingScreen.vue";
 import FinishedScreen from "./FinishedScreen.vue";
 
-const isVisible = ref(false);
-
-onMounted(() => {
-    setTimeout(() => {
-        isVisible.value = true;
-    }, 1);
+const props = defineProps({
+    isVisible: {
+        type: Boolean,
+        default: false,
+    },
 });
+
+const emit = defineEmits(["close-fullscreen"]);
 
 const hasClickedContinue = ref(false);
 function handleStartVotingEvent() {
@@ -65,7 +66,7 @@ function handleEndVotingEvent() {
 }
 
 function handleCloseWindowEvent() {
-    isVisible.value = false;
+    emit("close-fullscreen");
     finishedVoting.value = false;
     hasClickedContinue.value = false;
 }

@@ -506,7 +506,7 @@ const songs = ref([
         name: "FE!N",
         artist: "Travis Scott",
         cover: "https://i.scdn.co/image/ab67616d0000b273881d8d8378cd01099babcd44",
-        requested_by: "Gilles Serrien",
+        requested_by: "Johannes Van Dyck",
         avatar_url:
             "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
     },
@@ -516,7 +516,7 @@ const songs = ref([
         name: "Pornography",
         artist: "Travis Scott",
         cover: "https://i.scdn.co/image/ab67616d0000b2736cfd9a7353f98f5165ea6160",
-        requested_by: "Gilles Serrien",
+        requested_by: "Sam Serrien",
         avatar_url:
             "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
     },
@@ -526,7 +526,7 @@ const songs = ref([
         name: "Drugs You Should Try It",
         artist: "Travis Scott",
         cover: "https://i.scdn.co/image/ab67616d0000b2730fc93fe41791c5aa51ae9645",
-        requested_by: "Gilles Serrien",
+        requested_by: "Marc-Anthony Surmont",
         avatar_url:
             "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
     },
@@ -546,7 +546,7 @@ const songs = ref([
         name: "Trap Queen",
         artist: "Fetty Wap",
         cover: "https://i.scdn.co/image/ab67616d0000b27302928b251e41844f5186920e",
-        requested_by: "Gilles Serrien",
+        requested_by: "Jonas Verstappen",
         avatar_url:
             "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
     },
