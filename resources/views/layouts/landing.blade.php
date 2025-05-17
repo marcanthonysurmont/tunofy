@@ -49,11 +49,31 @@
     {{-- Manifest --}}
     <link rel="manifest" href="/favicons/site.webmanifest" />
 
+
+    {{-- cookie stuff --}}
+    <script>
+        function acceptCookies(acceptAll) {
+            document.cookie = "cookies_accepted=" + (acceptAll ? "all" : "essential") + "; path=/; max-age=" + 60 * 60 *
+                24 * 365;
+            document.getElementById('cookie-consent').remove();
+        }
+
+        // Hide if already accepted
+        window.addEventListener('DOMContentLoaded', () => {
+            if (document.cookie.includes("cookies_accepted")) {
+                const el = document.getElementById('cookie-consent');
+                if (el) el.remove();
+            }
+        });
+    </script>
+
+
     @stack('head')
 </head>
 
 <body class="bg-background-page text-dark-white mx-auto" data-page="@yield('page_id', 'home')">
     @yield('content')
+    @include('partials.cookie-banner')
 </body>
 
 </html>
