@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Mix;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use App\Models\QueueSong;
 
 class PlaybackStateManager
 {
@@ -263,5 +264,136 @@ class PlaybackStateManager
         } else {
             $this->forget($mix, self::SONG_NEARING_END);
         }
+    }
+
+    /**
+     * Store current song information
+     */
+    public function setCurrentSong(Mix $mix, ?QueueSong $queueSong): void
+    {
+        if ($queueSong) {
+            $this->set($mix, 'current_song_id', $queueSong->id);
+        } else {
+            $this->forget($mix, 'current_song_id');
+        }
+    }
+
+    /**
+     * Get current song ID
+     */
+    public function getCurrentSongId(Mix $mix): ?int
+    {
+        return $this->get($mix, 'current_song_id');
+    }
+
+    /**
+     * Get current song details
+     */
+    public function getCurrentSong(Mix $mix): ?array
+    {
+        $songId = $this->getCurrentSongId($mix);
+        if (!$songId) {
+            return null;
+        }
+
+        $queueSong = QueueSong::with('song')->find($songId);
+        if (!$queueSong) {
+            return null;
+        }
+
+        return [
+            'id' => $queueSong->id,
+            'spotify_id' => $queueSong->song->spotify_id,
+            'name' => $queueSong->song->name,
+            'artists' => $queueSong->song->artists,
+            'album' => $queueSong->song->album
+        ];
+    }
+
+    public function getPlaybackState(Mix $mix): array
+    {
+        return [
+            'is_paused' => $this->isPaused($mix),
+            'is_queue_completed' => $this->isQueueCompleted($mix),
+            'device_id' => $this->getDeviceId($mix),
+            'current_song' => $this->getCurrentSong($mix),
+            'last_poll_time' => $this->getLastPollTime($mix),
+            'song_progress' => $this->get($mix, self::SONG_PROGRESS),
+            'song_duration' => $this->get($mix, self::SONG_DURATION),
+            'song_nearing_end' => $this->has($mix, self::SONG_NEARING_END),
+            'pending_flags' => [
+                'device_changed' => $this->has($mix, self::DEVICE_CHANGED),
+                'manual_change' => $this->has($mix, self::MANUAL_CHANGE),
+                'playback_changed' => $this->has($mix, self::PLAYBACK_CHANGED),
+            ]
+        ];
+    }
+
+    /**
+     * Should we poll right now?
+     * This considers both timing and priority flags
+     */
+    public function shouldPoll(Mix $mix): bool
+    {
+        // If any high-priority flags are set, poll immediately
+        if ($this->has($mix, self::MANUAL_CHANGE) ||
+            $this->has($mix, self::DEVICE_CHANGED) ||
+            $this->has($mix, self::PLAYBACK_CHANGED)) {
+            return true;
+        }
+
+        // If no last poll time, should poll
+        $lastPollTime = $this->getLastPollTime($mix);
+        if (!$lastPollTime) {
+            return true;
+        }
+
+        // Poll at most every 3 seconds unless flags are set
+        return now()->timestamp - $lastPollTime > 3;
+    }
+
+    /**
+     * Mark polling as active to prevent duplicate polls
+     * Returns true if successfully marked, false if already polling
+     */
+    public function startPolling(Mix $mix): bool
+    {
+        if ($this->has($mix, self::POLLING_ACTIVE)) {
+            return false;
+        }
+
+        $this->set($mix, self::POLLING_ACTIVE, true);
+        return true;
+    }
+
+    /**
+     * Mark polling as complete
+     */
+    public function endPolling(Mix $mix): void
+    {
+        $this->forget($mix, self::POLLING_ACTIVE);
+    }
+
+    /**
+     * Calculate seconds until next poll
+     */
+    public function getSecondsUntilNextPoll(Mix $mix): int
+    {
+        // If priority flags set, poll immediately
+        if ($this->has($mix, self::MANUAL_CHANGE) ||
+            $this->has($mix, self::DEVICE_CHANGED) ||
+            $this->has($mix, self::PLAYBACK_CHANGED)) {
+            return 0;
+        }
+
+        $lastPollTime = $this->getLastPollTime($mix);
+        if (!$lastPollTime) {
+            return 0;
+        }
+
+        $secondsSinceLastPoll = now()->timestamp - $lastPollTime;
+        $secondsUntilNextPoll = max(0, 3 - $secondsSinceLastPoll);
+
+        return $secondsUntilNextPoll;
     }
 }

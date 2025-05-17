@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Mix;
-use App\Models\QueueSong;
+use App\Services\PlaybackStateManager;
 use App\Services\SpotifyPollingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -11,7 +11,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 
 class PollSpotifyMixJob implements ShouldQueue
 {
@@ -40,70 +39,71 @@ class PollSpotifyMixJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(SpotifyPollingService $pollingService)
+    public function handle(SpotifyPollingService $pollingService, PlaybackStateManager $stateManager)
     {
         $mixId = $this->mix->id;
 
-        // Don't poll if queue is completed
-        if (Cache::has("mix:{$mixId}:queue_completed")) {
+        // Don't poll if queue is completed - use state manager
+        if ($stateManager->isQueueCompleted($this->mix)) {
             Log::info("Mix {$mixId} queue completed, exiting poll job");
             return;
         }
 
-        if (Cache::has("mix:{$mixId}:paused")) {
+        // Don't poll if paused - use state manager
+        if ($stateManager->isPaused($this->mix)) {
             Log::info("Mix {$mixId} is paused, skipping polling");
-            $this->scheduleNextPoll();
+            $this->scheduleNextPoll(null, $stateManager);
             return;
         }
 
-        // IMPROVED: Check for manual change with a more reliable mechanism
-        // This handles rapid skips better by using Cache::get to check the actual value
-        $manuallyChanged = Cache::get("mix:{$mixId}:manual_change", false);
-        if ($manuallyChanged) {
+        // Check for manual change - use state manager AND consume the flag immediately
+        $wasManuallyChanged = $stateManager->has($this->mix, PlaybackStateManager::MANUAL_CHANGE);
+        if ($wasManuallyChanged) {
             Log::info("Mix {$mixId} was just manually changed, skipping this poll");
-            // Don't remove the flag, let it expire naturally
-            $this->scheduleNextPoll();
+
+            // CRUCIAL: Consume the flag immediately to prevent it from persisting
+            $stateManager->forget($this->mix, PlaybackStateManager::MANUAL_CHANGE);
+
+            $this->scheduleNextPoll(null, $stateManager);
             return;
         }
 
-        // Use a cache-based rate limiter
-        $cacheKey = "mix_poll_{$mixId}_lastrun";
-        $lastRun = Cache::get($cacheKey);
-        $now = now()->timestamp;
-
-        // Only allow one run every 2 seconds minimum to prevent overpolling
-        if ($lastRun && (($now - $lastRun) < 2)) {
-            Log::debug("Rate limiting poll for mix {$mixId} - last run was " . ($now - $lastRun) . " seconds ago");
-
-            // Still reschedule if rate limited to maintain polling sequence
-            $this->scheduleNextPoll();
-            return;
-        }
-
-        // Set current timestamp
-        Cache::put($cacheKey, $now, 60);
-
-        // Get a fresh instance of the mix ONCE
-        $freshMix = Mix::find($mixId);
-
-        // Check if still active
-        if (!$freshMix || !$freshMix->is_active) {
-            Log::info("Mix {$mixId} is not active, exiting job immediately");
+        // Use a polling lock to prevent concurrent polling
+        if (!$stateManager->startPolling($this->mix)) {
+            Log::debug("Another poll already in progress for mix {$mixId}, skipping");
+            // Reschedule with normal interval
+            $this->scheduleNextPoll(null, $stateManager);
             return;
         }
 
         try {
+            // Get a fresh instance of the mix
+            $freshMix = Mix::find($mixId);
+
+            // Check if still active
+            if (!$freshMix || !$freshMix->is_active) {
+                Log::info("Mix {$mixId} is not active, exiting job immediately");
+                return; // Don't schedule next poll
+            }
+
             // Pass the fresh mix to polling service
             $result = $pollingService->pollPlayback($freshMix);
+
+            // Update last poll time in state manager
+            $stateManager->updatePollTime($freshMix);
+
+            // Consume any one-time flags (like manual_change)
+            $stateManager->consumePollFlags($freshMix);
 
             // Check for special stop polling signal
             if ($result === "stop_polling") {
                 Log::info("Stopping polling for mix {$mixId} as queue has completed");
+                $stateManager->setQueueCompleted($freshMix); // Mark as completed in state manager
                 return;  // Don't schedule next poll
             }
 
-            // Schedule the next poll
-            $this->scheduleNextPoll($freshMix);
+            // Schedule the next poll with intelligent interval
+            $this->scheduleNextPoll($freshMix, $stateManager);
         } catch (\Exception $e) {
             Log::error("Error polling mix {$mixId}: " . $e->getMessage(), [
                 'exception' => $e,
@@ -111,20 +111,30 @@ class PollSpotifyMixJob implements ShouldQueue
             ]);
 
             // Even if there's an error, schedule next poll
-            $this->scheduleNextPoll($freshMix);
+            $this->scheduleNextPoll($freshMix, $stateManager);
+        } finally {
+            // Always release polling lock
+            $stateManager->endPolling($this->mix);
         }
     }
 
     /**
      * Schedule the next polling job with appropriate interval
      */
-    private function scheduleNextPoll(?Mix $mix = null): void
+    private function scheduleNextPoll(?Mix $mix = null, ?PlaybackStateManager $stateManager = null): void
     {
         // Use provided mix or fallback to the stored one
         $mixToUse = $mix ?? $this->mix;
 
-        // Determine if we should adjust the polling interval
-        $interval = $this->intervalSeconds;
+        // CRITICAL FIX: Check if mix is still active
+        $freshCheck = Mix::find($mixToUse->id);
+        if (!$freshCheck || !$freshCheck->is_active) {
+            Log::info("Not scheduling next poll for inactive mix {$mixToUse->id}");
+            return;
+        }
+
+        // Determine optimal polling interval
+        $interval = $this->determinePollingIntervalWithStateManager($mixToUse, $stateManager);
 
         // Create a new job with the fresh mix
         PollSpotifyMixJob::dispatch($mixToUse, $this->maxIterations, $interval)
@@ -134,33 +144,31 @@ class PollSpotifyMixJob implements ShouldQueue
     }
 
     /**
-     * Determine the optimal polling interval based on playback state
+     * Determine the optimal polling interval based on playback state manager
      */
-    private function determinePollingInterval(): float
+    private function determinePollingIntervalWithStateManager(Mix $mix, ?PlaybackStateManager $stateManager = null): float
     {
-        $mixId = $this->mix->id;
-
-        // Default interval
-        $nextInterval = $this->intervalSeconds;
-
-        // Check if there's a currently playing song
-        $hasPlayingSong = QueueSong::where('mix_id', $mixId)
-            ->where('status', 'playing')
-            ->exists();
-
-        // If a song is playing, check if it's near completion
-        if ($hasPlayingSong) {
-            $songNearingEndKey = "queue:song-ending:{$mixId}";
-            if (Cache::has($songNearingEndKey)) {
-                // Song is nearing end, poll more frequently
-                $nextInterval = 1.5;
-                Log::debug("Song nearing end for mix {$mixId} - using tighter interval of {$nextInterval}s");
-            }
-        } else {
-            // No song playing - could use slightly longer interval to save resources
-            // Keeping the normal interval is also fine
+        // If no state manager provided, use default interval
+        if (!$stateManager) {
+            return $this->intervalSeconds;
         }
 
-        return $nextInterval;
+        // Priority flags for immediate polling
+        if ($stateManager->has($mix, PlaybackStateManager::MANUAL_CHANGE) ||
+            $stateManager->has($mix, PlaybackStateManager::DEVICE_CHANGED) ||
+            $stateManager->has($mix, PlaybackStateManager::PLAYBACK_CHANGED)) {
+            return 1; // Poll quickly but not instantly to avoid rate limiting
+        }
+
+        // Check if song is nearing end
+        if ($stateManager->has($mix, PlaybackStateManager::SONG_NEARING_END)) {
+            // Song is nearing end, poll more frequently
+            $nextInterval = 1.5;
+            Log::debug("Song nearing end for mix {$mix->id} - using tighter interval of {$nextInterval}s");
+            return $nextInterval;
+        }
+
+        // Default interval
+        return $this->intervalSeconds;
     }
 }

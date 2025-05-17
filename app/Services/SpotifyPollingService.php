@@ -171,15 +171,29 @@ class SpotifyPollingService
             $remainingMs = $durationMs - $progressMs;
             $percentRemaining = ($remainingMs / $durationMs) * 100;
 
-            // Set flag for tighter polling when nearing end
-            if ($percentRemaining <= 15) {
-                $songNearingEndKey = self::CACHE_PREFIX_ENDING . $mix->id;
+            // Track ended when progress is very close to duration
+            // CRITICAL: Make this more sensitive - lower threshold for more reliable detection
+            if ($remainingMs <= 2500 || $percentRemaining <= 1.0) {
+                Log::info("Track completion detected - progress at {$progressMs}ms of {$durationMs}ms ({$percentRemaining}% remaining)");
+                return self::PLAYER_STATE_TRACK_ENDED;
+            }
 
+            // Get playback state manager
+            $playbackState = app(PlaybackStateManager::class);
+
+            // Update song progress in the state manager (for UI and other components)
+            $playbackState->setSongProgress($mix, $progressMs, $durationMs);
+
+            // CRITICAL: Explicitly set or clear the flag based on the current state
+            // This ensures proper invalidation without relying on TTL
+            if ($percentRemaining <= 15) {
                 // Only set the flag and broadcast if not already done for this track
                 $trackEndNotifiedKey = "mix:{$mix->id}:track_end_notified:{$currentQueueSong->song->spotify_id}";
                 if (!Cache::has($trackEndNotifiedKey)) {
-                    Cache::put($songNearingEndKey, true, now()->addSeconds(20));
-                    // Set track-specific notification flag to prevent duplicate broadcasts
+                    // Set the flag WITHOUT TTL
+                    $playbackState->set($mix, PlaybackStateManager::SONG_NEARING_END, true);
+
+                    // Still keep track notification flag
                     Cache::put($trackEndNotifiedKey, true, now()->addSeconds(20));
                     Log::debug("Song nearing end - {$percentRemaining}% remaining");
 
@@ -197,38 +211,10 @@ class SpotifyPollingService
                         return self::PLAYER_STATE_NEARING_END;
                     }
                 }
-            }
-
-            // Improve detection of finished tracks
-            // Song is finished or very close to ending (less than 3 seconds remaining)
-            if ($remainingMs <= 3000) {
-                return self::PLAYER_STATE_FINISHED;
-            }
-
-            // Special case for detecting an empty queue with the last song nearing end
-            if ($currentQueueSong && $percentRemaining <= 10) {
-                // Check if this is the last song in the queue
-                $pendingSongCount = QueueSong::where('mix_id', $mix->id)
-                    ->where('status', 'pending')
-                    ->count();
-
-                // IMPORTANT: Force a queue extension check BEFORE deciding queue is completed
-                if ($pendingSongCount === 0) {
-                    // Try to extend the queue using the public wrapper
-                    $this->songPlaybackService->extendQueueIfNeeded($mix);
-
-                    // Check AGAIN after attempted extension
-                    $pendingSongCount = QueueSong::where('mix_id', $mix->id)
-                        ->where('status', 'pending')
-                        ->count();
-
-                    if ($pendingSongCount === 0) {
-                        Log::info("Last song in queue is ending and extension didn't add songs. Preparing for queue completion");
-                        return self::PLAYER_STATE_QUEUE_COMPLETED;
-                    } else {
-                        Log::info("Last song in queue was ending but queue was extended with {$pendingSongCount} new songs");
-                    }
-                }
+            } else {
+                // EXPLICITLY CLEAR the flag when no longer nearing end
+                // This ensures proper cache invalidation without relying on TTL
+                $playbackState->forget($mix, PlaybackStateManager::SONG_NEARING_END);
             }
         }
 
@@ -373,23 +359,25 @@ class SpotifyPollingService
                 break;
 
             case self::PLAYER_STATE_TRACK_ENDED:
-            case self::PLAYER_STATE_FINISHED:
                 Log::info("Detected track ended for mix {$mix->id}, advancing to next song");
-                // Clear the notification flag before advancing
+
+                // Clear notification flags
                 if (isset($currentQueueSong)) {
                     Cache::forget("mix:{$mix->id}:track_end_notified:{$currentQueueSong->song->spotify_id}");
                 }
 
-                // Check if there are any more songs in the queue
-                $hasPendingSongs = $this->songPlaybackService->hasPendingSongs($mix);
+                // Clear nearing end flag
+                $playbackState = app(PlaybackStateManager::class);
+                $playbackState->forget($mix, PlaybackStateManager::SONG_NEARING_END);
 
-                if (!$hasPendingSongs) {
-                    $this->handlePlayerState($mix, self::PLAYER_STATE_QUEUE_COMPLETED);
-                } else {
-                    // Only advance if there are more songs
-                    $this->songPlaybackService->advanceToNextSong($mix);
-                    // event(new PlaybackDataUpdatedEvent($mix, $playbackData));
-                }
+                // Explicitly log advancement attempt
+                Log::info("Attempting to advance to next song for mix {$mix->id}");
+
+                // Advance to next song
+                $result = $this->songPlaybackService->advanceToNextSong($mix);
+
+                // Log the result for debugging
+                Log::info("Advance result: " . json_encode($result));
                 break;
 
             case self::PLAYER_STATE_TRACK_MISMATCH:
