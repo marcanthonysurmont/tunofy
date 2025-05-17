@@ -53,9 +53,8 @@ class ResumeMixPlaybackController extends Controller
             $deviceId = $playbackState->getDeviceId($mix);
         }
 
-        // Update playback data in cache and broadcast IMMEDIATELY
-        $cacheKey = "mix:playback:" . $mix->id;
-        $playbackData = Cache::get($cacheKey, []);
+        // Get playback data through PlaybackStateManager
+        $playbackData = $playbackState->getPlaybackData($mix) ?? [];
 
         // Ensure we have the minimum required fields
         if (!isset($playbackData['item'])) {
@@ -90,7 +89,10 @@ class ResumeMixPlaybackController extends Controller
         // Broadcast the resume event BEFORE Spotify API call
         Log::info("Broadcasting resume event for mix {$mix->id}");
         event(new PlaybackDataUpdatedEvent($mix, $playbackData));
-        Cache::put($cacheKey, $playbackData);
+        Cache::put("mix:playback:" . $mix->id, $playbackData);
+
+        // Update playback data through PlaybackStateManager
+        $playbackState->setPlaybackData($mix, $playbackData);
 
         // Check if this was a regular user pause (not a co-DJ change pause)
         $wasUserPaused = Cache::has("mix:{$mix->id}:user_paused");

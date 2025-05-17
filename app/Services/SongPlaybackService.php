@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Models\PlaybackSession;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 use App\Events\MixStatusChangedEvent;
 use App\Events\DeviceUpdatedEvent;
 
@@ -145,13 +144,12 @@ class SongPlaybackService
         }
 
         // Clear device failure flag on success
-        Cache::forget("mix:{$mixId}:device_failure");
+        $this->playbackStateManager->forget($mix, 'device_failure');
 
         sleep(1.5);
 
         $playbackData = $this->spotifyService->getCurrentPlayback($user);
-
-        Cache::put("mix:playback:" . $mix->id, $playbackData);
+        $this->playbackStateManager->setPlaybackData($mix, $playbackData);
 
         event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
@@ -224,9 +222,8 @@ class SongPlaybackService
         }
 
         // Set a flag indicating we're changing tracks to prevent false mismatch detection
-        $playbackState = app(PlaybackStateManager::class);
-        $playbackState->setDeviceChanged($mix);
-        $playbackState->setPaused($mix, false);
+        $this->playbackStateManager->setDeviceChanged($mix);
+        $this->playbackStateManager->setPaused($mix, false);
 
         // Get and play the next song, passing the device ID
         $result = $this->startPlayback($mix, $deviceId);
@@ -260,8 +257,7 @@ class SongPlaybackService
             }
 
             // Set a cache flag to indicate the queue is completed
-            Cache::put("mix:{$mix->id}:queue_completed", true, now()->addMinutes(10));
-
+            $this->playbackStateManager->set($mix, 'queue_completed', true); // 10 minutes
             Log::info("Queue completed for mix {$mix->id}, all songs marked as finished");
 
             // Try to pause Spotify playback - WITH THE CORRECT USER
@@ -289,7 +285,7 @@ class SongPlaybackService
 
 
         // Retrieve the cached device ID if present
-        $deviceId = Cache::get("mix:{$mix->id}:device_id");
+        $deviceId = $this->playbackStateManager->getDeviceId($mix);
 
         // Get the currently playing song
         $currentSong = QueueSong::where('mix_id', $mix->id)
@@ -343,7 +339,7 @@ class SongPlaybackService
         }
 
         // Set a flag to indicate we're changing tracks to prevent false mismatch detection
-        Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(5));
+        $this->playbackStateManager->setDeviceChangeGracePeriod($mix, 5);
 
         // Explicitly play this song on Spotify with the same device ID
         $playResult = false;
@@ -354,7 +350,7 @@ class SongPlaybackService
         }
 
         // IMPORTANT: Clear the paused flag to ensure polling resumes
-        Cache::forget("mix:{$mix->id}:paused");
+        $this->playbackStateManager->setPaused($mix, false);
 
         if (!$playResult) {
             // Revert the status changes if we failed to play
@@ -474,11 +470,11 @@ class SongPlaybackService
             ];
         }
 
-        Cache::forget("mix:{$mix->id}:device_failure");
+        $this->playbackStateManager->forget($mix, 'device_failure');
 
         // Cache the device ID again to ensure persistence
         if ($deviceId) {
-            Cache::put("mix:{$mix->id}:device_id", $deviceId, now()->addHours(1));
+            $this->playbackStateManager->setDeviceId($mix, $deviceId);
         }
 
         Log::info("Successfully resumed intended track {$currentQueueSong->song->spotify_id}" . ($deviceId ? " on device {$deviceId}" : ""));
@@ -526,8 +522,9 @@ class SongPlaybackService
             return;
         }
 
-        // Use the cached count if available to avoid redundant queries
-        $pendingSongs = Cache::get("mix:{$mixId}:pending_count", null);
+        // Use PlaybackStateManager for pending song count
+        $playbackState = app(PlaybackStateManager::class);
+        $pendingSongs = $playbackState->getPendingSongCount($mix);
 
         // If not cached, get the count from the database
         if ($pendingSongs === null) {
@@ -535,8 +532,8 @@ class SongPlaybackService
                 ->where('status', 'pending')
                 ->count();
 
-            // Cache the result
-            Cache::put("mix:{$mixId}:pending_count", $pendingSongs, now()->addMinutes(1));
+            // Cache the result via PlaybackStateManager
+            $playbackState->setPendingSongCount($mix, $pendingSongs);
         }
 
         // Get batch size to determine threshold
@@ -554,7 +551,7 @@ class SongPlaybackService
                 ->where('status', 'pending')
                 ->count();
 
-            Cache::put("mix:{$mixId}:pending_count", $newPendingCount, now()->addMinutes(1));
+            $this->playbackStateManager->setPendingSongCount($mix, $newPendingCount);
         }
     }
 
@@ -597,7 +594,7 @@ class SongPlaybackService
                     ->count();
 
                 Log::info("Successfully extended queue for mix {$mix->id}. Now has {$newCount} pending songs");
-                Cache::put("mix:{$mix->id}:pending_count", $newCount, now()->addMinutes(5));
+                $this->playbackStateManager->setPendingSongCount($mix, $newCount);
                 return true;
             } else {
                 Log::warning("Failed to extend queue for mix {$mix->id}");

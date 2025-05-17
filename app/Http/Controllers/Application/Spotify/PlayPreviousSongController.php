@@ -60,9 +60,8 @@ class PlayPreviousSongController extends Controller
             '_action' => 'previous' // Add action type for frontend
         ];
 
-        // 5. Update cache and broadcast IMMEDIATELY
-        $cacheKey = "mix:playback:" . $mix->id;
-        Cache::put($cacheKey, $playbackData);
+        // 5. Update cache via PlaybackStateManager and broadcast IMMEDIATELY
+        $playbackStateManager->setPlaybackData($mix, $playbackData);
         event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
         // 6. Send play command to Spotify AFTER broadcasting

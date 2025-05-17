@@ -92,9 +92,11 @@ class CoDJManagementService
             $this->spotifyService->pausePlayback($userToPause);
         }
 
+        // Get the playback state manager
+        $playbackState = app(PlaybackStateManager::class);
+
         // Get cached playback data
-        $cacheKey = "mix:playback:" . $mix->id;
-        $playbackData = Cache::get($cacheKey);
+        $playbackData = $playbackState->getPlaybackData($mix);
 
         // If no cached data at all, get fresh data as a fallback
         if (!$playbackData) {
@@ -110,11 +112,11 @@ class CoDJManagementService
 
         // If we have playback info with a track, store it for resume
         if (isset($playbackData['item']['id'])) {
-            // Store the currently playing track info for more accurate resume
-            Cache::put("mix:{$mix->id}:current_track", [
+            // Add a method to PlaybackStateManager:
+            $playbackState->set($mix, 'current_track', [
                 'uri' => "spotify:track:{$playbackData['item']['id']}",
                 'position_ms' => $playbackData['progress_ms'] ?? 0,
-            ], now()->addHours(1));
+            ]);
         }
 
         // Update playback data with pause state
@@ -124,10 +126,9 @@ class CoDJManagementService
         // Broadcast pause event
         event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
-        // Update cache
-        Cache::put($cacheKey, $playbackData);
+        // Update cache via PlaybackStateManager
+        $playbackState->setPlaybackData($mix, $playbackData);
 
-        $playbackState = app(PlaybackStateManager::class);
         $playbackState->setPaused($mix, true);
         $playbackState->setManualChange($mix);
     }

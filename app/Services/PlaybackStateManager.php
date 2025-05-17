@@ -396,4 +396,60 @@ class PlaybackStateManager
 
         return $secondsUntilNextPoll;
     }
+
+    /**
+     * Indicates a device change has occurred and sets a grace period
+     */
+    public function setDeviceChangeGracePeriod(Mix $mix, int $seconds = 5): void
+    {
+        Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds($seconds));
+        Log::info("Set device change grace period of {$seconds}s for mix {$mix->id}");
+    }
+
+    /**
+     * Check if we're in a device change grace period
+     */
+    public function isInDeviceChangeGracePeriod(Mix $mix): bool
+    {
+        return Cache::has("mix:{$mix->id}:device_changed");
+    }
+
+    /**
+     * Set user paused flag
+     */
+    public function setUserPaused(Mix $mix, bool $isPaused = true): void
+    {
+        if ($isPaused) {
+            Cache::put("mix:{$mix->id}:user_paused", true, now()->addMinutes(30));
+            Log::info("Set user paused flag for mix {$mix->id}");
+        } else {
+            Cache::forget("mix:{$mix->id}:user_paused");
+            Log::info("Cleared user paused flag for mix {$mix->id}");
+        }
+    }
+
+    /**
+     * Track for user switch
+     */
+    public function setUserSwitchSongId(Mix $mix, int $songId): void
+    {
+        $this->set($mix, 'user_switch_song_id', $songId, 60);
+        Log::info("Set user switch song ID {$songId} for mix {$mix->id}");
+    }
+
+    /**
+     * Track queue statistics
+     */
+    public function setPendingSongCount(Mix $mix, int $count): void
+    {
+        Cache::put("mix:{$mix->id}:pending_count", $count, now()->addMinutes(1));
+    }
+
+    /**
+     * Get pending song count
+     */
+    public function getPendingSongCount(Mix $mix): ?int
+    {
+        return Cache::get("mix:{$mix->id}:pending_count");
+    }
 }

@@ -88,7 +88,7 @@ class SpotifyPollingService
             $playbackData = $this->spotifyService->getCurrentPlayback($user);
 
             // Store previous playback data for comparison
-            $previousData = Cache::get($cacheKey);
+            $previousData = $playbackState->getPlaybackData($mix);
 
             // No active playback detected
             if (!$playbackData) {
@@ -101,7 +101,7 @@ class SpotifyPollingService
             }
 
             // Store the playback data in cache
-            Cache::put($cacheKey, $playbackData, now()->addMinutes(5));
+            $playbackState->setPlaybackData($mix, $playbackData);
 
             // Get the currently playing song according to our queue
             $currentQueueSong = $this->songPlaybackService->getCurrentlyPlayingSong($mix);

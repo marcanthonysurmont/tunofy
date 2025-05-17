@@ -42,9 +42,8 @@ class PauseMixPlaybackController extends Controller
 
         Log::info("Pausing Spotify playback for user " . Auth::id());
 
-        // 1. Get current playback data from cache if available
-        $cacheKey = "mix:playback:" . $mix->id;
-        $playbackData = Cache::get($cacheKey, []);
+        // 1. Get current playback data through PlaybackStateManager
+        $playbackData = $playbackStateManager->getPlaybackData($mix) ?? [];
 
         // 2. First update the playback data with paused state
         $playbackData['is_playing'] = false;
@@ -52,7 +51,7 @@ class PauseMixPlaybackController extends Controller
         $playbackData['_action'] = 'pause';
 
         // 3. Update cache and broadcast IMMEDIATELY
-        Cache::put($cacheKey, $playbackData);
+        Cache::put("mix:playback:" . $mix->id, $playbackData);
         event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
         // 4. Set the paused state in PlaybackStateManager
@@ -62,7 +61,10 @@ class PauseMixPlaybackController extends Controller
         // 5. Store in cache that user manually paused
         Cache::put("mix:{$mix->id}:user_paused", true, now()->addMinutes(30));
 
-        // 6. Send pause command to Spotify AFTER broadcasting
+        // 6. Update playback data through PlaybackStateManager
+        $playbackStateManager->setPlaybackData($mix, $playbackData);
+
+        // 7. Send pause command to Spotify AFTER broadcasting
         try {
             // Get the appropriate user
             $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
