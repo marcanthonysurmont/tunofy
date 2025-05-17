@@ -491,14 +491,26 @@ class SongPlaybackService
 
     public function prepareQueueForUserSwitch(Mix $mix): void
     {
+        // Get the currently playing song BEFORE marking anything as pending
+        $currentlyPlaying = QueueSong::where('mix_id', $mix->id)
+            ->where('status', 'playing')
+            ->first();
+
+        if ($currentlyPlaying) {
+            // Store the current song ID in PlaybackStateManager
+            $playbackState = app(PlaybackStateManager::class);
+            $playbackState->set($mix, 'user_switch_song_id', $currentlyPlaying->id);
+
+            // Log the song that was playing during user switch
+            Log::info("Marked song {$currentlyPlaying->song->spotify_id} as the pre-switch active song for mix {$mix->id}");
+        }
+
         // Only reset songs that are currently playing, NOT finished ones
         QueueSong::where('mix_id', $mix->id)
             ->where('status', 'playing')
             ->update(['status' => 'pending']);
 
         // Important: don't touch 'finished' songs
-
-        // Add debug log to trace ownership transition
         Log::info("Reset queue state for user switch on mix {$mix->id} - only changed 'playing' to 'pending'");
     }
 

@@ -31,6 +31,9 @@ class TransferPlaybackController extends Controller
         $playbackState->setDeviceId($mix, $deviceId);
         $playbackState->setDeviceChanged($mix);
 
+        // Set a device change grace period to prevent track mismatches
+        Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(5));
+
         Log::info("Transferring playback for mix {$mix->id} to device {$deviceId}");
 
         // Get the current song
@@ -71,10 +74,9 @@ class TransferPlaybackController extends Controller
         $freshPlaybackData = $spotifyService->getCurrentPlayback(Auth::user());
 
         if ($freshPlaybackData) {
-            // Update cache with new playback data
-            $cacheKey = "mix:playback:" . $mix->id;
+            // Store in PlaybackStateManager instead of direct cache
             $freshPlaybackData['_timestamp'] = now()->timestamp;
-            Cache::put($cacheKey, $freshPlaybackData);
+            $playbackState->setPlaybackData($mix, $freshPlaybackData);
 
             // Broadcast the updated playback data
             event(new PlaybackDataUpdatedEvent($mix, $freshPlaybackData));

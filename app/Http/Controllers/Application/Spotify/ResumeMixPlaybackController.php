@@ -110,11 +110,56 @@ class ResumeMixPlaybackController extends Controller
                     ->first();
 
                 if ($currentSong) {
+                    // Before playing the song, set a device change grace period
+                    Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(5));
+
                     // If we have a song that should be playing, play it specifically
                     Log::info("Playing specific track {$currentSong->song->spotify_id} for mix {$mix->id}");
                     $spotifyService->playSong(Auth::user(), $currentSong->song->spotify_id, $deviceId);
+
+                    // Make sure this is still marked as playing
+                    if ($currentSong->status !== 'playing') {
+                        $currentSong->update(['status' => 'playing']);
+
+                        // If any other song is incorrectly marked as playing, fix it
+                        QueueSong::where('mix_id', $mix->id)
+                            ->where('status', 'playing')
+                            ->where('id', '!=', $currentSong->id)
+                            ->update(['status' => 'pending']);
+                    }
                 } else {
-                    // If no song is currently playing, try to get the next song in queue
+                    // First check if we're resuming after a user switch
+                    $playbackState = app(PlaybackStateManager::class);
+                    $switchSongId = $playbackState->get($mix, 'user_switch_song_id');
+
+                    if ($switchSongId) {
+                        // Clear the switch song ID after using it
+                        $playbackState->forget($mix, 'user_switch_song_id');
+
+                        // Find the song that was playing before the switch
+                        $switchSong = QueueSong::find($switchSongId);
+
+                        if ($switchSong) {
+                            // Set this as the current song
+                            $switchSong->update(['status' => 'playing']);
+
+                            // Play this specific song
+                            Log::info("Resuming song {$switchSong->song->spotify_id} that was playing before user switch");
+                            $spotifyService->playSong(Auth::user(), $switchSong->song->spotify_id, $deviceId);
+
+                            // Set device change grace period
+                            Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(5));
+
+                            // We handled the switch, so we're done
+                            return response()->json([
+                                'success' => true,
+                                'is_playing' => true
+                            ]);
+                        }
+                    }
+
+                    // If we get here, there was no switch song or we couldn't find it
+                    // Continue with the current logic to find the next pending song
                     $nextSong = QueueSong::where('mix_id', $mix->id)
                         ->where('status', 'pending')
                         ->orderBy('order')
@@ -122,6 +167,9 @@ class ResumeMixPlaybackController extends Controller
                         ->first();
 
                     if ($nextSong) {
+                        // Before playing the song, set a device change grace period
+                        Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(5));
+
                         // Update status to playing
                         $nextSong->update(['status' => 'playing']);
 

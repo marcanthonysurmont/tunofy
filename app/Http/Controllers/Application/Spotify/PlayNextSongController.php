@@ -66,13 +66,10 @@ class PlayNextSongController extends Controller
             $currentSong->update(['status' => 'finished', 'played_at' => now()]);
         }
 
-        // 3. Send playback instruction to Spotify (the slow part)
-        $deviceId = $playbackStateManager->getDeviceId($mix);
-        $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
-
-        // 4. Create playback data structure based on next song
+        // 3. Update cache and broadcast IMMEDIATELY (before Spotify API call)
         $playbackData = [
             'is_playing' => true,
+            'progress_ms' => 0,
             'item' => [
                 'id' => $nextSong->song->spotify_id,
                 'name' => $nextSong->song->name,
@@ -83,8 +80,47 @@ class PlayNextSongController extends Controller
                 ]
             ],
             '_timestamp' => now()->timestamp,
-            '_action' => 'skip'
+            '_action' => 'next' // Add action type for frontend
         ];
+
+        // Update via PlaybackStateManager (consistent state)
+        $playbackStateManager->setPlaybackData($mix, $playbackData);
+
+        // Broadcast immediately so UI updates right away
+        event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+
+        // 4. THEN handle the Spotify API call (potentially slow)
+        $deviceId = $playbackStateManager->getDeviceId($mix);
+        $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+
+        // Ensure the device is actually available on Spotify's side
+        if ($deviceId) {
+            // Set a device change grace period
+            Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(5));
+
+            // Try to activate the device first
+            $activationSuccess = $spotifyService->activateDevice($user, $deviceId);
+
+            if (!$activationSuccess) {
+                // If device activation fails, try to get active devices and pick one
+                $availableDevices = $spotifyService->getUserDevices($user);
+                if (!empty($availableDevices)) {
+                    // Use first active device or first available if none active
+                    $activeDevice = collect($availableDevices)->firstWhere('is_active', true);
+                    $deviceId = $activeDevice ? $activeDevice['id'] : $availableDevices[0]['id'];
+
+                    // Update stored device ID
+                    $playbackStateManager->setDeviceId($mix, $deviceId);
+                    Log::info("Updated device ID to {$deviceId} for mix {$mix->id} after activation failure");
+
+                    // Try to activate again
+                    $spotifyService->activateDevice($user, $deviceId);
+                }
+            }
+
+            // Add a small delay to allow the device to be ready
+            usleep(100000); // 100ms
+        }
 
         // 5. Mark the next song as playing
         $nextSong->update(['status' => 'playing']);

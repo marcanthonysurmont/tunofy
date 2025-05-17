@@ -126,8 +126,7 @@ class SetMixActiveController extends Controller
                                     '_action' => 'activating',  // Different action for loading state
                                 ];
 
-                                $cacheKey = "mix:playback:" . $mix->id;
-                                Cache::put($cacheKey, $loadingData);
+                                $playbackState->setPlaybackData($mix, $loadingData);
                                 Log::info("Broadcasting loading state for mix {$mix->id}");
                                 event(new PlaybackDataUpdatedEvent($mix, $loadingData));
 
@@ -152,7 +151,7 @@ class SetMixActiveController extends Controller
                                     'playback_started' => true
                                 ];
 
-                                Cache::put($cacheKey, $playbackData);
+                                $playbackState->setPlaybackData($mix, $playbackData);
                                 Log::info("Broadcasting actual playback data for mix {$mix->id} after playback started");
                                 event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
@@ -172,8 +171,7 @@ class SetMixActiveController extends Controller
                                 ];
 
                                 // Set cache and broadcast
-                                $cacheKey = "mix:playback:" . $mix->id;
-                                Cache::put($cacheKey, $emptyPlaybackData);
+                                $playbackState->setPlaybackData($mix, $emptyPlaybackData);
                                 event(new PlaybackDataUpdatedEvent($mix, $emptyPlaybackData));
 
                                 // Don't try to start playback if queue is empty

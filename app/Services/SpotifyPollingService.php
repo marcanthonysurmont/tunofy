@@ -150,6 +150,12 @@ class SpotifyPollingService
 
         // CASE 2: Track mismatch
         if ($playbackData['item']['id'] !== $currentQueueSong->song->spotify_id) {
+            // Don't report track mismatch if we're in a device change grace period
+            if (Cache::has("mix:{$mix->id}:device_changed")) {
+                Log::info("Ignoring track mismatch during device change grace period. Expected: {$currentQueueSong->song->spotify_id}, playing: {$playbackData['item']['id']}");
+                return self::PLAYER_STATE_NORMAL; // Continue normal playback
+            }
+
             Log::info("Track mismatch detected. Expected: {$currentQueueSong->song->spotify_id}, playing: {$playbackData['item']['id']}");
             return self::PLAYER_STATE_TRACK_MISMATCH;
         }
