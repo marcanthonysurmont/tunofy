@@ -32,6 +32,11 @@ class MixPolicy
             ->exists();
     }
 
+    public function update(User $user, Mix $mix): bool
+    {
+        return $user->id === $mix->user_id;
+    }
+
     /**
      * Determine whether the user can add songs to the mix.
      */
