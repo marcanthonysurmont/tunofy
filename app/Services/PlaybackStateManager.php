@@ -118,10 +118,26 @@ class PlaybackStateManager
     /**
      * Set device changed flag - will be consumed on first poll
      */
-    public function setDeviceChanged(Mix $mix): void
+    public function setDeviceChanged(Mix $mix, bool $value = true, int $seconds = 5): void
     {
-        $this->set($mix, self::DEVICE_CHANGED, true);
-        Log::info("Set device changed flag for mix {$mix->id}");
+        if ($value) {
+            $this->set($mix, 'device_changed', true);
+
+            // Schedule removal of the flag after specified seconds
+            dispatch(function () use ($mix) {
+                $this->forget($mix, 'device_changed');
+            })->delay(now()->addSeconds($seconds));
+        } else {
+            $this->forget($mix, 'device_changed');
+        }
+    }
+
+    /**
+     * Check if device was recently changed
+     */
+    public function hasDeviceChanged(Mix $mix): bool
+    {
+        return $this->has($mix, 'device_changed');
     }
 
     /**
@@ -607,5 +623,77 @@ class PlaybackStateManager
         } else {
             $this->forget($mix, 'recent_owner_takeback');
         }
+    }
+
+    /**
+     * Clear track end notification
+     */
+    public function clearTrackEndNotification(Mix $mix, string $trackId): void
+    {
+        Cache::forget("mix:{$mix->id}:track_end_notified:{$trackId}");
+    }
+
+    /**
+     * Check for track end notification
+     */
+    public function hasTrackEndNotification(Mix $mix, string $trackId): bool
+    {
+        return $this->has($mix, "track_end_notified:{$trackId}");
+    }
+
+    /**
+     * Set track end notification
+     */
+    public function setTrackEndNotification(Mix $mix, string $trackId, int $seconds = 20): void
+    {
+        $this->set($mix, "track_end_notified:{$trackId}", true);
+
+        // Schedule removal of the flag after specified seconds
+        dispatch(function () use ($mix, $trackId) {
+            $this->forget($mix, "track_end_notified:{$trackId}");
+        })->delay(now()->addSeconds($seconds));
+    }
+
+    /**
+     * Set seek detected
+     */
+    public function setSeekDetected(Mix $mix, int $queueSongId, bool $value = true): void
+    {
+        if ($value) {
+            Cache::put("mix:{$mix->id}:seek:{$queueSongId}", true, now()->addSeconds(15));
+        } else {
+            Cache::forget("mix:{$mix->id}:seek:{$queueSongId}");
+        }
+    }
+
+    /**
+     * Set recent track change flag
+     */
+    public function setRecentTrackChangeFlag(Mix $mix, bool $value = true, int $seconds = 5): void
+    {
+        if ($value) {
+            $this->set($mix, 'recent_takeback_track_change', true);
+
+            // Schedule removal of the flag after specified seconds
+            dispatch(function () use ($mix) {
+                $this->forget($mix, 'recent_takeback_track_change');
+                Log::info("Cleared recent takeback track change flag");
+            })->delay(now()->addSeconds($seconds));
+        } else {
+            $this->forget($mix, 'recent_takeback_track_change');
+        }
+    }
+
+    /**
+     * Check for device failure
+     */
+    public function hasDeviceFailure(Mix $mix): bool
+    {
+        return $this->has($mix, 'device_failure');
+    }
+
+    public function hasRecentTrackChange(Mix $mix): bool
+    {
+        return $this->has($mix, 'recent_takeback_track_change');
     }
 }
