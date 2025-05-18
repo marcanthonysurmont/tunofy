@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use App\Events\MixStatusChangedEvent;
 use App\Models\QueueSong;
+use App\Services\Spotify\SpotifyService;
 
 class PlaybackStateManager
 {
@@ -24,11 +25,11 @@ class PlaybackStateManager
     public const PLAYER_STATE_NORMAL = 'normal';
     public const PLAYER_STATE_NO_PLAYBACK = 'no_playback';
     public const PLAYER_STATE_TRACK_ENDED = 'track_ended';
-    public const PLAYER_STATE_TRACK_MISMATCH = 'track_mismatch'; 
+    public const PLAYER_STATE_TRACK_MISMATCH = 'track_mismatch';
     public const PLAYER_STATE_STUCK = 'stuck';
     public const PLAYER_STATE_MANUAL_SEEK_END = 'manual_seek_end';
     public const SONG_NEARING_END = 'song_nearing_end';
-    
+
     // Technical tracking fields
     public const LAST_POLL_TIME = 'last_poll_time';
     public const LAST_POLL_DATA = 'last_poll_data';
@@ -115,17 +116,14 @@ class PlaybackStateManager
     }
 
     /**
-     * Set device changed flag - will be consumed on first poll
+     * Set device changed flag with an expiration time
      */
     public function setDeviceChanged(Mix $mix, bool $value = true, int $seconds = 5): void
     {
         if ($value) {
-            $this->set($mix, 'device_changed', true);
-
-            // Schedule removal of the flag after specified seconds
-            dispatch(function () use ($mix) {
-                $this->forget($mix, 'device_changed');
-            })->delay(now()->addSeconds($seconds));
+            // Use Cache::put directly with expiration like setDeviceChangeGracePeriod does
+            Cache::put($this->formatKey($mix->id, 'device_changed'), true, now()->addSeconds($seconds));
+            Log::info("Set device change grace period of {$seconds}s for mix {$mix->id}");
         } else {
             $this->forget($mix, 'device_changed');
         }
@@ -452,15 +450,6 @@ class PlaybackStateManager
         $secondsUntilNextPoll = max(0, 3 - $secondsSinceLastPoll);
 
         return $secondsUntilNextPoll;
-    }
-
-    /**
-     * Indicates a device change has occurred and sets a grace period
-     */
-    public function setDeviceChangeGracePeriod(Mix $mix, int $seconds = 5): void
-    {
-        Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds($seconds));
-        Log::info("Set device change grace period of {$seconds}s for mix {$mix->id}");
     }
 
     /**

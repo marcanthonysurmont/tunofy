@@ -6,6 +6,7 @@ use App\Models\Mix;
 use App\Events\MixStatusChangedEvent;
 use Illuminate\Support\Facades\Log;
 use App\Jobs\PollSpotifyMixJob;
+use App\Services\Queue\QueueManagementService;
 
 class MixActivationService
 {

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use App\Events\MixStatusChangedEvent;
 use App\Events\DeviceUpdatedEvent;
 use App\Services\Spotify\SpotifyService;
+use App\Services\Queue\QueueManagementService;
 
 class SongPlaybackService
 {
@@ -353,7 +354,7 @@ class SongPlaybackService
         }
 
         // Set a flag to indicate we're changing tracks to prevent false mismatch detection
-        $this->playbackStateManager->setDeviceChangeGracePeriod($mix, 5);
+        $this->playbackStateManager->setDeviceChanged($mix, true, 5);
 
         // Explicitly play this song on Spotify with the same device ID
         $playResult = false;
