@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Mix;
 use App\Models\QueueSong;
-use App\Models\User;
 use App\Models\PlaybackSession;
 use Illuminate\Support\Facades\Log;
 use App\Events\PlaybackDataUpdatedEvent;
@@ -17,7 +16,8 @@ class SpotifyPollingService
     public function __construct(
         protected SpotifyService $spotifyService,
         protected SongPlaybackService $songPlaybackService,
-        protected QueueManagementService $queueManagementService
+        protected QueueManagementService $queueManagementService,
+        protected PlaybackStateManager $playbackState
     ) {
     }
 
@@ -27,14 +27,12 @@ class SpotifyPollingService
     public function pollPlayback(Mix $mix): ?array
     {
         try {
-            // Check if the queue has been completed - skip polling entirely
-            $playbackState = app(PlaybackStateManager::class);
-            if ($playbackState->isQueueCompleted($mix)) {
+            if ($this->playbackState->isQueueCompleted($mix)) {
                 Log::info("Mix {$mix->id} queue completed, skipping polling");
                 return null;
             }
 
-            if ($playbackState->hasDeviceFailure($mix)) {
+            if ($this->playbackState->hasDeviceFailure($mix)) {
                 Log::info("Mix {$mix->id} has device failure flag, stopping polling until user action");
                 return [
                     'success' => false,
@@ -48,10 +46,10 @@ class SpotifyPollingService
             $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
             // Check if we recently changed devices - if so, skip this poll cycle
-            if ($playbackState->has($mix, PlaybackStateManager::DEVICE_CHANGED)) {
+            if ($this->playbackState->has($mix, PlaybackStateManager::DEVICE_CHANGED)) {
                 Log::info("Mix {$mix->id} was just manually changed, skipping this poll");
                 // Consume the flag after using it
-                $playbackState->forget($mix, PlaybackStateManager::DEVICE_CHANGED);
+                $this->playbackState->forget($mix, PlaybackStateManager::DEVICE_CHANGED);
                 return null;
             }
 
@@ -59,7 +57,7 @@ class SpotifyPollingService
             $playbackData = $this->spotifyService->getCurrentPlayback($user);
 
             // Store previous playback data for comparison
-            $previousData = $playbackState->getPlaybackData($mix);
+            $previousData = $this->playbackState->getPlaybackData($mix);
 
             // No active playback detected
             if (!$playbackData) {
@@ -72,7 +70,7 @@ class SpotifyPollingService
             }
 
             // Store the playback data in cache
-            $playbackState->setPlaybackData($mix, $playbackData);
+            $this->playbackState->setPlaybackData($mix, $playbackData);
 
             // Get the currently playing song according to our queue
             $currentQueueSong = $this->songPlaybackService->getCurrentlyPlayingSong($mix);
@@ -86,7 +84,7 @@ class SpotifyPollingService
             // Check for queue completion signal
             if ($result === PlaybackStateManager::QUEUE_COMPLETED) {
                 // Set the queue_completed flag in cache
-                $playbackState->setQueueCompleted($mix, true);
+                $this->playbackState->setQueueCompleted($mix, true);
                 return [
                     'success' => false,
                     'action' => 'stop_polling',
@@ -114,14 +112,11 @@ class SpotifyPollingService
      */
     private function analyzePlayerState(Mix $mix, ?QueueSong $currentQueueSong, array $playbackData, ?array $previousData = null): string
     {
-        // Get playback state manager
-        $playbackState = app(PlaybackStateManager::class);
-
         // Enhanced manual control check - give more time for operations to complete
-        if ($playbackState->has($mix, PlaybackStateManager::MANUAL_CHANGE)) {
+        if ($this->playbackState->has($mix, PlaybackStateManager::MANUAL_CHANGE)) {
             // If a manual change was very recent (within 3 seconds), trust the UI state
             // over what Spotify reports - makes UI feel more responsive
-            $manualChangeTime = $playbackState->get($mix, 'manual_change_timestamp');
+            $manualChangeTime = $this->playbackState->get($mix, 'manual_change_timestamp');
             if ($manualChangeTime && (time() - $manualChangeTime < 3)) {
                 Log::info("Detected recent manual control for mix {$mix->id}, delaying state analysis");
                 return PlaybackStateManager::PLAYER_STATE_NORMAL; // Trust the UI state
@@ -149,7 +144,7 @@ class SpotifyPollingService
         // CASE 2: Track mismatch
         if ($playbackData['item']['id'] !== $currentQueueSong->song->spotify_id) {
             // Don't report track mismatch if we're in a device change grace period
-            if ($playbackState->hasDeviceChanged($mix)) {
+            if ($this->playbackState->hasDeviceChanged($mix)) {
                 Log::info("Ignoring track mismatch during device change grace period. Expected: {$currentQueueSong->song->spotify_id}, playing: {$playbackData['item']['id']}");
                 return PlaybackStateManager::PLAYER_STATE_NORMAL; // Continue normal playback
             }
@@ -164,7 +159,7 @@ class SpotifyPollingService
         }
 
         // CASE 3: Manual seek detection
-        if ($this->isManualSeekToEnd($mix, $previousData, $playbackData, $currentQueueSong, $playbackState)) {
+        if ($this->isManualSeekToEnd($mix, $previousData, $currentQueueSong)) {
             return PlaybackStateManager::PLAYER_STATE_MANUAL_SEEK_END;
         }
 
@@ -185,7 +180,7 @@ class SpotifyPollingService
             // ADDITIONAL CHECK: If previous data exists and shows a different track, that means the track ended
             $current = $playbackData['item']['id'] ?? null;
             $previous = $previousData['item']['id'] ?? null;
-            $recentTakeback = $playbackState->hasRecentTrackChange($mix);
+            $recentTakeback = $this->playbackState->hasRecentTrackChange($mix);
 
             if ($current && $previous && $current !== $previous && !$recentTakeback) {
                 Log::info("Track change detected from {$previous} to {$current} - treating as track ended");
@@ -201,22 +196,19 @@ class SpotifyPollingService
                 return PlaybackStateManager::PLAYER_STATE_TRACK_ENDED;
             }
 
-            // Get playback state manager
-            $playbackState = app(PlaybackStateManager::class);
-
             // Update song progress in the state manager (for UI and other components)
-            $playbackState->setSongProgress($mix, $progressMs, $durationMs);
+            $this->playbackState->setSongProgress($mix, $progressMs, $durationMs);
 
             // CRITICAL: Explicitly set or clear the flag based on the current state
             // This ensures proper invalidation without relying on TTL
             if ($percentRemaining <= 15) {
                 // Only set the flag and broadcast if not already done for this track
-                if (!$playbackState->hasTrackEndNotification($mix, $currentQueueSong->song->spotify_id)) {
+                if (!$this->playbackState->hasTrackEndNotification($mix, $currentQueueSong->song->spotify_id)) {
                     // Set the flag WITHOUT TTL
-                    $playbackState->set($mix, PlaybackStateManager::SONG_NEARING_END, true);
+                    $this->playbackState->set($mix, PlaybackStateManager::SONG_NEARING_END, true);
 
                     // Still keep track notification flag
-                    $playbackState->setTrackEndNotification($mix, $currentQueueSong->song->spotify_id, 20);
+                    $this->playbackState->setTrackEndNotification($mix, $currentQueueSong->song->spotify_id, 20);
                     Log::debug("Song nearing end - {$percentRemaining}% remaining");
 
                     // Check if this is the last song in the queue
@@ -236,7 +228,7 @@ class SpotifyPollingService
             } else {
                 // EXPLICITLY CLEAR the flag when no longer nearing end
                 // This ensures proper cache invalidation without relying on TTL
-                $playbackState->forget($mix, PlaybackStateManager::SONG_NEARING_END);
+                $this->playbackState->forget($mix, PlaybackStateManager::SONG_NEARING_END);
             }
         }
 
@@ -252,8 +244,10 @@ class SpotifyPollingService
     /**
      * Check if user manually sought to near the end of the track
      */
-    private function isManualSeekToEnd(Mix $mix, ?array $previousData, ?array $playbackData, QueueSong $currentQueueSong, PlaybackStateManager $playbackState): bool
+    private function isManualSeekToEnd(Mix $mix, ?array $previousData, QueueSong $currentQueueSong): bool
     {
+        $playbackData = $this->playbackState->getPlaybackData($mix);
+
         if (!$previousData ||
             !isset($previousData['progress_ms']) ||
             !isset($playbackData['progress_ms']) ||
@@ -268,11 +262,11 @@ class SpotifyPollingService
         // Large forward jump to near the end
         if ($progressDiff > 5000 && ($currentPosition / $durationMs) > 0.9) {
             Log::info("Detected manual seek to near end");
-            $playbackState->setSeekDetected($mix, $currentQueueSong->id, true);
+            $this->playbackState->setSeekDetected($mix, $currentQueueSong->id, true);
         }
 
         // Already detected seek and now very close to the end
-        return $playbackState->has($mix, "seek:{$currentQueueSong->id}") &&
+        return $this->playbackState->has($mix, "seek:{$currentQueueSong->id}") &&
                ($currentPosition / $durationMs) > 0.97;
     }
 
@@ -307,9 +301,6 @@ class SpotifyPollingService
      */
     private function handlePlayerState(Mix $mix, string $playerState, ?array $playbackData = null, ?QueueSong $currentQueueSong = null, ?array $previousData = null)
     {
-        // Initialize PlaybackStateManager once at the top
-        $playbackState = app(PlaybackStateManager::class);
-
         // Add protection at the beginning of the method
         if ($playerState === PlaybackStateManager::PLAYER_STATE_NORMAL && $playbackData === null) {
             Log::error("Received null playback data for NORMAL state in mix {$mix->id}");
@@ -317,7 +308,7 @@ class SpotifyPollingService
         }
 
         // Try harder to find device ID - check multiple patterns
-        $deviceId = $playbackState->getDeviceId($mix);
+        $deviceId = $this->playbackState->getDeviceId($mix);
 
         Log::info("Handling player state {$playerState} for mix {$mix->id}" .
                   ($deviceId ? " with device {$deviceId}" : " with no specific device"));
@@ -343,7 +334,7 @@ class SpotifyPollingService
                     ]);
 
                 // Set cache flag
-                $playbackState->setQueueCompleted($mix, true);
+                $this->playbackState->setQueueCompleted($mix, true);
 
                 $coDj = $mix->coDj;
                 if ($coDj) {
@@ -362,18 +353,17 @@ class SpotifyPollingService
                 }
 
                 return PlaybackStateManager::QUEUE_COMPLETED;
-                break;
 
             case PlaybackStateManager::PLAYER_STATE_TRACK_ENDED:
                 Log::info("Detected track ended for mix {$mix->id}, advancing to next song");
 
                 // Clear notification flags
                 if (isset($currentQueueSong)) {
-                    $playbackState->clearTrackEndNotification($mix, $currentQueueSong->song->spotify_id);
+                    $this->playbackState->clearTrackEndNotification($mix, $currentQueueSong->song->spotify_id);
                 }
 
                 // Clear nearing end flag
-                $playbackState->forget($mix, PlaybackStateManager::SONG_NEARING_END);
+                $this->playbackState->forget($mix, PlaybackStateManager::SONG_NEARING_END);
 
                 // Explicitly log advancement attempt
                 Log::info("Attempting to advance to next song for mix {$mix->id}");
@@ -387,7 +377,7 @@ class SpotifyPollingService
 
             case PlaybackStateManager::PLAYER_STATE_TRACK_MISMATCH:
                 // Only try to fix mismatches if we're not in a device change grace period
-                if (!$playbackState->hasDeviceChanged($mix)) {
+                if (!$this->playbackState->hasDeviceChanged($mix)) {
                     Log::info("Detected track mismatch for mix {$mix->id}, resuming intended track");
                     $this->songPlaybackService->resumeIntendedTrack($mix);
                 } else {
@@ -427,7 +417,7 @@ class SpotifyPollingService
                 Log::info("Detected normal (playing) playback for mix {$mix->id}, broadcasting play event");
 
                 // Fetch the CACHED playback data, not null playbackData parameter
-                $cachedPlaybackData = $playbackState->getPlaybackData($mix);
+                $cachedPlaybackData = $this->playbackState->getPlaybackData($mix);
 
                 // Debug playback data
                 Log::debug("Playback data: " . ($cachedPlaybackData ? 'Valid cached data' : 'null'));
@@ -457,8 +447,6 @@ class SpotifyPollingService
      */
     private function updateCacheAndBroadcast(Mix $mix, ?array $playbackData, ?array $previousData): void
     {
-        $playbackState = app(PlaybackStateManager::class);
-
         // Handle no playback data case
         if (empty($playbackData) || !isset($playbackData['item'])) {
             $noPlaybackData = [
@@ -466,7 +454,7 @@ class SpotifyPollingService
                 '_timestamp' => now()->timestamp
             ];
 
-            $playbackState->setPlaybackData($mix, $noPlaybackData);
+            $this->playbackState->setPlaybackData($mix, $noPlaybackData);
 
             // Only broadcast if previous state was different
             if (empty($previousData) ||
@@ -483,7 +471,7 @@ class SpotifyPollingService
         $playbackData['_timestamp'] = now()->timestamp;
 
         // Always update cache
-        $playbackState->setPlaybackData($mix, $playbackData);
+        $this->playbackState->setPlaybackData($mix, $playbackData);
 
         // Only broadcast if we have significant changes - even for active mixes
         if ($this->hasSignificantChanges($previousData, $playbackData)) {
