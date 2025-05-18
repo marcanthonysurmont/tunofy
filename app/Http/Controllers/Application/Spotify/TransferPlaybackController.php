@@ -10,7 +10,6 @@ use App\Events\PlaybackDataUpdatedEvent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use App\Services\PlaybackStateManager;
 
@@ -28,15 +27,10 @@ class TransferPlaybackController extends Controller
 
         // Store the new device ID and set device changed flag
         $playbackState = app(PlaybackStateManager::class);
-        $playbackState->setDeviceId($mix, $deviceId);
-        $playbackState->setDeviceChanged($mix);
-
-        // Set a device change grace period to prevent track mismatches
-        Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(5));
 
         Log::info("Transferring playback for mix {$mix->id} to device {$deviceId}");
 
-        // Get the current song
+        // Get current song and progress to preserve position
         $currentQueueSong = QueueSong::where('mix_id', $mix->id)
             ->where('status', 'playing')
             ->with('song')
@@ -50,44 +44,55 @@ class TransferPlaybackController extends Controller
         $playbackData = $spotifyService->getCurrentPlayback(Auth::user());
         $progressMs = $playbackData['progress_ms'] ?? 0;
 
-        // Activate the device and transfer playback
-        $activationSuccess = $spotifyService->activateDevice(Auth::user(), $deviceId);
+        // FIRST call Spotify API - Activate the device and transfer playback
+        try {
+            $activationSuccess = $spotifyService->activateDevice(Auth::user(), $deviceId);
 
-        if (!$activationSuccess) {
-            return response()->json(['error' => 'Failed to activate device'], 500);
+            if (!$activationSuccess) {
+                return response()->json(['error' => 'Failed to activate device'], 500);
+            }
+
+            // Give Spotify a moment to register the device activation
+            usleep(200000); // 200ms
+
+            // Play the current song at the current position
+            $playSuccess = $spotifyService->playTrackOnDevice(
+                Auth::user(),
+                $currentQueueSong->song->spotify_id,
+                $deviceId,
+                $progressMs
+            );
+
+            // ONLY AFTER API success, update state and broadcast
+            if ($playSuccess) {
+                // Store the new device ID
+                $playbackState->setDeviceId($mix, $deviceId);
+
+                // Set device change grace period
+                $playbackState->setDeviceChanged($mix);
+
+                // Broadcast device update
+                event(new DeviceUpdatedEvent($mix));
+
+                // Get updated playback data
+                $updatedPlaybackData = $spotifyService->getCurrentPlayback(Auth::user());
+
+                // If we got data, broadcast it
+                if ($updatedPlaybackData) {
+                    $playbackState->setPlaybackData($mix, $updatedPlaybackData);
+                    event(new PlaybackDataUpdatedEvent($mix, $updatedPlaybackData));
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'device_id' => $deviceId
+                ]);
+            } else {
+                return response()->json(['error' => 'Failed to play track on new device'], 500);
+            }
+        } catch (\Exception $e) {
+            Log::error("Error transferring playback: " . $e->getMessage());
+            return response()->json(['error' => 'Error transferring playback: ' . $e->getMessage()], 500);
         }
-
-        // Play the current song on the new device, preserving position
-        $playResult = $spotifyService->playTrackOnDevice(
-            Auth::user(),
-            $currentQueueSong->song->spotify_id,
-            $deviceId,
-            $progressMs
-        );
-
-        if (!$playResult) {
-            return response()->json(['error' => 'Failed to transfer playback'], 500);
-        }
-
-        // Get fresh playback data after transfer
-        sleep(1); // Brief delay to ensure API has updated
-        $freshPlaybackData = $spotifyService->getCurrentPlayback(Auth::user());
-
-        if ($freshPlaybackData) {
-            // Store in PlaybackStateManager instead of direct cache
-            $freshPlaybackData['_timestamp'] = now()->timestamp;
-            $playbackState->setPlaybackData($mix, $freshPlaybackData);
-
-            // Broadcast the updated playback data
-            event(new PlaybackDataUpdatedEvent($mix, $freshPlaybackData));
-        }
-
-        Log::info("Successfully transferred playback to device {$deviceId} for mix {$mix->id}");
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Playback transferred successfully',
-            'device_id' => $deviceId
-        ]);
     }
 }

@@ -579,9 +579,9 @@ class SongPlaybackService
         // Get batch size to determine threshold
         $batchSize = $mix->preset->batch_size;
 
-        // IMPORTANT: Use a much higher threshold when fewer songs remain
-        // If we only have 3 or fewer songs OR less than threshold, extend
-        if ($pendingSongs <= 3 || $pendingSongs <= ($batchSize * 0.5)) {
+        // If fewer than 3 songs or half a batch size (whichever is larger), add more rounds
+        $threshold = max(3, ($batchSize * 0.5));
+        if ($pendingSongs <= $threshold) {
             Log::info("Queue for mix {$mix->id} is running low ({$pendingSongs} songs left). Adding more rounds.");
 
             // Force add 2 more rounds

@@ -130,6 +130,20 @@ class SpotifyPollingService
      */
     private function analyzePlayerState(Mix $mix, User $user, ?QueueSong $currentQueueSong, array $playbackData, ?array $previousData = null): string
     {
+        // Get playback state manager
+        $playbackState = app(PlaybackStateManager::class);
+
+        // Enhanced manual control check - give more time for operations to complete
+        if ($playbackState->has($mix, PlaybackStateManager::MANUAL_CHANGE)) {
+            // If a manual change was very recent (within 3 seconds), trust the UI state
+            // over what Spotify reports - makes UI feel more responsive
+            $manualChangeTime = $playbackState->get($mix, 'manual_change_timestamp');
+            if ($manualChangeTime && (time() - $manualChangeTime < 3)) {
+                Log::info("Detected recent manual control for mix {$mix->id}, delaying state analysis");
+                return self::PLAYER_STATE_NORMAL; // Trust the UI state
+            }
+        }
+
         // Handle the case when no song is marked as playing in our system
         if (!$currentQueueSong) {
             // But Spotify is playing something
@@ -291,6 +305,12 @@ class SpotifyPollingService
      */
     private function handlePlayerState(Mix $mix, string $playerState, ?array $playbackData = null, ?QueueSong $currentQueueSong = null, ?array $previousData = null)
     {
+        // Add protection at the beginning of the method
+        if ($playerState === self::PLAYER_STATE_NORMAL && $playbackData === null) {
+            Log::error("Received null playback data for NORMAL state in mix {$mix->id}");
+            return; // Early return to prevent further processing
+        }
+
         // Try harder to find device ID - check multiple patterns
         $deviceId = Cache::get("mix:{$mix->id}:device_id");
 
@@ -427,10 +447,24 @@ class SpotifyPollingService
             case self::PLAYER_STATE_NORMAL:
                 Log::info("Detected normal (playing) playback for mix {$mix->id}, broadcasting play event");
 
-                if ($this->hasSignificantChanges($previousData, $playbackData)) {
-                    event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+                // Fetch the CACHED playback data, not null playbackData parameter
+                $cachedPlaybackData = app(PlaybackStateManager::class)->getPlaybackData($mix);
+
+                // Debug playback data
+                Log::debug("Playback data: " . ($cachedPlaybackData ? 'Valid cached data' : 'null'));
+
+                // Check if we have valid data
+                if (!$cachedPlaybackData) {
+                    Log::error("Invalid playback data for mix {$mix->id}: NULL");
+                    return; // Early return
+                }
+
+                // Only proceed if we have significant changes
+                if ($this->hasSignificantChanges($previousData, $cachedPlaybackData)) {
+                    Log::info("Broadcasting playback change for mix {$mix->id}");
+                    event(new PlaybackDataUpdatedEvent($mix, $cachedPlaybackData));
                 } else {
-                    Log::debug("Play state unchanged for mix {$mix->id}, skipping broadcast");
+                    Log::debug("No significant changes for mix {$mix->id} - skipping broadcast");
                 }
                 break;
         }

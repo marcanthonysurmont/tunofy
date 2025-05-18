@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Application\Spotify;
 
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
+use App\Models\QueueSong;
 use App\Services\SongPlaybackService;
 use Illuminate\Http\JsonResponse;
 use App\Events\PlaybackDataUpdatedEvent;
@@ -22,7 +23,7 @@ class PlayPreviousSongController extends Controller
     ): JsonResponse {
         $this->authorize('controlPlayback', $mix);
 
-        // 1. Get the current song that's playing
+        // Get the current song that's playing
         $currentSong = $songPlaybackService->getCurrentlyPlayingSong($mix);
         if (!$currentSong) {
             return response()->json([
@@ -31,12 +32,36 @@ class PlayPreviousSongController extends Controller
             ]);
         }
 
-        // 2. Get the previous song from the same session
-        $previousSong = $songPlaybackService->getPreviousSong($mix, $currentSong);
-        if (!$previousSong) {
+        // IMPROVED APPROACH: Track song navigation history in cache
+        $historyKey = "mix:{$mix->id}:song_history";
+        $songHistory = Cache::get($historyKey, []);
+
+        // Check if we have history
+        if (!empty($songHistory)) {
+            // Get the last played song ID from history
+            $previousSongId = array_pop($songHistory);
+
+            // Store updated history back in cache
+            Cache::put($historyKey, $songHistory, now()->addHours(1));
+
+            // Get the previous song
+            $previousSong = QueueSong::where('mix_id', $mix->id)
+                ->where('id', $previousSongId)
+                ->with('song')
+                ->first();
+
+            if ($previousSong) {
+                Log::info("Found previous song {$previousSong->id} from history cache for mix {$mix->id}");
+            }
+        }
+
+        // If no valid previous song found from history, return an error
+        // This prevents unexpected behavior when no true "previous" song exists
+        if (empty($previousSong)) {
+            Log::info("No previous song found in history for mix {$mix->id} - rejecting previous command");
             return response()->json([
                 'success' => false,
-                'message' => 'Already at the first song in this session'
+                'message' => 'No previous song available'
             ]);
         }
 
@@ -44,7 +69,7 @@ class PlayPreviousSongController extends Controller
         $currentSong->update(['status' => 'pending']);
         $previousSong->update(['status' => 'playing']);
 
-        // 4. Create playback data structure based on previous song
+        // Prepare the playback data but DON'T broadcast yet
         $playbackData = [
             'is_playing' => true,
             'item' => [
@@ -57,59 +82,43 @@ class PlayPreviousSongController extends Controller
                 ]
             ],
             '_timestamp' => now()->timestamp,
-            '_action' => 'previous' // Add action type for frontend
+            '_action' => 'previous'
         ];
 
-        // 5. Update cache via PlaybackStateManager and broadcast IMMEDIATELY
-        $playbackStateManager->setPlaybackData($mix, $playbackData);
-        event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+        // OPTIMIZATION: Reuse device activation status from cache
+        $deviceId = $playbackStateManager->getDeviceId($mix);
+        $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+        $recentlyActivated = Cache::get("mix:{$mix->id}:device_activated", false);
 
-        // 6. Send play command to Spotify AFTER broadcasting
-        try {
-            // Get device ID if needed
-            $deviceId = $playbackStateManager->getDeviceId($mix);
-            $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+        if ($deviceId) {
+            // Only activate if not recently activated
+            $activationSuccess = $recentlyActivated || $spotifyService->activateDevice($user, $deviceId);
 
-            // Ensure the device is actually available on Spotify's side
-            if ($deviceId) {
-                // Set a device change grace period
-                Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(5));
-
-                // Try to activate the device first
-                $activationSuccess = $spotifyService->activateDevice($user, $deviceId);
-
-                if (!$activationSuccess) {
-                    // If device activation fails, try to get active devices and pick one
-                    $availableDevices = $spotifyService->getUserDevices($user);
-                    if (!empty($availableDevices)) {
-                        // Use first active device or first available if none active
-                        $activeDevice = collect($availableDevices)->firstWhere('is_active', true);
-                        $deviceId = $activeDevice ? $activeDevice['id'] : $availableDevices[0]['id'];
-
-                        // Update stored device ID
-                        $playbackStateManager->setDeviceId($mix, $deviceId);
-                        Log::info("Updated device ID to {$deviceId} for mix {$mix->id} after activation failure");
-
-                        // Try to activate again
-                        $spotifyService->activateDevice($user, $deviceId);
-                    }
-                }
-
-                // Add a small delay to allow the device to be ready
-                usleep(100000); // 100ms
+            if ($activationSuccess && !$recentlyActivated) {
+                Cache::put("mix:{$mix->id}:device_activated", true, now()->addSeconds(30));
             }
 
-            // Tell Spotify to play this song
-            $spotifyService->playTrackOnDevice(
-                $user,
-                $previousSong->song->spotify_id,
-                $deviceId
-            );
+            if ($activationSuccess) {
+                // Play song immediately
+                $success = $spotifyService->playTrackOnDevice(
+                    $user,
+                    $previousSong->song->spotify_id,
+                    $deviceId
+                );
+            }
+        }
 
-            // Set manual change flag to prevent polling override
+        // Update DB and broadcast in parallel for speed
+        if (isset($success) && $success) {
+            // Set manual change flag
             $playbackStateManager->setManualChange($mix);
 
-            // Return success response with song data
+            // Update cache
+            $playbackStateManager->setPlaybackData($mix, $playbackData);
+
+            // Broadcast AFTER successful API call
+            event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+
             return response()->json([
                 'success' => true,
                 'song' => [
@@ -121,19 +130,15 @@ class PlayPreviousSongController extends Controller
                     'image_url' => $previousSong->song->image_url
                 ]
             ]);
-        } catch (\Exception $e) {
-            Log::error("Error playing previous track: " . $e->getMessage());
+        } else {
+            // Revert database changes
+            $currentSong->update(['status' => 'playing']);
+            $previousSong->update(['status' => 'finished']);
 
-            // Even if Spotify play fails, we've already updated the UI
+            Log::error("Failed to play previous song on Spotify for mix {$mix->id}");
             return response()->json([
-                'success' => true,
-                'song' => [
-                    'spotify_id' => $previousSong->song->spotify_id,
-                    'name' => $previousSong->song->name,
-                    'artist' => $previousSong->song->artist,
-                    'duration_ms' => $previousSong->song->duration_ms,
-                    'image_url' => $previousSong->song->image_url
-                ]
+                'success' => false,
+                'message' => 'Failed to play previous song on Spotify'
             ]);
         }
     }

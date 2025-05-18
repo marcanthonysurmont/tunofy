@@ -110,7 +110,8 @@ class PlaybackStateManager
      */
     public function setManualChange(Mix $mix): void
     {
-        $this->set($mix, self::MANUAL_CHANGE, true);
+        $this->set($mix, self::MANUAL_CHANGE);
+        $this->set($mix, 'manual_change_timestamp');
         Log::info("Set manual change flag for mix {$mix->id}");
     }
 
@@ -193,22 +194,23 @@ class PlaybackStateManager
     /**
      * Store current playback data
      */
-    public function setPlaybackData(Mix $mix, ?array $playbackData): void
+    public function setPlaybackData(Mix $mix, array $data): void
     {
-        if (!$playbackData) {
-            Log::warning("Attempted to store null playback data for mix {$mix->id}");
-            return;
+        // IMPORTANT: Ensure we preserve progress_ms if it exists in new data
+        $existingData = $this->getPlaybackData($mix) ?? [];
+
+        // If new data doesn't have progress_ms but existing data does, preserve it
+        if (!isset($data['progress_ms']) && isset($existingData['progress_ms'])) {
+            $data['progress_ms'] = $existingData['progress_ms'];
+            Log::debug("Preserved position data ({$data['progress_ms']}ms) for mix {$mix->id}");
         }
 
-        // Add timestamp if missing
-        if (!isset($playbackData['_timestamp'])) {
-            $playbackData['_timestamp'] = now()->timestamp;
-        }
+        $cacheKey = "mix:playback:{$mix->id}";
+        Cache::put($cacheKey, $data);
 
-        // Log the storage operation
-        $this->set($mix, self::LAST_POLL_DATA, $playbackData);
-        Log::debug("Stored playback data for mix {$mix->id} with ID " .
-                  ($playbackData['item']['id'] ?? 'unknown'));
+        if (isset($data['item']['id'])) {
+            Log::debug("Stored playback data for mix {$mix->id} with ID {$data['item']['id']}");
+        }
     }
 
     /**
