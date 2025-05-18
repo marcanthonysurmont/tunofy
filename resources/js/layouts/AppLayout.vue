@@ -115,6 +115,12 @@
         @close-modal="storeConfirmationModal.cancel"
         @confirm="storeConfirmationModal.accept"
     />
+    <InformationModal
+        :is-visible="storeInformationModal.isVisible"
+        :title="storeInformationModal.title"
+        :text="storeInformationModal.text"
+        @close-modal="storeInformationModal.hideInfoModal"
+    />
 </template>
 
 <script setup>
@@ -131,13 +137,15 @@ import JoinMixModal from "@/components/modals/mixes/JoinMixModal.vue";
 import ToastList from "@/components/toasts/ToastList.vue";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal.vue";
 import { StoreConfirmationModal } from "@/stores/StoreConfirmationModal";
+import { StoreInformationModal } from "@/stores/StoreInformationModal";
 import SidebarDesktop from "@/components/navigation/SidebarDesktop.vue";
 import SidebarMobile from "@/components/navigation/SidebarMobile.vue";
+import InformationModal from "@/components/modals/InformationModal.vue";
 
 const storeConfirmationModal = StoreConfirmationModal();
+const storeInformationModal = StoreInformationModal();
 
 const sidebarOpen = ref(false);
-let lastScrollY = 0;
 
 const isAddMixModalVisible = ref(false);
 function closeAddMixModal() {
