@@ -15,9 +15,11 @@ use App\Events\DeviceUpdatedEvent;
 
 class SongPlaybackService
 {
-    public function __construct(protected SpotifyService $spotifyService, protected PlaybackStateManager $playbackStateManager)
-    {
-    }
+    public function __construct(
+        protected SpotifyService $spotifyService, 
+        protected PlaybackStateManager $playbackStateManager,
+    )
+    {}
 
     /**
      * Get the next song to play from the queue
@@ -56,8 +58,7 @@ class SongPlaybackService
 
         // If no device ID was passed, check if one is stored in PlaybackStateManager
         if (!$deviceId) {
-            $playbackState = app(PlaybackStateManager::class);
-            $deviceId = $playbackState->getDeviceId($mix);
+            $deviceId = $this->playbackStateManager->getDeviceId($mix);
 
             if ($deviceId) {
                 Log::info("Retrieved stored device ID {$deviceId} for mix {$mixId} from PlaybackStateManager");
@@ -506,9 +507,8 @@ class SongPlaybackService
 
         if ($currentlyPlaying) {
             // Store the current song ID in PlaybackStateManager
-            $playbackState = app(PlaybackStateManager::class);
-            $playbackState->set($mix, 'user_switch_song_id', $currentlyPlaying->id);
-            $playbackState->set($mix, 'switch_track_id', $currentlyPlaying->song->spotify_id);
+            $this->playbackStateManager->set($mix, 'user_switch_song_id', $currentlyPlaying->id);
+            $this->playbackStateManager->set($mix, 'switch_track_id', $currentlyPlaying->song->spotify_id);
 
             // Log the song that was playing during user switch
             Log::info("Marked song {$currentlyPlaying->song->spotify_id} as the pre-switch active song for mix {$mix->id}");
@@ -519,7 +519,7 @@ class SongPlaybackService
 
             // Set the flag to indicate we're in a takeback state
             if (!$mix->co_dj_id) {
-                $playbackState->setRecentOwnerTakeback($mix, true);
+                $this->playbackStateManager->setRecentOwnerTakeback($mix, true);
                 Log::info("Set recent owner takeback flag for mix {$mix->id}");
             }
         }
@@ -537,9 +537,7 @@ class SongPlaybackService
             return;
         }
 
-        // Use PlaybackStateManager for pending song count
-        $playbackState = app(PlaybackStateManager::class);
-        $pendingSongs = $playbackState->getPendingSongCount($mix);
+        $pendingSongs = $this->playbackStateManager->getPendingSongCount($mix);
 
         // If not cached, get the count from the database
         if ($pendingSongs === null) {
@@ -548,7 +546,7 @@ class SongPlaybackService
                 ->count();
 
             // Cache the result via PlaybackStateManager
-            $playbackState->setPendingSongCount($mix, $pendingSongs);
+            $this->playbackStateManager->setPendingSongCount($mix, $pendingSongs);
         }
 
         // Get batch size to determine threshold
