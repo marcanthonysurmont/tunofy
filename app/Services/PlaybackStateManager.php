@@ -491,4 +491,89 @@ class PlaybackStateManager
     {
         return Cache::get("mix:{$mix->id}:pending_count");
     }
+
+    /**
+     * Get song history for a mix
+     */
+    public function getSongHistory(Mix $mix): array
+    {
+        return Cache::get("mix:{$mix->id}:song_history", []);
+    }
+
+    /**
+     * Update song history by adding a song to history
+     */
+    public function addToSongHistory(Mix $mix, int $songId): void
+    {
+        $historyKey = "mix:{$mix->id}:song_history";
+        $songHistory = $this->getSongHistory($mix);
+
+        // Add song to history (limit to last 10 songs)
+        array_push($songHistory, $songId);
+        if (count($songHistory) > 10) {
+            array_shift($songHistory);
+        }
+
+        Cache::put($historyKey, $songHistory, now()->addHours(1));
+        Log::info("Added song {$songId} to history for mix {$mix->id}");
+    }
+
+    /**
+     * Get a song from history and remove it
+     */
+    public function getPreviousSongFromHistory(Mix $mix): ?int
+    {
+        $historyKey = "mix:{$mix->id}:song_history";
+        $songHistory = $this->getSongHistory($mix);
+
+        if (empty($songHistory)) {
+            return null;
+        }
+
+        // Get the last played song ID from history
+        $previousSongId = array_pop($songHistory);
+
+        // Store updated history back in cache
+        Cache::put($historyKey, $songHistory, now()->addHours(1));
+
+        return $previousSongId;
+    }
+
+    /**
+     * Store paused position for a mix
+     */
+    public function setPausedPosition(Mix $mix, int $positionMs): void
+    {
+        Cache::put("mix:{$mix->id}:paused_position", $positionMs, now()->addHours(1));
+        Log::info("Saved position {$positionMs}ms before pausing mix {$mix->id}");
+    }
+
+    /**
+     * Get paused position for a mix
+     */
+    public function getPausedPosition(Mix $mix, int $default = 0): int
+    {
+        return Cache::get("mix:{$mix->id}:paused_position", $default);
+    }
+
+    /**
+     * Mark device as recently activated to prevent duplicate activations
+     */
+    public function setDeviceActivated(Mix $mix, bool $activated = true, int $seconds = 30): void
+    {
+        if ($activated) {
+            Cache::put("mix:{$mix->id}:device_activated", true, now()->addSeconds($seconds));
+            Log::info("Marked device as activated for mix {$mix->id} for {$seconds} seconds");
+        } else {
+            Cache::forget("mix:{$mix->id}:device_activated");
+        }
+    }
+
+    /**
+     * Check if device was recently activated
+     */
+    public function isDeviceRecentlyActivated(Mix $mix): bool
+    {
+        return Cache::has("mix:{$mix->id}:device_activated");
+    }
 }

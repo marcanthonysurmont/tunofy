@@ -92,8 +92,8 @@ class ResumeMixPlaybackController extends Controller
                 ->with('song')
                 ->first();
 
-            // Get the position from dedicated cache key first
-            $positionMs = Cache::get("mix:{$mix->id}:paused_position", 0);
+            // Get the position from PlaybackStateManager
+            $positionMs = $playbackState->getPausedPosition($mix);
 
             if ($positionMs > 0) {
                 Log::info("Resuming playback at saved position {$positionMs}ms for mix {$mix->id}");

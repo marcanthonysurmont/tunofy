@@ -11,8 +11,11 @@ use Illuminate\Support\Facades\Cache;
 
 class CoDJManagementService
 {
-    public function __construct(protected SpotifyService $spotifyService, protected SongPlaybackService $songPlaybackService)
-    {
+    public function __construct(
+        protected SpotifyService $spotifyService,
+        protected SongPlaybackService $songPlaybackService,
+        protected PlaybackStateManager $playbackStateManager
+    ) {
     }
 
     public function assignCoDJ(Mix $mix, User $user): void
@@ -31,7 +34,12 @@ class CoDJManagementService
 
         // If there was a playing song, ensure it's correctly set after transition
         if ($currentlyPlaying) {
-            Cache::put("mix:{$mix->id}:transition_track", $currentlyPlaying->song->spotify_id, now()->addMinutes(1));
+            // REFACTORED: Use PlaybackStateManager instead of direct Cache call
+            $this->playbackStateManager->set(
+                $mix,
+                'transition_track',
+                $currentlyPlaying->song->spotify_id,
+            );
         }
 
         // Dispatch event with more complete state
@@ -39,8 +47,8 @@ class CoDJManagementService
             'playing_track' => $currentlyPlaying ? $currentlyPlaying->song->spotify_id : null,
         ]);
 
-        // Clear device from cache
-        Cache::forget("mix:{$mix->id}:device_id");
+        // REFACTORED: Use PlaybackStateManager to clear device ID
+        $this->playbackStateManager->forget($mix, 'device_id');
 
         // Handle playback state - use the mix owner when assigning a co-DJ
         $this->pauseAndUpdatePlaybackState($mix, $mix->user);
@@ -72,8 +80,9 @@ class CoDJManagementService
                 'playing_track' => $currentlyPlaying ? $currentlyPlaying->song->spotify_id : null,
             ]);
         }
-        // Clear device from cache
-        Cache::forget("mix:{$mix->id}:device_id");
+
+        // REFACTORED: Use PlaybackStateManager to clear device ID
+        $this->playbackStateManager->forget($mix, 'device_id');
 
         // Handle playback state - use the co-DJ when removing a co-DJ
         $this->pauseAndUpdatePlaybackState($mix, $coDJ ?? $mix->user);
@@ -84,19 +93,16 @@ class CoDJManagementService
      */
     private function pauseAndUpdatePlaybackState(Mix $mix, User $userToPause): void
     {
-        // Check if already paused
-        $alreadyPaused = Cache::has("mix:{$mix->id}:paused");
+        // REFACTORED: Check if already paused using PlaybackStateManager
+        $alreadyPaused = $this->playbackStateManager->isPaused($mix);
 
         // Only pause if not already paused
         if (!$alreadyPaused) {
             $this->spotifyService->pausePlayback($userToPause);
         }
 
-        // Get the playback state manager
-        $playbackState = app(PlaybackStateManager::class);
-
         // Get cached playback data
-        $playbackData = $playbackState->getPlaybackData($mix);
+        $playbackData = $this->playbackStateManager->getPlaybackData($mix);
 
         // If no cached data at all, get fresh data as a fallback
         if (!$playbackData) {
@@ -112,8 +118,8 @@ class CoDJManagementService
 
         // If we have playback info with a track, store it for resume
         if (isset($playbackData['item']['id'])) {
-            // Add a method to PlaybackStateManager:
-            $playbackState->set($mix, 'current_track', [
+            // ALREADY REFACTORED: Using PlaybackStateManager's set method
+            $this->playbackStateManager->set($mix, 'current_track', [
                 'uri' => "spotify:track:{$playbackData['item']['id']}",
                 'position_ms' => $playbackData['progress_ms'] ?? 0,
             ]);
@@ -127,9 +133,8 @@ class CoDJManagementService
         event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
         // Update cache via PlaybackStateManager
-        $playbackState->setPlaybackData($mix, $playbackData);
-
-        $playbackState->setPaused($mix, true);
-        $playbackState->setManualChange($mix);
+        $this->playbackStateManager->setPlaybackData($mix, $playbackData);
+        $this->playbackStateManager->setPaused($mix, true);
+        $this->playbackStateManager->setManualChange($mix);
     }
 }

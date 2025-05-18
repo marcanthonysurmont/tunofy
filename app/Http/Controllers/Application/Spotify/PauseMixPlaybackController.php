@@ -68,8 +68,8 @@ class PauseMixPlaybackController extends Controller
                     $position = $currentPlaybackData['progress_ms'];
                     $playbackData['progress_ms'] = $position;
 
-                    // Add this line to store position in a separate cache key
-                    Cache::put("mix:{$mix->id}:paused_position", $position, now()->addHours(1));
+                    // Use PlaybackStateManager methods to store position
+                    $playbackStateManager->setPausedPosition($mix, $position);
 
                     Log::info("Saving position {$position}ms before pausing mix {$mix->id}");
                 }
@@ -86,8 +86,8 @@ class PauseMixPlaybackController extends Controller
                 $playbackStateManager->setPaused($mix, true);
                 $playbackStateManager->setManualChange($mix);
 
-                // Store in cache that user manually paused
-                Cache::put("mix:{$mix->id}:user_paused", true, now()->addMinutes(30));
+                // Use PlaybackStateManager methods to store user paused state
+                $playbackStateManager->setUserPaused($mix, true);
 
                 // Update playback data and broadcast AFTER API success
                 $playbackStateManager->setPlaybackData($mix, $playbackData);

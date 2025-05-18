@@ -32,18 +32,11 @@ class PlayPreviousSongController extends Controller
             ]);
         }
 
-        // IMPROVED APPROACH: Track song navigation history in cache
-        $historyKey = "mix:{$mix->id}:song_history";
-        $songHistory = Cache::get($historyKey, []);
+        // Get song history from PlaybackStateManager
+        $previousSongId = $playbackStateManager->getPreviousSongFromHistory($mix);
 
-        // Check if we have history
-        if (!empty($songHistory)) {
-            // Get the last played song ID from history
-            $previousSongId = array_pop($songHistory);
-
-            // Store updated history back in cache
-            Cache::put($historyKey, $songHistory, now()->addHours(1));
-
+        // Check if we have a previous song
+        if ($previousSongId) {
             // Get the previous song
             $previousSong = QueueSong::where('mix_id', $mix->id)
                 ->where('id', $previousSongId)
@@ -53,11 +46,7 @@ class PlayPreviousSongController extends Controller
             if ($previousSong) {
                 Log::info("Found previous song {$previousSong->id} from history cache for mix {$mix->id}");
             }
-        }
-
-        // If no valid previous song found from history, return an error
-        // This prevents unexpected behavior when no true "previous" song exists
-        if (empty($previousSong)) {
+        } else {
             Log::info("No previous song found in history for mix {$mix->id} - rejecting previous command");
             return response()->json([
                 'success' => false,

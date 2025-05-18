@@ -59,17 +59,8 @@ class PlayNextSongController extends Controller
 
         // Track song history for proper "previous song" navigation
         if ($currentSong) {
-            $historyKey = "mix:{$mix->id}:song_history";
-            $songHistory = Cache::get($historyKey, []);
-
-            // Add current song to history (limit to last 10 songs)
-            array_push($songHistory, $currentSong->id);
-            if (count($songHistory) > 10) {
-                array_shift($songHistory);
-            }
-
-            // Store updated history
-            Cache::put($historyKey, $songHistory, now()->addHours(1));
+            // Let PlaybackStateManager handle the song history - ALWAYS add to history when skipping forward
+            $playbackStateManager->addToSongHistory($mix, $currentSong->id);
 
             // Now update song status
             $currentSong->update(['status' => 'finished', 'played_at' => now()]);
@@ -132,14 +123,14 @@ class PlayNextSongController extends Controller
             // Only set it if the device was explicitly changed
 
             // OPTIMIZATION: Skip device activation if it was recently activated
-            $recentlyActivated = Cache::get("mix:{$mix->id}:device_activated", false);
+            $recentlyActivated = $playbackStateManager->isDeviceRecentlyActivated($mix);
             $activationSuccess = $recentlyActivated;
 
             if (!$recentlyActivated) {
                 $activationSuccess = $spotifyService->activateDevice($user, $deviceId);
                 if ($activationSuccess) {
                     // Cache activation status for 30 seconds to avoid repeated calls
-                    Cache::put("mix:{$mix->id}:device_activated", true, now()->addSeconds(30));
+                    $playbackStateManager->setDeviceActivated($mix, true, 30);
                 }
             }
 
