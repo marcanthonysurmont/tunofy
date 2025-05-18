@@ -56,7 +56,7 @@ class PlaybackStateManager
             return;
         }
 
-        Cache::put($key, $value);
+        Cache::forever($key, $value);
     }
 
     /**
@@ -116,16 +116,21 @@ class PlaybackStateManager
     }
 
     /**
-     * Set device changed flag with an expiration time
+     * Set device changed flag with explicit cleanup
      */
-    public function setDeviceChanged(Mix $mix, bool $value = true, int $seconds = 5): void
+    public function setDeviceChanged(Mix $mix, bool $value = true): void
     {
         if ($value) {
-            // Use Cache::put directly with expiration like setDeviceChangeGracePeriod does
-            Cache::put($this->formatKey($mix->id, 'device_changed'), true, now()->addSeconds($seconds));
-            Log::info("Set device change grace period of {$seconds}s for mix {$mix->id}");
+            // Use the regular set method with no TTL
+            $this->set($mix, 'device_changed', true);
+
+            // Store the timestamp for manual verification later
+            $this->set($mix, 'device_changed_timestamp', time());
+
+            Log::info("Set device change flag for mix {$mix->id}");
         } else {
             $this->forget($mix, 'device_changed');
+            $this->forget($mix, 'device_changed_timestamp');
         }
     }
 
@@ -683,5 +688,24 @@ class PlaybackStateManager
     public function hasRecentTrackChange(Mix $mix): bool
     {
         return $this->has($mix, 'recent_takeback_track_change');
+    }
+
+    /**
+     * Check and clear stale device change flags
+     */
+    public function clearStaleDeviceChangeFlags(Mix $mix): void
+    {
+        // Only check if the flag exists
+        if ($this->has($mix, 'device_changed')) {
+            $timestamp = $this->get($mix, 'device_changed_timestamp', 0);
+            $now = time();
+
+            // If more than 5 seconds have passed, clear the flag
+            if (($now - $timestamp) > 5) {
+                $this->forget($mix, 'device_changed');
+                $this->forget($mix, 'device_changed_timestamp');
+                Log::info("Cleared stale device change flag for mix {$mix->id}");
+            }
+        }
     }
 }

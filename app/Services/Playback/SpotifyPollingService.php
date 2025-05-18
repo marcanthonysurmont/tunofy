@@ -28,6 +28,9 @@ class SpotifyPollingService
      */
     public function pollPlayback(Mix $mix): ?array
     {
+        // Clear stale flags based on timestamps rather than TTL
+        $this->playbackState->clearStaleDeviceChangeFlags($mix);
+
         try {
             if ($this->playbackState->isQueueCompleted($mix)) {
                 Log::info("Mix {$mix->id} queue completed, skipping polling");
