@@ -62,7 +62,7 @@
             >
                 <div class="flex items-center w-full min-w-0">
                     <div
-                        class="py-2 sm:py-4 pr-1 sm:pr-3 text-sm text-zinc-100 w-6 sm:w-10 flex-shrink-0"
+                        class="py-2 sm:py-4 pr-1 sm:pr-3 text-sm text-zinc-100 w-8 sm:w-10 flex-shrink-0"
                     >
                         {{ index + 1 }}
                     </div>
