@@ -74,15 +74,13 @@ class SetMixActiveController extends Controller
             }
 
             if ($validated['active'] === true) {
-                $resetQueue = $request->input('reset_queue', true);
-
                 // IMPORTANT: Dispatch the polling job for active mixes
                 PollSpotifyMixJob::dispatch($mix)
                     ->delay(now()->addSeconds(2));
                 Log::info("Dispatched polling job for newly activated mix {$mix->id}");
 
                 // Pass the deviceId to the dispatch function for playback
-                dispatch(function () use ($mix, $resetQueue, $queueManagementService, $deviceId) {
+                dispatch(function () use ($mix, $queueManagementService, $deviceId) {
                     $lock = Cache::lock("mix:{$mix->id}:state_change", 10);
 
                     try {
@@ -96,7 +94,7 @@ class SetMixActiveController extends Controller
                             $playbackState->setManualChange($mix);
 
                             // Initialize queue first
-                            $queueManagementService->initializeQueue($mix, $resetQueue);
+                            $queueManagementService->initializeQueue($mix);
 
                             // Get the first song to play
                             $firstSong = $mix->queueSongs()
@@ -144,7 +142,7 @@ class SetMixActiveController extends Controller
                                 event(new PlaybackDataUpdatedEvent($mix, $loadingData));
 
                                 // Start playback (this is the slow operation)
-                                $queueManagementService->startPlayback($mix->id, $resetQueue, $deviceId);
+                                $queueManagementService->startPlayback($mix->id, $deviceId);
 
                                 // AFTER playback has started, send the actual playback data
                                 $playbackData = [

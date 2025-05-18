@@ -10,31 +10,30 @@ use App\Models\QueueSong;
 
 class PlaybackStateManager
 {
-    // State flags that trigger immediate polling
+    // Primary state flags (trigger immediate polling)
     public const DEVICE_CHANGED = 'device_changed';
     public const MANUAL_CHANGE = 'manual_change';
     public const PLAYBACK_CHANGED = 'playback_changed';
 
-    // Playback state flags
+    // Playback state indicators
     public const PAUSED = 'paused';
     public const QUEUE_COMPLETED = 'queue_completed';
     public const POLLING_ACTIVE = 'polling_active';
 
-    // Data tracking for polling and progress
-    public const LAST_POLL_TIME = 'last_poll_time';
-    public const LAST_POLL_DATA = 'last_poll_data';
-    public const SONG_NEARING_END = 'song_nearing_end';
-    public const SONG_PROGRESS = 'song_progress';
-    public const SONG_DURATION = 'song_duration';
-
+    // Player state identifiers
     public const PLAYER_STATE_NORMAL = 'normal';
     public const PLAYER_STATE_NO_PLAYBACK = 'no_playback';
-    public const PLAYER_STATE_TRACK_MISMATCH = 'track_mismatch';
-    public const PLAYER_STATE_FINISHED = 'finished';
+    public const PLAYER_STATE_TRACK_ENDED = 'track_ended';
+    public const PLAYER_STATE_TRACK_MISMATCH = 'track_mismatch'; 
     public const PLAYER_STATE_STUCK = 'stuck';
     public const PLAYER_STATE_MANUAL_SEEK_END = 'manual_seek_end';
-    public const PLAYER_STATE_PLAYING_TOO_LONG = 'playing_too_long';
-    public const PLAYER_STATE_TRACK_ENDED = 'track_ended';
+    public const SONG_NEARING_END = 'song_nearing_end';
+    
+    // Technical tracking fields
+    public const LAST_POLL_TIME = 'last_poll_time';
+    public const LAST_POLL_DATA = 'last_poll_data';
+    public const SONG_PROGRESS = 'song_progress';
+    public const SONG_DURATION = 'song_duration';
 
     /**
      * Format a cache key for a mix state

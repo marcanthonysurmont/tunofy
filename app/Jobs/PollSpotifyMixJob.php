@@ -41,81 +41,61 @@ class PollSpotifyMixJob implements ShouldQueue
      */
     public function handle(SpotifyPollingService $pollingService, PlaybackStateManager $stateManager)
     {
-        $mixId = $this->mix->id;
-
-        // Don't poll if queue is completed - use state manager
-        if ($stateManager->isQueueCompleted($this->mix)) {
-            Log::info("Mix {$mixId} queue completed, exiting poll job");
+        // CRITICAL: Reload mix and check if it's still active
+        $this->mix->refresh();
+        if (!$this->mix->is_active) {
+            Log::info("Mix {$this->mix->id} is no longer active, terminating polling job");
             return;
         }
 
-        // Don't poll if paused - use state manager
-        if ($stateManager->isPaused($this->mix)) {
-            Log::info("Mix {$mixId} is paused, skipping polling");
-            $this->scheduleNextPoll(null, $stateManager);
-            return;
-        }
-
-        // Check for manual change - use state manager AND consume the flag immediately
-        $wasManuallyChanged = $stateManager->has($this->mix, PlaybackStateManager::MANUAL_CHANGE);
-        if ($wasManuallyChanged) {
-            Log::info("Mix {$mixId} was just manually changed, skipping this poll");
-
-            // CRUCIAL: Consume the flag immediately to prevent it from persisting
-            $stateManager->forget($this->mix, PlaybackStateManager::MANUAL_CHANGE);
-
-            $this->scheduleNextPoll(null, $stateManager);
+        // Skip polling in certain states
+        if ($this->shouldSkipPolling($stateManager)) {
             return;
         }
 
         // Use a polling lock to prevent concurrent polling
         if (!$stateManager->startPolling($this->mix)) {
-            Log::debug("Another poll already in progress for mix {$mixId}, skipping");
-            // Reschedule with normal interval
+            Log::debug("Another poll already in progress for mix {$this->mix}, skipping");
             $this->scheduleNextPoll(null, $stateManager);
             return;
         }
 
         try {
-            // Get a fresh instance of the mix
-            $freshMix = Mix::find($mixId);
+            // Execute the actual polling
+            $result = $pollingService->pollPlayback($this->mix);
 
-            // Check if still active
-            if (!$freshMix || !$freshMix->is_active) {
-                Log::info("Mix {$mixId} is not active, exiting job immediately");
-                return; // Don't schedule next poll
-            }
-
-            // Pass the fresh mix to polling service
-            $result = $pollingService->pollPlayback($freshMix);
-
-            // Update last poll time in state manager
-            $stateManager->updatePollTime($freshMix);
-
-            // Consume any one-time flags (like manual_change)
-            $stateManager->consumePollFlags($freshMix);
-
-            // Check for special stop polling signal
-            if ($result === "stop_polling") {
-                Log::info("Stopping polling for mix {$mixId} as queue has completed");
-                $stateManager->setQueueCompleted($freshMix); // Mark as completed in state manager
-                return;  // Don't schedule next poll
-            }
-
-            // Schedule the next poll with intelligent interval
-            $this->scheduleNextPoll($freshMix, $stateManager);
+            // Update state and handle result
+            $this->handlePollResult($this->mix, $result, $stateManager);
         } catch (\Exception $e) {
-            Log::error("Error polling mix {$mixId}: " . $e->getMessage(), [
-                'exception' => $e,
-                'mix_id' => $mixId
-            ]);
-
-            // Even if there's an error, schedule next poll
-            $this->scheduleNextPoll($freshMix, $stateManager);
+            $this->handlePollingError($e, $this->mix->id, $stateManager);
         } finally {
-            // Always release polling lock
             $stateManager->endPolling($this->mix);
         }
+    }
+
+    private function shouldSkipPolling(PlaybackStateManager $stateManager): bool
+    {
+        // Skip if queue completed or paused
+        if ($stateManager->isQueueCompleted($this->mix)) {
+            Log::info("Mix {$this->mix->id} queue completed, exiting poll job");
+            return true;
+        }
+
+        if ($stateManager->isPaused($this->mix)) {
+            Log::info("Mix {$this->mix->id} is paused, skipping polling");
+            $this->scheduleNextPoll(null, $stateManager);
+            return true;
+        }
+
+        // Skip if manual change was just made (but consume the flag)
+        if ($stateManager->has($this->mix, PlaybackStateManager::MANUAL_CHANGE)) {
+            Log::info("Mix {$this->mix->id} was just manually changed, skipping this poll");
+            $stateManager->forget($this->mix, PlaybackStateManager::MANUAL_CHANGE);
+            $this->scheduleNextPoll(null, $stateManager);
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -170,5 +150,35 @@ class PollSpotifyMixJob implements ShouldQueue
 
         // Default interval
         return $this->intervalSeconds;
+    }
+
+    private function handlePollResult(Mix $mix, $result, PlaybackStateManager $stateManager): void
+    {
+        // Update last poll time in state manager
+        $stateManager->updatePollTime($mix);
+
+        // Consume any one-time flags (like manual_change)
+        $stateManager->consumePollFlags($mix);
+
+        // Check for special stop polling signal
+        if ($result === "stop_polling") {
+            Log::info("Stopping polling for mix {$mix->id} as queue has completed");
+            $stateManager->setQueueCompleted($mix); // Mark as completed in state manager
+            return;  // Don't schedule next poll
+        }
+
+        // Schedule the next poll with intelligent interval
+        $this->scheduleNextPoll($mix, $stateManager);
+    }
+
+    private function handlePollingError(\Exception $e, int $mixId, PlaybackStateManager $stateManager): void
+    {
+        Log::error("Error polling mix {$mixId}: " . $e->getMessage(), [
+            'exception' => $e,
+            'mix_id' => $mixId
+        ]);
+
+        // Even if there's an error, schedule next poll
+        $this->scheduleNextPoll(null, $stateManager);
     }
 }
