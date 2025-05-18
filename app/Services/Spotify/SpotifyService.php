@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Spotify;
 
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;

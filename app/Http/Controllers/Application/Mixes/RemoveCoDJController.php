@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
-use App\Services\CoDJManagementService;
+use App\Services\Collaboration\CoDJManagementService;
 use App\Events\MixStatusChangedEvent;
 
 class RemoveCoDJController extends Controller

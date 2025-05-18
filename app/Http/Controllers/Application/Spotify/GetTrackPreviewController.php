@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Application\Spotify;
 
 use App\Http\Requests\GetTrackPreviewRequest;
-use App\Services\SpotifyService;
+use App\Services\Spotify\SpotifyService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 

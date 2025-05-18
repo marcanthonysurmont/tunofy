@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Playback;
 
 use App\Events\PlaybackDataUpdatedEvent;
 use App\Models\QueueSong;
@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Events\MixStatusChangedEvent;
 use App\Events\DeviceUpdatedEvent;
+use App\Services\Spotify\SpotifyService;
 
 class SongPlaybackService
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Queue;
 
 use App\Models\Mix;
 use App\Models\QueueSong;
@@ -9,6 +9,9 @@ use App\Models\PlaybackSession;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use App\Services\Spotify\SpotifyService;
+use App\Services\Playback\PlaybackStateManager;
+use App\Services\Playback\SongPlaybackService;
 
 /**
  * Central service for all queue operations
@@ -30,7 +33,7 @@ class QueueManagementService
     /**
      * Initialize queue for a mix
      */
-    public function initializeQueue(Mix $mix, bool $resetQueue = false): array
+    public function initializeQueue(Mix $mix): array
     {
         try {
             Log::info("Starting queue initialization for mix {$mix->id}");
@@ -116,7 +119,7 @@ class QueueManagementService
     /**
      * Start or resume queue playback
      */
-    public function startPlayback(int $mixId, bool $resetQueue = false, ?string $deviceId = null): bool
+    public function startPlayback(int $mixId, ?string $deviceId = null): bool
     {
         $mix = Mix::findOrFail($mixId);
 
@@ -136,10 +139,8 @@ class QueueManagementService
 
         // Call Spotify API directly - no other operations
         try {
-            $spotifyService = app(SpotifyService::class);
-
             // Direct API call without any intermediate steps
-            return $spotifyService->playTrackOnDevice(
+            return $this->spotifyService->playTrackOnDevice(
                 $user,
                 $currentSong->song->spotify_id,
                 $deviceId

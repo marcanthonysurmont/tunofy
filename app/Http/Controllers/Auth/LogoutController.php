@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
-use Auth;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;

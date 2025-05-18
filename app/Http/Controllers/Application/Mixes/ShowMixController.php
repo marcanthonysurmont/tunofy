@@ -9,7 +9,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\MixResource;
-use App\Services\SpotifyService;
+use App\Services\Spotify\SpotifyService;
 
 class ShowMixController extends Controller
 {

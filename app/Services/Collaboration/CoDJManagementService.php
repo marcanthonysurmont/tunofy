@@ -1,13 +1,15 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Collaboration;
 
 use App\Events\CoDJUpdatedEvent;
 use App\Events\PlaybackDataUpdatedEvent;
 use App\Models\Mix;
 use App\Models\User;
 use App\Models\QueueSong;
-use Illuminate\Support\Facades\Cache;
+use App\Services\Playback\PlaybackStateManager;
+use App\Services\Spotify\SpotifyService;
+use App\Services\Playback\SongPlaybackService;
 
 class CoDJManagementService
 {

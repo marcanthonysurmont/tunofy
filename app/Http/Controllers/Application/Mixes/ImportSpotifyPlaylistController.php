@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Application\Mixes;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ImportSpotifyPlaylistRequest;
 use App\Models\Mix;
-use App\Services\SpotifyService;
+use App\Services\Spotify\SpotifyService;
 use Illuminate\Support\Facades\Auth;
 
 class ImportSpotifyPlaylistController extends Controller

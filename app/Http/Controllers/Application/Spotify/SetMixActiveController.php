@@ -6,15 +6,15 @@ use App\Events\MixStatusChangedEvent;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Mix;
-use App\Services\QueueManagementService;
-use App\Services\SpotifyService;
+use App\Services\Queue\QueueManagementService;
+use App\Services\Spotify\SpotifyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use App\Events\PlaybackDataUpdatedEvent;
 use App\Jobs\PollSpotifyMixJob;
 use App\Models\PlaybackSession;
-use App\Services\PlaybackStateManager;
+use App\Services\Playback\PlaybackStateManager;
 
 class SetMixActiveController extends Controller
 {
@@ -82,7 +82,7 @@ class SetMixActiveController extends Controller
                 Log::info("Dispatched polling job for newly activated mix {$mix->id}");
 
                 // Pass the deviceId to the dispatch function for playback
-                dispatch(function () use ($mix, $resetQueue, $queueManagementService, $spotifyService, $deviceId) {
+                dispatch(function () use ($mix, $resetQueue, $queueManagementService, $deviceId) {
                     $lock = Cache::lock("mix:{$mix->id}:state_change", 10);
 
                     try {
@@ -108,6 +108,19 @@ class SetMixActiveController extends Controller
                             if ($firstSong) {
                                 // Mark the song as playing
                                 $firstSong->update(['status' => 'playing']);
+
+                                // Get the device ID from state manager
+                                $deviceId = $playbackState->getDeviceId($mix);
+
+                                // Get the user for this mix
+                                $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+
+                                // Play directly on the correct device ID from the start
+                                app(SpotifyService::class)->playTrackOnDevice(
+                                    $user,
+                                    $firstSong->song->spotify_id,
+                                    $deviceId
+                                );
 
                                 // Send an intermediate "loading" state if you want (optional)
                                 $loadingData = [
@@ -206,11 +219,8 @@ class SetMixActiveController extends Controller
                     // Continue with deactivation even if pause fails
                 }
 
-                // Get the playback state manager
-                $playbackState = app(PlaybackStateManager::class);
-
                 // Clear all states except device ID
-                $playbackState->clearAllStates($mix);
+                $playbackStateManager->clearAllStates($mix);
 
                 // End active sessions
                 PlaybackSession::where('mix_id', $mix->id)

@@ -5,18 +5,18 @@ namespace App\Http\Controllers\Application\Spotify;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use App\Models\QueueSong;
-use App\Services\SpotifyService;
+use App\Services\Spotify\SpotifyService;
 use App\Events\PlaybackDataUpdatedEvent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use App\Services\PlaybackStateManager;
+use App\Services\Playback\PlaybackStateManager;
 use App\Events\DeviceUpdatedEvent;
 
 class TransferPlaybackController extends Controller
 {
-    public function __invoke(Mix $mix, Request $request, SpotifyService $spotifyService): JsonResponse
+    public function __invoke(Mix $mix, Request $request, SpotifyService $spotifyService, PlaybackStateManager $playbackStateManager): JsonResponse
     {
         $this->authorize('controlPlayback', $mix);
 
@@ -25,9 +25,6 @@ class TransferPlaybackController extends Controller
         if (!$deviceId) {
             return response()->json(['error' => 'Device ID is required'], 400);
         }
-
-        // Store the new device ID and set device changed flag
-        $playbackState = app(PlaybackStateManager::class);
 
         Log::info("Transferring playback for mix {$mix->id} to device {$deviceId}");
 
@@ -67,10 +64,10 @@ class TransferPlaybackController extends Controller
             // ONLY AFTER API success, update state and broadcast
             if ($playSuccess) {
                 // Store the new device ID
-                $playbackState->setDeviceId($mix, $deviceId);
+                $playbackStateManager->setDeviceId($mix, $deviceId);
 
                 // Set device change grace period
-                $playbackState->setDeviceChanged($mix);
+                $playbackStateManager->setDeviceChanged($mix);
 
                 // Broadcast device update
                 event(new DeviceUpdatedEvent($mix));
@@ -80,7 +77,7 @@ class TransferPlaybackController extends Controller
 
                 // If we got data, broadcast it
                 if ($updatedPlaybackData) {
-                    $playbackState->setPlaybackData($mix, $updatedPlaybackData);
+                    $playbackStateManager->setPlaybackData($mix, $updatedPlaybackData);
                     event(new PlaybackDataUpdatedEvent($mix, $updatedPlaybackData));
                 }
 

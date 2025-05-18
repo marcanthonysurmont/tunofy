@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Playback;
 
 use App\Models\Mix;
 use Illuminate\Support\Facades\Cache;

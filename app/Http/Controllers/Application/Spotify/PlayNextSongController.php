@@ -4,14 +4,14 @@ namespace App\Http\Controllers\Application\Spotify;
 
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
-use App\Services\SongPlaybackService;
+use App\Services\Playback\SongPlaybackService;
 use Illuminate\Http\JsonResponse;
 use App\Events\PlaybackDataUpdatedEvent;
 use App\Events\MixStatusChangedEvent;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use App\Services\SpotifyService;
-use App\Services\PlaybackStateManager;
+use App\Services\Spotify\SpotifyService;
+use App\Services\Playback\PlaybackStateManager;
 use App\Models\QueueSong;
 
 class PlayNextSongController extends Controller

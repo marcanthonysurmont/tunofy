@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Queue;
 
 use App\Models\Mix;
 use App\Events\MixStatusChangedEvent;

@@ -9,8 +9,8 @@ use App\Events\PlaybackDataUpdatedEvent;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use App\Services\SpotifyService;
-use App\Services\PlaybackStateManager;
+use App\Services\Spotify\SpotifyService;
+use App\Services\Playback\PlaybackStateManager;
 
 class PauseMixPlaybackController extends Controller
 {

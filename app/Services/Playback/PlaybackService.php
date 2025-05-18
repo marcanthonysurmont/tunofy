@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Playback;
 
 use App\Models\Mix;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use App\Services\Spotify\SpotifyService;
 
 class PlaybackService
 {

@@ -3,8 +3,8 @@
 namespace App\Jobs;
 
 use App\Models\Mix;
-use App\Services\PlaybackStateManager;
-use App\Services\SpotifyPollingService;
+use App\Services\Playback\PlaybackStateManager;
+use App\Services\Playback\SpotifyPollingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

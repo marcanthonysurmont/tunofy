@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Playback;
 
 use App\Models\Mix;
 use App\Models\QueueSong;
@@ -8,6 +8,10 @@ use App\Models\PlaybackSession;
 use Illuminate\Support\Facades\Log;
 use App\Events\PlaybackDataUpdatedEvent;
 use App\Events\CoDJUpdatedEvent;
+use App\Services\Spotify\SpotifyService;
+use App\Services\Playback\PlaybackStateManager;
+use App\Services\Playback\SongPlaybackService;
+use App\Services\Queue\QueueManagementService;
 
 class SpotifyPollingService
 {

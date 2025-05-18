@@ -3,28 +3,25 @@
 namespace App\Http\Controllers\Application\Spotify;
 
 use App\Http\Controllers\Controller;
-use App\Services\SpotifyService;
+use App\Services\Spotify\SpotifyService;
 use App\Models\Mix;
 use App\Models\QueueSong;
 use App\Events\PlaybackDataUpdatedEvent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use App\Services\PlaybackStateManager;
+use App\Services\Playback\PlaybackStateManager;
 use App\Events\DeviceUpdatedEvent;
 
 class ResumeMixPlaybackController extends Controller
 {
-    public function __invoke(Mix $mix, SpotifyService $spotifyService, Request $request): JsonResponse
+    public function __invoke(Mix $mix, SpotifyService $spotifyService, Request $request, PlaybackStateManager $playbackStateManager): JsonResponse
     {
         $this->authorize('controlPlayback', $mix);
 
-        // Get PlaybackStateManager instance
-        $playbackState = app(PlaybackStateManager::class);
-
         // RACE CONDITION CHECK: Only allow one command per second per mix
         // Move this to PlaybackStateManager
-        if ($playbackState->isThrottled($mix, 'command', 0.5)) {
+        if ($playbackStateManager->isThrottled($mix, 'command', 0.5)) {
             Log::info("Throttling resume command - too soon after previous command");
             return response()->json([
                 'success' => true,
@@ -39,15 +36,15 @@ class ResumeMixPlaybackController extends Controller
 
         // Set device ID if provided
         if ($deviceId) {
-            $playbackState->setDeviceId($mix, $deviceId);
+            $playbackStateManager->setDeviceId($mix, $deviceId);
             Log::info("Using device ID {$deviceId} to resume playback for mix {$mix->id}");
         } else {
             // Get stored device ID if none provided
-            $deviceId = $playbackState->getDeviceId($mix);
+            $deviceId = $playbackStateManager->getDeviceId($mix);
         }
 
         // Get playback data through PlaybackStateManager
-        $playbackData = $playbackState->getPlaybackData($mix) ?? [];
+        $playbackData = $playbackStateManager->getPlaybackData($mix) ?? [];
 
         // Ensure we have the minimum required fields
         if (!isset($playbackData['item'])) {
@@ -85,12 +82,12 @@ class ResumeMixPlaybackController extends Controller
             $success = false;
 
             // Check if we're in a takeback situation
-            $resumingFromTakeback = !$mix->co_dj_id && $playbackState->has($mix, 'recent_owner_takeback');
+            $resumingFromTakeback = !$mix->co_dj_id && $playbackStateManager->has($mix, 'recent_owner_takeback');
 
             // Get the specific song we should play
             $specificTrackId = null;
             if ($resumingFromTakeback) {
-                $specificTrackId = $playbackState->get($mix, 'switch_track_id');
+                $specificTrackId = $playbackStateManager->get($mix, 'switch_track_id');
                 Log::info("Owner takeback - looking for specific track: " . ($specificTrackId ?? 'none'));
             }
 
@@ -122,13 +119,13 @@ class ResumeMixPlaybackController extends Controller
             }
 
             // Get the position from PlaybackStateManager
-            $positionMs = $playbackState->getPausedPosition($mix);
+            $positionMs = $playbackStateManager->getPausedPosition($mix);
 
             // CRITICAL: Always use position 0 after owner takeback
-            if (!$mix->co_dj_id && $playbackState->has($mix, 'recent_owner_takeback')) {
+            if (!$mix->co_dj_id && $playbackStateManager->has($mix, 'recent_owner_takeback')) {
                 $positionMs = 0;
                 Log::info("Owner takeback detected - starting song from beginning");
-                $playbackState->forget($mix, 'recent_owner_takeback');
+                $playbackStateManager->forget($mix, 'recent_owner_takeback');
             }
 
             // Log position info
@@ -200,23 +197,23 @@ class ResumeMixPlaybackController extends Controller
             // ONLY AFTER success, update cache and broadcast
             if ($success) {
                 // Remove paused flag
-                $playbackState->setPaused($mix, false);
-                $playbackState->setManualChange($mix);
+                $playbackStateManager->setPaused($mix, false);
+                $playbackStateManager->setManualChange($mix);
 
                 // CRITICAL: Set a flag to ignore the next track change detection
                 if ($resumingFromTakeback) {
-                    $playbackState->set($mix, 'recent_takeback_track_change', true);
+                    $playbackStateManager->set($mix, 'recent_takeback_track_change', true);
                     Log::info("Set recent takeback track change flag to prevent auto-advance");
 
                     // Schedule removal of the flag after 5 seconds
-                    dispatch(function () use ($mix, $playbackState) {
-                        $playbackState->forget($mix, 'recent_takeback_track_change');
+                    dispatch(function () use ($mix, $playbackStateManager) {
+                        $playbackStateManager->forget($mix, 'recent_takeback_track_change');
                         Log::info("Cleared recent takeback track change flag");
                     })->delay(now()->addSeconds(5));
                 }
 
                 // Update cache and broadcast AFTER API success
-                $playbackState->setPlaybackData($mix, $playbackData);
+                $playbackStateManager->setPlaybackData($mix, $playbackData);
                 event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
                 return response()->json([
