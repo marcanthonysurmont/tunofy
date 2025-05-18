@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\PlaybackSession;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Events\MixStatusChangedEvent;
 use App\Events\DeviceUpdatedEvent;
 
@@ -269,6 +270,17 @@ class SongPlaybackService
                 Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
             }
 
+            // IMPORTANT: Add this direct database update for the mix
+            DB::table('mixes')->where('id', $mix->id)->update(['is_active' => false]);
+            Log::info("Marked mix {$mix->id} as inactive in database after queue completion");
+
+            // Also broadcast the event for the frontend
+            event(new MixStatusChangedEvent($mix, false, 'queue_completed'));
+            Log::info("Broadcast MixStatusChangedEvent for mix {$mix->id} deactivation");
+
+            // Set the queue completed flag
+            $this->playbackStateManager->setQueueCompleted($mix, true);
+
             return [
                 'success' => false,
                 'message' => 'Queue completed',
@@ -496,18 +508,21 @@ class SongPlaybackService
             // Store the current song ID in PlaybackStateManager
             $playbackState = app(PlaybackStateManager::class);
             $playbackState->set($mix, 'user_switch_song_id', $currentlyPlaying->id);
+            $playbackState->set($mix, 'switch_track_id', $currentlyPlaying->song->spotify_id);
 
             // Log the song that was playing during user switch
             Log::info("Marked song {$currentlyPlaying->song->spotify_id} as the pre-switch active song for mix {$mix->id}");
+
+            // Reset the queue state - mark the currently playing song as pending
+            $currentlyPlaying->update(['status' => 'pending']);
+            Log::info("Reset queue state for user switch on mix {$mix->id} - changed 'playing' to 'pending'");
+
+            // Set the flag to indicate we're in a takeback state
+            if (!$mix->co_dj_id) {
+                $playbackState->setRecentOwnerTakeback($mix, true);
+                Log::info("Set recent owner takeback flag for mix {$mix->id}");
+            }
         }
-
-        // Only reset songs that are currently playing, NOT finished ones
-        QueueSong::where('mix_id', $mix->id)
-            ->where('status', 'playing')
-            ->update(['status' => 'pending']);
-
-        // Important: don't touch 'finished' songs
-        Log::info("Reset queue state for user switch on mix {$mix->id} - only changed 'playing' to 'pending'");
     }
 
     /**

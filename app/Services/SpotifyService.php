@@ -72,43 +72,39 @@ class SpotifyService
     /**
      * Play a track directly on a specific device, with position support
      */
-    public function playTrackOnDevice(User $user, string $trackId, string $deviceId, ?int $positionMs = null): bool
+    public function playTrackOnDevice(User $user, string $trackId, ?string $deviceId = null, ?int $positionMs = null): bool
     {
         try {
-            // Format the URI properly
-            $uri = $trackId;
-            if (!str_starts_with($trackId, 'spotify:track:')) {
-                $uri = 'spotify:track:' . $trackId;
-            }
+            // Build request body
+            $body = [
+                'uris' => ["spotify:track:{$trackId}"]
+            ];
 
-            Log::info("Playing song with URI: {$uri} directly on device {$deviceId} for user {$user->id}");
-
-            // Build the request body - minimize object creation
-            $body = ['uris' => [$uri]];
-            if ($positionMs !== null) {
+            // Add position if specified
+            if ($positionMs !== null && $positionMs > 0) {
                 $body['position_ms'] = $positionMs;
             }
 
-            // Single API call with all parameters
+            // Log what we're doing
+            Log::info("Playing song with URI: spotify:track:{$trackId} directly on device " .
+                     ($deviceId ?? "none") . " for user {$user->id}");
+
+            // Make the API request
             $response = $this->spotifyRequest(
                 $user,
                 'PUT',
                 'https://api.spotify.com/v1/me/player/play',
                 $body,
-                ['device_id' => $deviceId]
+                $deviceId ? ['device_id' => $deviceId] : []
             );
 
-            // Simple success check
-            if (!$response->successful() && $response->status() !== 404) {
-                Log::error("Failed to play on device: " . $response->status());
-            }
+            // Check and log results
+            $statusCode = $response->status();
+            Log::info("Play track response: {$statusCode} for user {$user->id}");
 
             return $response->successful();
         } catch (\Exception $e) {
-            // Only log real errors
-            if (!str_contains($e->getMessage(), '404')) {
-                Log::error("Error playing song on device: " . $e->getMessage());
-            }
+            Log::error("Error playing track on device: " . $e->getMessage());
             return false;
         }
     }
@@ -119,6 +115,10 @@ class SpotifyService
     public function resumePlayback(User $user, ?string $deviceId = null): bool
     {
         try {
+            // Log before request
+            Log::info("Attempting to resume playback for user {$user->id}" .
+                     ($deviceId ? " on device {$deviceId}" : ""));
+
             // If deviceId is provided, use it directly
             $params = [];
             if ($deviceId) {
@@ -134,11 +134,16 @@ class SpotifyService
                 $params
             );
 
+            // Log response status
+            Log::info("Resume playback response: " . $response->status() .
+                     " for user {$user->id}");
+
             return $response->successful();
         } catch (\Exception $e) {
-            if (!str_contains($e->getMessage(), '404')) {
-                Log::error("Resume playback error: " . $e->getMessage());
-            }
+            // Log full error details
+            Log::error("Resume playback error for user {$user->id}: " . $e->getMessage() .
+                      " - Class: " . get_class($e) .
+                      " - Code: " . $e->getCode());
             return false;
         }
     }

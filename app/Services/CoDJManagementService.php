@@ -26,13 +26,6 @@ class CoDJManagementService
                             ->with('song')
                             ->first();
 
-        // Update the mix
-        $mix->update(['co_dj_id' => $user->id]);
-
-        // Prepare queue for user switch
-        $this->songPlaybackService->prepareQueueForUserSwitch($mix);
-
-        // If there was a playing song, ensure it's correctly set after transition
         if ($currentlyPlaying) {
             // REFACTORED: Use PlaybackStateManager instead of direct Cache call
             $this->playbackStateManager->set(
@@ -42,13 +35,17 @@ class CoDJManagementService
             );
         }
 
-        // Dispatch event with more complete state
+        // Update the database with co-DJ
+        $mix->update(['co_dj_id' => $user->id]);
+
+        // THIS IS THE PROBLEM: DON'T CLEAR THE DEVICE ID
+        // Instead of clearing it, leave it, the co-DJ should select their device
+        // $this->playbackStateManager->forget($mix, 'device_id');
+
+        // Dispatch events
         CoDJUpdatedEvent::dispatch($user, [
             'playing_track' => $currentlyPlaying ? $currentlyPlaying->song->spotify_id : null,
         ]);
-
-        // REFACTORED: Use PlaybackStateManager to clear device ID
-        $this->playbackStateManager->forget($mix, 'device_id');
 
         // Handle playback state - use the mix owner when assigning a co-DJ
         $this->pauseAndUpdatePlaybackState($mix, $mix->user);
@@ -62,7 +59,7 @@ class CoDJManagementService
         // Store co-DJ before removing relationship
         $coDJ = $mix->coDJ;
 
-        // Capture current playing track before switch
+        // Capture current song before switch
         $currentlyPlaying = QueueSong::where('mix_id', $mix->id)
                             ->where('status', 'playing')
                             ->with('song')
@@ -81,10 +78,13 @@ class CoDJManagementService
             ]);
         }
 
-        // REFACTORED: Use PlaybackStateManager to clear device ID
+        // CRITICAL: Reset saved position to 0 to avoid position-based errors
+        $this->playbackStateManager->setPausedPosition($mix, 0);
+
+        // CRITICAL: Remove device ID from previous user
         $this->playbackStateManager->forget($mix, 'device_id');
 
-        // Handle playback state - use the co-DJ when removing a co-DJ
+        // Handle playback state
         $this->pauseAndUpdatePlaybackState($mix, $coDJ ?? $mix->user);
     }
 

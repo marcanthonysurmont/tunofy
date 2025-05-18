@@ -10,7 +10,6 @@ use App\Models\PlaybackSession;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use App\Events\PlaybackDataUpdatedEvent;
-use App\Events\MixStatusChangedEvent;
 use App\Events\CoDJUpdatedEvent;
 
 class SpotifyPollingService
@@ -198,6 +197,25 @@ class SpotifyPollingService
                 return self::PLAYER_STATE_TRACK_ENDED;
             }
 
+            // ADDITIONAL CHECK: If previous data exists and shows a different track, that means the track ended
+            $current = $playbackData['item']['id'] ?? null;
+            $previous = $previousData['item']['id'] ?? null;
+            $recentTakeback = $playbackState->has($mix, 'recent_takeback_track_change');
+
+            if ($current && $previous && $current !== $previous && !$recentTakeback) {
+                Log::info("Track change detected from {$previous} to {$current} - treating as track ended");
+                return self::PLAYER_STATE_TRACK_ENDED;
+            }
+
+            // ADDITIONAL CHECK: If we're in the last 5% of the song and progress is no longer advancing
+            if ($percentRemaining <= 5.0 &&
+                $previousData &&
+                isset($previousData['progress_ms']) &&
+                $playbackData['progress_ms'] <= $previousData['progress_ms']) {
+                Log::info("Track stalled near end - treating as track ended");
+                return self::PLAYER_STATE_TRACK_ENDED;
+            }
+
             // Get playback state manager
             $playbackState = app(PlaybackStateManager::class);
 
@@ -354,10 +372,6 @@ class SpotifyPollingService
                 $playbackState = app(PlaybackStateManager::class);
                 $playbackState->setQueueCompleted($mix, true);
 
-                // *** IMPORTANT: Mark the mix itself as inactive ***
-                $mix->update(['is_active' => false]);
-                Log::info("Marked mix {$mix->id} as inactive after queue completion");
-
                 $coDj = $mix->coDj;
                 if ($coDj) {
                     $mix->update(['co_dj_id' => null]);
@@ -373,13 +387,6 @@ class SpotifyPollingService
                 } catch (\Exception $e) {
                     Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
                 }
-
-                // Broadcast queue completion AND deactivation
-                event(new MixStatusChangedEvent(
-                    $mix,
-                    false,  // Important: Set to false to indicate mix is now inactive
-                    'queue_completed'
-                ));
 
                 return self::PLAYER_STATE_QUEUE_COMPLETED;
                 break;

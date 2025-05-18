@@ -143,12 +143,17 @@ class PlaybackStateManager
         if ($isCompleted) {
             $this->set($mix, self::QUEUE_COMPLETED, true);
 
-            // IMPORTANT: Also broadcast the event when setting via PlaybackStateManager
+            // Update the model (this is now working)
+            $mix->update(['is_active' => false]);
+            Log::info("Marked mix {$mix->id} as inactive in database after queue completion");
+
+            // Broadcast the event
             event(new MixStatusChangedEvent(
                 $mix,
-                false, // Set to false to properly deactivate the mix
+                false,
                 'queue_completed'
             ));
+            Log::info("Broadcast MixStatusChangedEvent for mix {$mix->id} deactivation");
 
             // Also pause the playback when setting completion
             try {
@@ -192,39 +197,37 @@ class PlaybackStateManager
     }
 
     /**
-     * Store current playback data
-     */
-    public function setPlaybackData(Mix $mix, array $data): void
-    {
-        // IMPORTANT: Ensure we preserve progress_ms if it exists in new data
-        $existingData = $this->getPlaybackData($mix) ?? [];
-
-        // If new data doesn't have progress_ms but existing data does, preserve it
-        if (!isset($data['progress_ms']) && isset($existingData['progress_ms'])) {
-            $data['progress_ms'] = $existingData['progress_ms'];
-            Log::debug("Preserved position data ({$data['progress_ms']}ms) for mix {$mix->id}");
-        }
-
-        $cacheKey = "mix:playback:{$mix->id}";
-        Cache::put($cacheKey, $data);
-
-        if (isset($data['item']['id'])) {
-            Log::debug("Stored playback data for mix {$mix->id} with ID {$data['item']['id']}");
-        }
-    }
-
-    /**
-     * Get current playback data
+     * Get playback data
      */
     public function getPlaybackData(Mix $mix): ?array
     {
-        $data = $this->get($mix, self::LAST_POLL_DATA);
+        // Use EXACTLY the same key format as where you're storing it
+        $key = "mix:{$mix->id}:playback"; // Remove "_data" to match where you're storing it
+        $data = Cache::get($key);
 
-        if (!$data) {
+        // Debug
+        if ($data) {
+            Log::debug("Retrieved playback data for mix {$mix->id} with ID " .
+                ($data['item']['id'] ?? 'unknown'));
+        } else {
             Log::debug("No playback data found for mix {$mix->id} in cache");
         }
 
         return $data;
+    }
+
+    /**
+     * Set playback data
+     */
+    public function setPlaybackData(Mix $mix, array $data): void
+    {
+        // Use EXACTLY the same key format as where you're retrieving it
+        $key = "mix:{$mix->id}:playback"; // Be explicit about this key
+        Cache::put($key, $data);
+
+        // Debug log to see what's stored
+        Log::debug("Stored playback data for mix {$mix->id} with ID " .
+            ($data['item']['id'] ?? 'unknown'));
     }
 
     /**
@@ -575,5 +578,34 @@ class PlaybackStateManager
     public function isDeviceRecentlyActivated(Mix $mix): bool
     {
         return Cache::has("mix:{$mix->id}:device_activated");
+    }
+
+    /**
+     * Check if a command is being throttled
+     */
+    public function isThrottled(Mix $mix, string $type, float $throttleSeconds = 1.0): bool
+    {
+        $key = "mix:{$mix->id}:last_{$type}";
+        $lastTime = $this->get($mix, "last_{$type}", 0);
+        $now = microtime(true);
+
+        // Update the timestamp
+        $this->set($mix, "last_{$type}", $now);
+
+        // Check if we're throttled
+        return ($now - $lastTime) < $throttleSeconds;
+    }
+
+    /**
+     * Set co-DJ recent takeback flag
+     */
+    public function setRecentOwnerTakeback(Mix $mix, bool $value = true): void
+    {
+        if ($value) {
+            $this->set($mix, 'recent_owner_takeback', true);
+            Log::info("Set recent owner takeback flag for mix {$mix->id}");
+        } else {
+            $this->forget($mix, 'recent_owner_takeback');
+        }
     }
 }
