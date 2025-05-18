@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Mix;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use App\Events\MixStatusChangedEvent;
 use App\Models\QueueSong;
 
 class PlaybackStateManager
@@ -140,6 +141,23 @@ class PlaybackStateManager
     {
         if ($isCompleted) {
             $this->set($mix, self::QUEUE_COMPLETED, true);
+
+            // IMPORTANT: Also broadcast the event when setting via PlaybackStateManager
+            event(new MixStatusChangedEvent(
+                $mix,
+                false, // Set to false to properly deactivate the mix
+                'queue_completed'
+            ));
+
+            // Also pause the playback when setting completion
+            try {
+                $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+                app(SpotifyService::class)->pausePlayback($user);
+                Log::info("Paused playback after queue completion for mix {$mix->id}");
+            } catch (\Exception $e) {
+                Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
+            }
+
             Log::info("Set queue completed for mix {$mix->id}");
         } else {
             $this->forget($mix, self::QUEUE_COMPLETED);
@@ -177,7 +195,20 @@ class PlaybackStateManager
      */
     public function setPlaybackData(Mix $mix, ?array $playbackData): void
     {
+        if (!$playbackData) {
+            Log::warning("Attempted to store null playback data for mix {$mix->id}");
+            return;
+        }
+
+        // Add timestamp if missing
+        if (!isset($playbackData['_timestamp'])) {
+            $playbackData['_timestamp'] = now()->timestamp;
+        }
+
+        // Log the storage operation
         $this->set($mix, self::LAST_POLL_DATA, $playbackData);
+        Log::debug("Stored playback data for mix {$mix->id} with ID " .
+                  ($playbackData['item']['id'] ?? 'unknown'));
     }
 
     /**
@@ -185,7 +216,13 @@ class PlaybackStateManager
      */
     public function getPlaybackData(Mix $mix): ?array
     {
-        return $this->get($mix, self::LAST_POLL_DATA);
+        $data = $this->get($mix, self::LAST_POLL_DATA);
+
+        if (!$data) {
+            Log::debug("No playback data found for mix {$mix->id} in cache");
+        }
+
+        return $data;
     }
 
     /**
