@@ -12,22 +12,65 @@
     </div>
 
     <ul class="flex flex-col gap-3">
-        <li
-            class="flex flex-row justify-between px-2 py-2 rounded-lg bg-card-background border-2 border-card-stroke text-zinc-200 font-semibold text-sm"
+        <!-- <li
+            class="flex flex-row justify-between py-2 px-2 rounded-lg bg-card-background border-2 border-card-stroke text-zinc-200 font-semibold text-sm"
         >
-            <div class="w-8 text-center">#</div>
+            <div class="w-12 md:w-14 text-left">#</div>
             <div class="flex-1 pl-2">Song</div>
             <div class="w-16 text-center">Rank</div>
-        </li>
+        </li> -->
 
         <li
             v-for="(song, index) in songsWithRankChange"
             :key="song.id || index"
-            class="flex flex-row justify-between items-center px-1 py-2 rounded-lg bg-card-background border-2 border-card-stroke"
+            class="flex flex-row justify-between items-center px-1 py-2 rounded-lg"
         >
             <!-- Rank number -->
-            <div class="w-8 text-center font-medium text-sm mr-2">
-                {{ index + 1 }}
+            <div
+                class="w-12 md:w-14 font-medium text-left text-sm mr-2 flex flex-col px-2 gap-1"
+            >
+                <!-- index number -->
+                <p class="text-xl font-medium">
+                    {{ index + 1 }}
+                </p>
+
+                <!-- rank change row -->
+                <template v-if="song.rankChange !== 0">
+                    <div class="flex flex-row items-start">
+                        <p
+                            class="sm:text-sm"
+                            :class="[
+                                song.rankChange > 0
+                                    ? 'text-green-400'
+                                    : 'text-red-400',
+                            ]"
+                        >
+                            {{ Math.abs(song.rankChange) }}
+                        </p>
+                        <svg
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                            :class="[
+                                'size-5',
+                                song.rankChange > 0
+                                    ? 'text-green-400'
+                                    : 'text-red-400',
+                            ]"
+                        >
+                            <path
+                                :d="
+                                    song.rankChange > 0
+                                        ? 'M10 5l5 7H5l5-7z'
+                                        : 'M10 15l-5-7h10l-5 7z'
+                                "
+                            />
+                        </svg>
+                    </div>
+                </template>
+                <template v-else>
+                    <p>—</p>
+                </template>
             </div>
 
             <!-- Cover + Song info -->
@@ -51,34 +94,6 @@
                         {{ song.artist }}
                     </div>
                 </div>
-            </div>
-
-            <div
-                class="w-16 flex items-start justify-center gap-1 text-sm font-medium text-zinc-400"
-            >
-                <template v-if="song.rankChange > 0">
-                    <svg
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="size-5 text-green-400"
-                    >
-                        <path d="M10 5l5 7H5l5-7z" />
-                    </svg>
-                    <p>{{ song.rankChange }}</p>
-                </template>
-                <template v-else-if="song.rankChange < 0">
-                    <svg
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="size-5 text-red-400"
-                    >
-                        <path d="M10 15l-5-7h10l-5 7z" />
-                    </svg>
-                    <p>{{ song.rankChange }}</p>
-                </template>
-                <template v-else> — </template>
             </div>
         </li>
     </ul>
