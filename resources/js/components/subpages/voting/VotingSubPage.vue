@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-row items-center mb-6 lg:mb-8">
         <!-- <LiveIndicator :isLive="true" class="mb-2 mr-4" /> -->
-        <h1 class="text-4xl sm:text-5xl font-medium mb-2">Live Rankings</h1>
+        <h1 class="text-3xl sm:text-4xl font-medium mb-2">Live Rankings</h1>
         <RegularButton
             color="blue"
             @click="isVisible = true"
