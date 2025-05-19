@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Playback\PlaybackStateManager;
 use App\Models\QueueSong;
+use Illuminate\Support\Facades\Auth;
 
 class PlayNextSongController extends Controller
 {
@@ -84,6 +85,7 @@ class PlayNextSongController extends Controller
         if (!$nextSong) {
             Log::info("Queue completed for mix {$mix->id}");
 
+            $spotifyService->pausePlayback(Auth::user());
             // Set mix inactive and broadcast
             $mix->update(['is_active' => false]);
             event(new MixStatusChangedEvent($mix, false, 'queue_completed'));

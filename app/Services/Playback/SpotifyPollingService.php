@@ -415,9 +415,6 @@ class SpotifyPollingService
                         'ended_at' => now()
                     ]);
 
-                // Set cache flag
-                $this->playbackState->setQueueCompleted($mix, true);
-
                 $coDj = $mix->coDj;
                 if ($coDj) {
                     $mix->update(['co_dj_id' => null]);
@@ -433,6 +430,10 @@ class SpotifyPollingService
                 } catch (\Exception $e) {
                     Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
                 }
+                
+                // Set cache flag
+                $this->playbackState->setQueueCompleted($mix, true);
+
 
                 return PlaybackStateManager::QUEUE_COMPLETED;
 
