@@ -128,8 +128,8 @@ const newsItems = [
     {
         id: 6,
         img: "https://www.hdwallpapers.in/thumbs/2020/playboi_carti_is_looking_up_wearing_purple_and_black_coat_with_white_tshirt_and_goggles_hd_music-t2.jpg",
-        title: "App Usage Tips",
-        teaser: "Check out our blog for tips to get the most out of our app.",
+        title: "Launch of Tunofy!",
+        teaser: "Tunofy has officially launched! Explore the roadmap we've set for the next few months.",
         date: "2025-04-15",
     },
 ];
