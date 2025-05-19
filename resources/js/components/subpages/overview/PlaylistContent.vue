@@ -11,144 +11,143 @@
     </transition>
 
     <div>
-        <div class="mt-8 flow-root mb-32">
-            <div class="w-full">
-                <table class="w-full text-left table-fixed">
-                    <thead class="border-b border-zinc-800">
-                        <tr>
-                            <th
-                                class="py-3.5 pr-1 sm:pr-3 text-left text-sm font-semibold text-zinc-200 w-6 sm:w-10"
-                            >
-                                #
-                            </th>
-                            <th
-                                class="px-1 sm:px-3 py-3.5 text-left text-sm font-semibold text-zinc-200"
-                            >
-                                Song
-                            </th>
-                            <th
-                                class="px-1 sm:px-3 py-3.5 text-left text-sm font-semibold text-zinc-200 w-14 sm:w-20"
-                            >
-                                Time
-                            </th>
-                            <th
-                                v-if="windowWidth >= 640"
-                                class="px-1 sm:px-3 py-3.5 text-right text-sm font-semibold text-zinc-200 w-24"
-                            >
-                                Added by
-                            </th>
-                            <th
-                                v-if="windowWidth < 640"
-                                class="px-1 sm:px-3 py-3.5 text-left text-sm font-semibold text-zinc-200 w-12 sm:w-16"
-                            >
-                                By
-                            </th>
-                            <th
-                                v-if="authorization.canRemoveSong"
-                                class="px-1 sm:px-3 py-3.5 text-right text-sm font-semibold text-zinc-200 w-12 sm:w-16"
-                            >
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-
-                    <tbody v-if="songs.length > 0">
-                        <tr v-for="(song, index) in songs" :key="song.id">
-                            <td
-                                class="py-2 sm:py-4 pr-1 sm:pr-3 text-sm text-zinc-100"
-                            >
-                                {{ index + 1 }}
-                            </td>
-                            <td
-                                class="px-1 sm:px-3 py-2 sm:py-4 text-sm text-zinc-100"
-                            >
-                                <div class="flex items-center gap-2 sm:gap-3">
-                                    <img
-                                        v-lazy="{
-                                            src: song.image_url,
-                                            error: '/images/default-song.png',
-                                            loading: '/images/default-song.png',
-                                        }"
-                                        alt="cover"
-                                        class="w-8 h-8 sm:w-10 sm:h-10 rounded flex-shrink-0"
-                                    />
-                                    <div
-                                        class="min-w-0 flex-1 max-w-[75%] sm:max-w-xs md:max-w-md lg:max-w-lg"
-                                    >
-                                        <div
-                                            class="font-medium truncate text-sm"
-                                        >
-                                            {{ song.name }}
-                                        </div>
-                                        <div
-                                            class="text-zinc-400 text-xs sm:text-sm truncate"
-                                        >
-                                            {{ song.artist }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td
-                                class="px-1 sm:px-3 py-2 sm:py-4 text-sm text-zinc-400"
-                            >
-                                {{ msToMinutes(song.duration_ms) }}
-                            </td>
-                            <td
-                                class="px-1 sm:px-3 py-2 sm:py-4 text-sm text-zinc-400"
-                            >
-                                <div
-                                    class="flex items-center"
-                                    :class="
-                                        windowWidth < 640
-                                            ? 'justify-start'
-                                            : 'justify-end'
-                                    "
-                                >
-                                    <img
-                                        v-tippy="{ content: song.user.name }"
-                                        v-lazy="{
-                                            src: song.user.avatar_url,
-                                            error: '/images/default-avatar.jpg',
-                                            loading:
-                                                '/images/default-avatar.jpg',
-                                        }"
-                                        alt="cover"
-                                        class="size-6 sm:size-7 rounded-full flex-shrink-0"
-                                    />
-                                </div>
-                            </td>
-
-                            <td
-                                class="py-2 sm:py-4 pl-1 sm:pl-3 text-right"
-                                v-if="authorization.canRemoveSong"
-                            >
-                                <div class="flex items-center justify-end">
-                                    <button
-                                        v-tippy="{ content: 'Delete song' }"
-                                        @click="deleteSong(song.id)"
-                                        class="pl-1 sm:px-2 cursor-pointer"
-                                    >
-                                        <TrashIcon
-                                            class="size-5 sm:size-6 text-zinc-400 hover:text-zinc-500"
-                                        />
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div v-if="!songs.length > 0" class="mb-32 mt-8">
-                    <p
-                        class="text-white text-left text-base"
-                        v-if="authorization.canAddSong"
-                    >
-                        No songs found. Search for a song and add it!
-                    </p>
-                    <p v-else class="text-white text-center sm:text-left">
-                        No songs found..
-                    </p>
-                </div>
+        <!-- header row -->
+        <div
+            class="mt-8 border-b border-zinc-800 flex items-center w-full min-w-0"
+        >
+            <div
+                class="py-3.5 pr-1 sm:pr-3 text-left text-sm font-semibold text-zinc-200 w-6 sm:w-10 flex-shrink-0"
+            >
+                #
             </div>
+            <div
+                class="px-1 sm:px-3 py-3.5 text-left text-sm font-semibold text-zinc-200 flex-1 min-w-0 overflow-hidden"
+            >
+                Song
+            </div>
+            <div
+                class="px-1 sm:px-3 py-3.5 text-left text-sm font-semibold text-zinc-200 w-14 sm:w-20 flex-shrink-0"
+            >
+                Time
+            </div>
+            <div
+                v-if="windowWidth >= 640"
+                class="px-1 sm:px-3 py-3.5 text-right text-sm font-semibold text-zinc-200 w-24 flex-shrink-0"
+            >
+                Added by
+            </div>
+            <div
+                v-if="windowWidth < 640"
+                class="px-1 sm:px-3 py-3.5 text-left text-sm font-semibold text-zinc-200 w-12 sm:w-16 flex-shrink-0"
+            >
+                By
+            </div>
+            <div
+                v-if="authorization.canRemoveSong"
+                class="px-1 sm:px-3 py-3.5 text-right text-sm font-semibold text-zinc-200 w-12 sm:w-16 flex-shrink-0"
+            >
+                Actions
+            </div>
+        </div>
+
+        <!-- songs w/ virtual list implementation -->
+        <div v-if="songs.length > 0" class="mb-32">
+            <RecycleScroller
+                class="scroller"
+                :items="songs"
+                :item-size="windowWidth < 640 ? 64 : 72"
+                key-field="id"
+                v-slot="{ item, index }"
+                page-mode
+            >
+                <div class="flex items-center w-full min-w-0">
+                    <div
+                        class="py-2 sm:py-4 pr-1 sm:pr-3 text-sm text-zinc-100 w-8 sm:w-10 flex-shrink-0"
+                    >
+                        {{ index + 1 }}
+                    </div>
+                    <div
+                        class="px-1 sm:px-3 py-2 sm:py-4 text-sm text-zinc-100 flex-1 min-w-0 overflow-hidden"
+                    >
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <img
+                                v-lazy="{
+                                    src: item.image_url,
+                                    error: '/images/default-song.png',
+                                    loading: '/images/default-song.png',
+                                }"
+                                alt="cover"
+                                class="w-8 h-8 sm:w-10 sm:h-10 rounded flex-shrink-0"
+                            />
+                            <div class="min-w-0 flex-1 overflow-hidden">
+                                <div class="font-medium truncate text-sm">
+                                    {{ item.name }}
+                                </div>
+                                <div
+                                    class="text-zinc-400 text-xs sm:text-sm truncate"
+                                >
+                                    {{ item.artist }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="px-1 sm:px-3 py-2 sm:py-4 text-sm text-zinc-400 w-14 sm:w-20 flex-shrink-0"
+                    >
+                        {{ msToMinutes(item.duration_ms) }}
+                    </div>
+                    <div
+                        class="px-1 sm:px-3 py-2 sm:py-4 text-sm text-zinc-400 w-12 sm:w-24 flex-shrink-0"
+                    >
+                        <div
+                            class="flex items-center"
+                            :class="
+                                windowWidth < 640
+                                    ? 'justify-start'
+                                    : 'justify-end'
+                            "
+                        >
+                            <img
+                                v-tippy="{ content: item.user.name }"
+                                v-lazy="{
+                                    src: item.user.avatar_url,
+                                    error: '/images/default-avatar.jpg',
+                                    loading: '/images/default-avatar.jpg',
+                                }"
+                                alt="cover"
+                                class="size-6 sm:size-7 rounded-full flex-shrink-0"
+                            />
+                        </div>
+                    </div>
+                    <div
+                        class="py-2 sm:py-4 pl-1 sm:pl-3 text-right w-12 sm:w-16 flex-shrink-0"
+                        v-if="authorization.canRemoveSong"
+                    >
+                        <div class="flex items-center justify-end">
+                            <button
+                                v-tippy="{ content: 'Delete song' }"
+                                @click="deleteSong(item.id)"
+                                class="pl-1 sm:px-2 cursor-pointer"
+                            >
+                                <TrashIcon
+                                    class="size-5 sm:size-6 text-zinc-400 hover:text-zinc-500"
+                                />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </RecycleScroller>
+        </div>
+        <div v-if="!songs.length > 0" class="mb-32 mt-8">
+            <p
+                class="text-white text-left text-base"
+                v-if="authorization.canAddSong"
+            >
+                No songs found. Search for a song and add it!
+            </p>
+            <p v-else class="text-white text-center sm:text-left">
+                No songs found..
+            </p>
         </div>
     </div>
 </template>
@@ -156,12 +155,9 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { usePage, router } from "@inertiajs/vue3";
-import {
-    ArrowUpIcon,
-    TrashIcon,
-    ArrowUpCircleIcon,
-} from "@heroicons/vue/24/outline";
-// import { ArrowUpCircleIcon } from "@heroicons/vue/24/solid";
+import { RecycleScroller } from "vue-virtual-scroller";
+import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
+import { TrashIcon, ArrowUpCircleIcon } from "@heroicons/vue/24/outline";
 
 const page = usePage();
 const props = computed(() => page.props);
@@ -174,6 +170,7 @@ const windowWidth = ref(window.innerWidth);
 function scrollToTop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
 function checkScroll() {
     showButton.value = window.scrollY > 600;
 }
@@ -192,11 +189,7 @@ function deleteSong(id) {
         route("mix.remove-song", id),
         { preserveScroll: true },
         {
-            onSuccess: () => {
-                // Optionally, you can show a success message or perform any other action
-            },
             onError: (error) => {
-                // Handle error if needed
                 console.error("Error deleting song:", error);
             },
         }
@@ -214,6 +207,24 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     window.removeEventListener("resize", updateWindowWidth);
-    window.addEventListener("scroll", checkScroll);
+    window.removeEventListener("scroll", checkScroll);
 });
 </script>
+
+<style>
+.scroller {
+    height: auto;
+    width: 100%;
+}
+
+.fade-with-slide-enter-active,
+.fade-with-slide-leave-active {
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.fade-with-slide-enter-from,
+.fade-with-slide-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+</style>
