@@ -31,9 +31,13 @@
                                 <ExclamationCircleIcon
                                     class="size-5 shrink-0"
                                 />
-                                <span
+                                <span v-if="users.length > 0"
                                     >Search results are exclusively for premium
                                     users.</span
+                                >
+                                <span v-else
+                                    >No available premium users found in
+                                    playlist.</span
                                 >
                             </p>
                         </div>
@@ -140,8 +144,8 @@ import { XMarkIcon, ExclamationCircleIcon } from "@heroicons/vue/24/solid";
 import SearchBarUsers from "@/components/subpages/manage/SearchBarUsers.vue";
 import { CheckIcon } from "@heroicons/vue/24/solid";
 import RegularButton from "@/components/buttons/RegularButton.vue";
-import { ref } from "vue";
-import { useForm } from "@inertiajs/vue3";
+import { ref, computed } from "vue";
+import { useForm, usePage } from "@inertiajs/vue3";
 
 const props = defineProps({
     isVisible: {
@@ -152,6 +156,9 @@ const props = defineProps({
         type: Object,
     },
 });
+
+const page = usePage();
+const users = computed(() => page.props.collaborators.data);
 
 const emit = defineEmits(["update:selected-dj", "close-modal", "save-co-dj"]);
 

@@ -59,6 +59,8 @@ import MixWithPlaybackMobile from "./MixWithPlaybackMobile.vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { usePage, router } from "@inertiajs/vue3";
 import toast from "@/stores/StoreToast.js";
+import { useBattery } from "@vueuse/core";
+import { StoreInformationModal } from "@/stores/StoreInformationModal";
 
 const page = usePage();
 const windowSize = ref(window.innerWidth);
@@ -133,6 +135,31 @@ watch(
     (newDevices) => {
         if (newDevices.length === 0) {
             selectedDevice.value = null;
+        }
+    }
+);
+
+const { charging, level } = useBattery();
+const storeInformationModal = StoreInformationModal();
+
+//battery level reminder. sadly doesnt work on ios but on adroid it should most of the time depending on browser
+watch(
+    [charging, level, isMixActive],
+    async ([isCharging, batteryLevel, isMixActive]) => {
+        const hasSeenReminder =
+            localStorage.getItem("coDjReminderShown") === "true";
+
+        if (
+            !isCharging &&
+            batteryLevel === 0.1 &&
+            !hasSeenReminder &&
+            isMixActive
+        ) {
+            storeInformationModal.showInfoModal(
+                "Battery almost empty",
+                "Remember that you can assign another premium user as the co-dj for this mix while you charge your device!"
+            );
+            localStorage.setItem("coDjReminderShown", "true");
         }
     }
 );
@@ -565,7 +592,7 @@ onMounted(() => {
             async () => {
                 await refreshDevices();
 
-                router.reload({ only: ["mix" , "success", "error"] });
+                router.reload({ only: ["mix", "success", "error"] });
             }
         );
     }

@@ -1,7 +1,9 @@
 <template>
     <button
         :class="[
-            'relative inline-flex items-center justify-center font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed',
+            props.externalClass,
+            !props.externalClass?.includes('hidden') && 'inline-flex',
+            'relative items-center justify-center font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed',
             type === 'primary'
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                 : '',
@@ -52,6 +54,10 @@ const props = defineProps({
     rounded: {
         type: Boolean,
         default: false,
+    },
+    externalClass: {
+        type: String,
+        default: "",
     },
 });
 

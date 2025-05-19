@@ -17,7 +17,9 @@
                 <div
                     class="max-w-[60%] overflow-hidden whitespace-nowrap truncate"
                 >
-                    <h1 class="truncate text-white text-2xl">{{ mix.name }}</h1>
+                    <h1 class="truncate text-white text-3xl font-medium">
+                        {{ mix.name }}
+                    </h1>
                 </div>
             </div>
 
