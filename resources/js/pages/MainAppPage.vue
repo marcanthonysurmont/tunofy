@@ -1,11 +1,9 @@
 <template>
     <Head title="Tunofy | App" />
     <AppLayout>
-        <div class="w-full h-full flex justify-center items-center">
-            <Transition name="fade-with-slide" appear mode="out-in">
-                <h1 class="text-5xl">Empty for now.</h1>
-            </Transition>
-        </div>
+        <Transition name="fade-with-slide" appear mode="out-in">
+            <NewsSection />
+        </Transition>
     </AppLayout>
 </template>
 
@@ -14,6 +12,7 @@ import { ref } from "vue";
 
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head } from "@inertiajs/vue3";
+import NewsSection from "@/components/main-page/NewsSection.vue";
 
 const tabs = ref([
     { name: "Overview", active: true },
