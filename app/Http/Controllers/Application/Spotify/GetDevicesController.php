@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Application\Spotify;
 
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use App\Services\SpotifyService;
+use App\Services\Spotify\SpotifyService;
 use Illuminate\Support\Facades\Auth;
 
 class GetDevicesController extends Controller

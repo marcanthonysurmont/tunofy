@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Application\Spotify;
 use App\Http\Requests\RequestSpotifyPlayerStatusRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
-use App\Services\PlaybackService;
+use App\Services\Playback\PlaybackService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\SpotifyPlaybackResource;

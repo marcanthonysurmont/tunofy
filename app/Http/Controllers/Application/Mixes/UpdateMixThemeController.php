@@ -6,10 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateMixThemeRequest;
 use App\Models\Mix;
 use App\Models\Theme;
+use Illuminate\Http\RedirectResponse;
 
 class UpdateMixThemeController extends Controller
 {
-    public function __invoke(Mix $mix, UpdateMixThemeRequest $request)
+    public function __invoke(Mix $mix, UpdateMixThemeRequest $request): RedirectResponse
     {
         $validated = $request->validated();
 

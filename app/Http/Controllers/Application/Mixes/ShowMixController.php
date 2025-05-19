@@ -9,7 +9,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\MixResource;
-use App\Services\SpotifyService;
+use App\Services\Spotify\SpotifyService;
 
 class ShowMixController extends Controller
 {
@@ -22,21 +22,28 @@ class ShowMixController extends Controller
         $mix->load(['songs.user', 'presets', 'user', 'collaborators', 'themes']);
         $user->load(['mixes', 'accessibleMixes']);
 
+        // Get the controlling user ID first
+        $controllingUserId = $mix->co_dj_id ?: $mix->user_id;
+
+        // Then use it in the scope call
+        $activeConflictingMixes = Mix::conflictingActiveMixes($mix->id, $controllingUserId)->get();
+
         // Get Spotify devices for the mix owner
         $devices = $spotifyService->getUserDevices($user);
         $collaborators = $mix->collaborators()->orderBy('created_at', 'desc')->paginate(2);
         $collaborators->withPath("/{$mix->slug}/manage");
 
         return Inertia::render('MixSlugPage', [
-            'mix' => fn() => MixResource::make($mix)->jsonSerialize(),
-            'collaborators' => fn() => CollaboratorResource::collection($collaborators),
-            'themes' => fn() => $mix->getThemeSettings(),
-            'presets' => fn() => $mix->all_presets,
-            'your_mixes' => fn() => $user->mixes,
-            'joined_mixes' => fn() => $user->accessibleMixes,
-            'owner' => fn() => $mix->user,
-            'devices' => fn() => $devices,
-            'activeTab' => fn() => $tab,
+            'mix' => fn () => MixResource::make($mix)->jsonSerialize(),
+            'collaborators' => fn () => CollaboratorResource::collection($collaborators),
+            'activeConflictingMixes' => fn () => $activeConflictingMixes,
+            'themes' => fn () => $mix->getThemeSettings(),
+            'presets' => fn () => $mix->all_presets,
+            'your_mixes' => fn () => $user->mixes,
+            'joined_mixes' => fn () => $user->accessibleMixes,
+            'owner' => fn () => $mix->user,
+            'devices' => fn () => $devices,
+            'activeTab' => fn () => $tab,
         ]);
     }
 }

@@ -4,53 +4,93 @@ namespace App\Http\Controllers\Application\Spotify;
 
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
-use App\Services\SongPlaybackService;
+use App\Services\Playback\SongPlaybackService;
 use Illuminate\Http\JsonResponse;
 use App\Events\PlaybackDataUpdatedEvent;
 use App\Events\MixStatusChangedEvent;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Request;
+use App\Services\Spotify\SpotifyService;
+use App\Services\Playback\PlaybackStateManager;
+use App\Models\QueueSong;
+use Illuminate\Support\Facades\Auth;
 
 class PlayNextSongController extends Controller
 {
     public function __invoke(
-        Request $request,
         Mix $mix,
-        SongPlaybackService $songPlaybackService
+        SongPlaybackService $songPlaybackService,
+        SpotifyService $spotifyService,
+        PlaybackStateManager $playbackStateManager
     ): JsonResponse {
         $this->authorize('controlPlayback', $mix);
 
-        // First, clear any previous skip flags to ensure fresh state
-        Cache::forget("mix:{$mix->id}:manual_change");
+        // RACE CONDITION CHECK: Only allow one command per 300ms per mix
+        $lastCommandKey = "mix:{$mix->id}:last_command";
+        $lastCommandTime = Cache::get($lastCommandKey, 0);
+        $now = microtime(true);
 
-        // Set the skip flag with a longer TTL to cover rapid skips
-        Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
+        // If less than 300ms has passed since last command, throttle
+        if ($now - $lastCommandTime < 0.3) {
+            Log::info("Throttling next song command - too soon after previous command");
 
-        // Get the result from advancing to the next song
-        $result = $songPlaybackService->advanceToNextSong($mix->id);
+            // OPTIMIZATION: Return the last successful response to make UI feel more responsive
+            $lastResponseKey = "mix:{$mix->id}:last_next_response";
+            $lastResponse = Cache::get($lastResponseKey);
+            if ($lastResponse) {
+                return response()->json(array_merge(
+                    $lastResponse,
+                    ['throttled' => true]
+                ));
+            }
 
-        // After skip, ensure the flag is still set to prevent polling right after
-        Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
+            return response()->json([
+                'success' => true,
+                'throttled' => true,
+                'message' => 'Command throttled'
+            ]);
+        }
 
-        // IMPORTANT: Check if this was the last song
-        if (!$result['success'] && isset($result['queue_completed']) && $result['queue_completed']) {
-            Log::info("Queue completed after skipping last song for mix {$mix->id}");
+        // Set last command time
+        Cache::put($lastCommandKey, $now, now()->addMinutes(5));
 
-            // Set the mix to inactive
+        // 1. Get the next song data and mark current song as finished
+        $nextSong = $songPlaybackService->getNextSongToPlay($mix->id);
+        $currentSong = $songPlaybackService->getCurrentlyPlayingSong($mix);
+
+        // Track song history for proper "previous song" navigation
+        if ($currentSong) {
+            // Let PlaybackStateManager handle the song history - ALWAYS add to history when skipping forward
+            $playbackStateManager->addToSongHistory($mix, $currentSong->id);
+
+            // Now update song status
+            $currentSong->update(['status' => 'finished', 'played_at' => now()]);
+        }
+
+        // IMPORTANT: Check and extend queue here - BEFORE getting next song again
+        // This ensures we always have songs ready
+        $pendingSongsCount = QueueSong::where('mix_id', $mix->id)
+            ->where('status', 'pending')
+            ->count();
+
+        if ($pendingSongsCount <= 5) {
+            Log::info("Queue running low during skip, extending queue for mix {$mix->id}");
+            $songPlaybackService->extendQueueIfNeeded($mix);
+
+            // Re-fetch next song since queue might have changed
+            $nextSong = $songPlaybackService->getNextSongToPlay($mix->id);
+        }
+
+        // Check if queue is completed
+        if (!$nextSong) {
+            Log::info("Queue completed for mix {$mix->id}");
+
+            $spotifyService->pausePlayback(Auth::user());
+            // Set mix inactive and broadcast
             $mix->update(['is_active' => false]);
-
-            // Broadcast the queue completion AND deactivation
-            event(new MixStatusChangedEvent(
-                $mix,
-                false,  // Set to false to indicate mix is now inactive
-                'queue_completed'
-            ));
-
-            // Set cache flag to prevent further polling
+            event(new MixStatusChangedEvent($mix, false, 'queue_completed'));
             Cache::put("mix:{$mix->id}:queue_completed", true, now()->addHours(1));
 
-            // Return the queue completion status
             return response()->json([
                 'success' => false,
                 'queue_completed' => true,
@@ -58,36 +98,78 @@ class PlayNextSongController extends Controller
             ]);
         }
 
-        if ($result['success']) {
-            // Update playback data in cache with the new track
-            $cacheKey = "mix:playback:" . $mix->id;
-            $playbackData = [
-                'is_playing' => true,
-                'item' => [
-                    'id' => $result['song']['spotify_id'],
-                    'name' => $result['song']['name'],
-                    'duration_ms' => $result['song']['duration_ms'],
-                    'artists' => [['name' => $result['song']['artist']]],
-                    'album' => [
-                        'images' => [['url' => $result['song']['image_url']]]
-                    ]
-                ],
-                '_timestamp' => now()->timestamp
-            ];
+        // 2. Prepare the playback data but DON'T broadcast yet
+        $playbackData = [
+            'is_playing' => true,
+            'progress_ms' => 0,
+            'item' => [
+                'id' => $nextSong->song->spotify_id,
+                'name' => $nextSong->song->name,
+                'duration_ms' => $nextSong->song->duration_ms,
+                'artists' => [['name' => $nextSong->song->artist]],
+                'album' => [
+                    'images' => [['url' => $nextSong->song->image_url]]
+                ]
+            ],
+            '_timestamp' => now()->timestamp,
+            '_action' => 'next'
+        ];
 
-            // Update the cache with the new track data BEFORE broadcasting
-            Cache::put($cacheKey, $playbackData);
+        // 3. Faster API calls to Spotify
+        $deviceId = $playbackStateManager->getDeviceId($mix);
+        $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
-            // Debug log to see what's being sent
-            Log::info("Broadcasting manual skip for mix {$mix->id} " . json_encode($playbackData));
+        $success = false;
+        if ($deviceId) {
+            // OPTIMIZATION: Don't set device_changed grace period for every command
+            // Only set it if the device was explicitly changed
 
-            // Then broadcast the event with this updated data
-            event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+            // OPTIMIZATION: Skip device activation if it was recently activated
+            $recentlyActivated = $playbackStateManager->isDeviceRecentlyActivated($mix);
+            $activationSuccess = $recentlyActivated;
 
-            // Flag as manual change to prevent immediate polling
-            Cache::put("mix:{$mix->id}:manual_change", true, now()->addSeconds(5));
+            if (!$recentlyActivated) {
+                $activationSuccess = $spotifyService->activateDevice($user, $deviceId);
+                if ($activationSuccess) {
+                    // Cache activation status for 30 seconds to avoid repeated calls
+                    $playbackStateManager->setDeviceActivated($mix, true, 30);
+                }
+            }
+
+            if ($activationSuccess) {
+                // OPTIMIZATION: No sleep/delay, immediate play command
+                $success = $spotifyService->playTrackOnDevice(
+                    $user,
+                    $nextSong->song->spotify_id,
+                    $deviceId
+                );
+            }
         }
 
-        return response()->json($result);
+        // 4. Faster response after Spotify API call
+        if ($success) {
+            // Update status and cache in parallel (not sequential)
+            $nextSong->update(['status' => 'playing', 'played_at' => now()]);
+            $playbackStateManager->setManualChange($mix);
+            $playbackStateManager->setPlaybackData($mix, $playbackData);
+
+            // Broadcast event
+            event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+
+            // Cache the last successful response
+            $response = [
+                'success' => true,
+                'song' => $nextSong->song
+            ];
+
+            Cache::put("mix:{$mix->id}:last_next_response", $response, now()->addMinutes(1));
+
+            return response()->json($response);
+        } else {
+            // Simplified error response
+            return response()->json([
+                'success' => false
+            ]);
+        }
     }
 }

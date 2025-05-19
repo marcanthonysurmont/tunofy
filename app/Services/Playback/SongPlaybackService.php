@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Playback;
 
 use App\Events\PlaybackDataUpdatedEvent;
 use App\Models\QueueSong;
@@ -9,15 +9,19 @@ use App\Models\User;
 use App\Models\PlaybackSession;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use App\Events\MixStatusChangedEvent;
 use App\Events\DeviceUpdatedEvent;
+use App\Services\Spotify\SpotifyService;
+use App\Services\Queue\QueueManagementService;
 
 class SongPlaybackService
 {
-    public function __construct(protected SpotifyService $spotifyService)
-    {
-    }
+    public function __construct(
+        protected SpotifyService $spotifyService, 
+        protected PlaybackStateManager $playbackStateManager,
+    )
+    {}
 
     /**
      * Get the next song to play from the queue
@@ -34,12 +38,37 @@ class SongPlaybackService
     }
 
     /**
+     * Get the previous song in the same session
+     */
+    public function getPreviousSong(Mix $mix, QueueSong $currentSong): ?QueueSong
+    {
+        return QueueSong::where('mix_id', $mix->id)
+            ->where('playback_session_id', $currentSong->playback_session_id)
+            ->where('status', 'finished')
+            ->where('order', '<', $currentSong->order)
+            ->orderBy('order', 'desc')
+            ->with('song')
+            ->first();
+    }
+
+    /**
      * Start playback of the next song in the queue
      */
-    public function startPlayback(int $mixId, ?string $deviceId = null): array
+    public function startPlayback(Mix $mix, ?string $deviceId = null, ?string $spotifyTrackId = null): array
     {
-        // Get the mix
-        $mix = Mix::findOrFail($mixId);
+        $mixId = $mix->id;
+
+        // If no device ID was passed, check if one is stored in PlaybackStateManager
+        if (!$deviceId) {
+            $deviceId = $this->playbackStateManager->getDeviceId($mix);
+
+            if ($deviceId) {
+                Log::info("Retrieved stored device ID {$deviceId} for mix {$mixId} from PlaybackStateManager");
+            } else {
+                // No device ID available, log for debugging
+                Log::warning("No device ID available for mix {$mixId}, playback may fail");
+            }
+        }
 
         // Determine which user to use for playback
         $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
@@ -107,6 +136,11 @@ class SongPlaybackService
         if (!$playResult) {
             Log::error("Failed to start playback for mix {$mixId}");
             $nextSong->update(['status' => 'pending', 'playback_session_id' => null]);
+
+            // Use PlaybackStateManager:
+            $this->playbackStateManager->set($mix, 'device_failure', true);
+            event(new DeviceUpdatedEvent($mix));
+
             return [
                 'success' => false,
                 'message' => 'Failed to start playback'
@@ -114,13 +148,12 @@ class SongPlaybackService
         }
 
         // Clear device failure flag on success
-        Cache::forget("mix:{$mixId}:device_failure");
+        $this->playbackStateManager->forget($mix, 'device_failure');
 
         sleep(1.5);
 
         $playbackData = $this->spotifyService->getCurrentPlayback($user);
-
-        Cache::put("mix:playback:" . $mix->id, $playbackData);
+        $this->playbackStateManager->setPlaybackData($mix, $playbackData);
 
         event(new PlaybackDataUpdatedEvent($mix, $playbackData));
 
@@ -144,15 +177,18 @@ class SongPlaybackService
     /**
      * Advance to the next song in the queue
      */
-    public function advanceToNextSong(int $mixId): array
+    public function advanceToNextSong(Mix $mix, ?string $deviceId = null): array
     {
-        $mix = Mix::findOrFail($mixId);
-
-        // Retrieve the cached device ID if present
-        $deviceId = Cache::get("mix:{$mix->id}:device_id");
+        // If no device ID was passed, get it from PlaybackStateManager
+        if (!$deviceId) {
+            $deviceId = $this->playbackStateManager->getDeviceId($mix);
+            if ($deviceId) {
+                Log::info("Retrieved device ID {$deviceId} from PlaybackStateManager for mix {$mix->id}");
+            }
+        }
 
         // Get the active session
-        $activeSession = PlaybackSession::where('mix_id', $mixId)
+        $activeSession = PlaybackSession::where('mix_id', $mix->id)
             ->where('is_active', true)
             ->first();
 
@@ -164,7 +200,7 @@ class SongPlaybackService
         }
 
         // Get the currently playing song
-        $currentSong = QueueSong::where('mix_id', $mixId)
+        $currentSong = QueueSong::where('mix_id', $mix->id)
             ->where('status', 'playing')
             ->first();
 
@@ -179,31 +215,29 @@ class SongPlaybackService
 
             // CRITICAL: Always check queue extension when skipping, not just every 3 songs
             // This ensures that rapidly skipping triggers extensions
-            $pendingSongCount = QueueSong::where('mix_id', $mixId)
+            $pendingSongCount = QueueSong::where('mix_id', $mix->id)
                 ->where('status', 'pending')
                 ->count();
 
             // If we're getting low on songs, extend the queue BEFORE trying to get the next song
             if ($pendingSongCount <= 5) {
-                $this->extendQueueIfNeeded($mixId);
+                $this->extendQueueIfNeeded($mix);
             }
         }
 
         // Set a flag indicating we're changing tracks to prevent false mismatch detection
-        Cache::put("mix:{$mixId}:device_changed", true, now()->addSeconds(5));
-
-        // IMPORTANT: Clear the paused flag to ensure polling resumes
-        Cache::forget("mix:{$mixId}:paused");
+        $this->playbackStateManager->setDeviceChanged($mix);
+        $this->playbackStateManager->setPaused($mix, false);
 
         // Get and play the next song, passing the device ID
-        $result = $this->startPlayback($mixId, $deviceId);
+        $result = $this->startPlayback($mix, $deviceId);
 
         if (!$result['success'] && isset($result['message']) && $result['message'] === 'No songs in queue') {
             // Get the user for this mix
             $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
             // Make sure to mark the queue as completed in the database
-            QueueSong::where('mix_id', $mixId)
+            QueueSong::where('mix_id', $mix->id)
                 ->whereIn('status', ['playing', 'pending'])
                 ->update([
                     'status' => 'finished',
@@ -227,9 +261,8 @@ class SongPlaybackService
             }
 
             // Set a cache flag to indicate the queue is completed
-            Cache::put("mix:{$mixId}:queue_completed", true, now()->addMinutes(10));
-
-            Log::info("Queue completed for mix {$mixId}, all songs marked as finished");
+            $this->playbackStateManager->set($mix, 'queue_completed', true); // 10 minutes
+            Log::info("Queue completed for mix {$mix->id}, all songs marked as finished");
 
             // Try to pause Spotify playback - WITH THE CORRECT USER
             try {
@@ -239,6 +272,17 @@ class SongPlaybackService
             } catch (\Exception $e) {
                 Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
             }
+
+            // IMPORTANT: Add this direct database update for the mix
+            DB::table('mixes')->where('id', $mix->id)->update(['is_active' => false]);
+            Log::info("Marked mix {$mix->id} as inactive in database after queue completion");
+
+            // Also broadcast the event for the frontend
+            event(new MixStatusChangedEvent($mix, false, 'queue_completed'));
+            Log::info("Broadcast MixStatusChangedEvent for mix {$mix->id} deactivation");
+
+            // Set the queue completed flag
+            $this->playbackStateManager->setQueueCompleted($mix, true);
 
             return [
                 'success' => false,
@@ -250,18 +294,16 @@ class SongPlaybackService
         return $result;
     }
 
-    public function returnToPreviousSong(int $mixId): array
+    public function returnToPreviousSong(Mix $mix): array
     {
-        $mix = Mix::findOrFail($mixId);
-
         $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
 
         // Retrieve the cached device ID if present
-        $deviceId = Cache::get("mix:{$mix->id}:device_id");
+        $deviceId = $this->playbackStateManager->getDeviceId($mix);
 
         // Get the currently playing song
-        $currentSong = QueueSong::where('mix_id', $mixId)
+        $currentSong = QueueSong::where('mix_id', $mix->id)
             ->where('status', 'playing')
             ->first();
 
@@ -273,7 +315,7 @@ class SongPlaybackService
         }
 
         // Find the active session for this mix
-        $activeSession = PlaybackSession::where('mix_id', $mixId)
+        $activeSession = PlaybackSession::where('mix_id', $mix->id)
             ->where('is_active', true)
             ->first();
 
@@ -285,12 +327,7 @@ class SongPlaybackService
         }
 
         // Find the previous song in the SAME SESSION
-        $previousSong = QueueSong::where('mix_id', $mixId)
-            ->where('playback_session_id', $activeSession->id)
-            ->where('status', 'finished')
-            ->where('order', '<', $currentSong->order)
-            ->orderBy('order', 'desc')
-            ->first();
+        $previousSong = $this->getPreviousSong($mix, $currentSong);
 
         if (!$previousSong) {
             return [
@@ -317,7 +354,7 @@ class SongPlaybackService
         }
 
         // Set a flag to indicate we're changing tracks to prevent false mismatch detection
-        Cache::put("mix:{$mixId}:device_changed", true, now()->addSeconds(5));
+        $this->playbackStateManager->setDeviceChanged($mix, true, 5);
 
         // Explicitly play this song on Spotify with the same device ID
         $playResult = false;
@@ -328,7 +365,7 @@ class SongPlaybackService
         }
 
         // IMPORTANT: Clear the paused flag to ensure polling resumes
-        Cache::forget("mix:{$mixId}:paused");
+        $this->playbackStateManager->setPaused($mix, false);
 
         if (!$playResult) {
             // Revert the status changes if we failed to play
@@ -351,9 +388,9 @@ class SongPlaybackService
     /**
      * Get the currently playing song for a mix
      */
-    public function getCurrentlyPlayingSong(int $mixId): ?QueueSong
+    public function getCurrentlyPlayingSong(Mix $mix): ?QueueSong
     {
-        return QueueSong::where('mix_id', $mixId)
+        return QueueSong::where('mix_id', $mix->id)
             ->where('status', 'playing')
             ->with('song')
             ->first();
@@ -362,9 +399,9 @@ class SongPlaybackService
     /**
      * Check if a mix has pending songs
      */
-    public function hasPendingSongs(int $mixId): bool
+    public function hasPendingSongs(Mix $mix): bool
     {
-        return QueueSong::where('mix_id', $mixId)
+        return QueueSong::where('mix_id', $mix->id)
             ->where('status', 'pending')
             ->where('is_killed', false)
             ->exists();
@@ -398,78 +435,24 @@ class SongPlaybackService
     }
 
     /**
-     * Mark all queue songs for a mix as finished
-     */
-    public function clearQueue(int $mixId): void
-    {
-        QueueSong::where('mix_id', $mixId)
-            ->whereIn('status', ['playing', 'pending'])
-            ->update([
-                'status' => 'finished',
-                'played_at' => Carbon::now()
-            ]);
-
-        Log::info("Cleared queue for mix {$mixId}");
-    }
-
-    /**
-     * Verify that the expected song is actually playing
-     */
-    public function verifyPlaybackIntegrity(int $mixId, array $playbackData): bool
-    {
-        // Get what we think is playing
-        $currentQueueSong = QueueSong::where('mix_id', $mixId)
-            ->where('status', 'playing')
-            ->with('song')
-            ->first();
-
-        if (!$currentQueueSong) {
-            return true; // Nothing playing in our system, so no mismatch
-        }
-
-        // Get what's actually playing on Spotify
-        $spotifyTrackUri = $playbackData['item']['uri'] ?? null;
-        $expectedTrackUri = "spotify:track:" . $currentQueueSong->song->spotify_id;
-
-        // Compare the two
-        if ($spotifyTrackUri && $spotifyTrackUri !== $expectedTrackUri) {
-            Log::warning("Playback mismatch detected: Expected {$expectedTrackUri}, playing {$spotifyTrackUri}");
-
-            // Update the queue to reflect reality
-            $currentQueueSong->update([
-                'status' => 'interrupted',
-                'played_at' => Carbon::now()
-            ]);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * Attempt to resume the intended track with maximum device reliability
      */
-    public function resumeIntendedTrack(int $mixId): array
+    public function resumeIntendedTrack(Mix $mix): array
     {
-        $mix = Mix::findOrFail($mixId);
-
         $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
         // Try multiple ways to get device ID
-        $deviceId = Cache::get("mix:{$mix->id}:device_id");
+        $deviceId = $this->playbackStateManager->getDeviceId($mix);
 
         if ($deviceId) {
-            Log::info("Resuming intended track for mix {$mixId} with device ID {$deviceId}");
-
-            // Set a flag to indicate we're using a specific device
-            Cache::put("mix:{$mix->id}:device_changed", true, now()->addSeconds(10));
+            Log::info("Resuming intended track for mix {$mix->id} with device ID {$deviceId}");
+            $this->playbackStateManager->setDeviceChanged($mix);
         } else {
-            Log::info("Resuming intended track for mix {$mixId} with no specific device");
+            Log::info("Resuming intended track for mix {$mix->id} with no specific device");
         }
 
         // Get what we think should be playing
-        $currentQueueSong = QueueSong::where('mix_id', $mixId)
+        $currentQueueSong = QueueSong::where('mix_id', $mix->id)
             ->where('status', 'playing')
             ->with('song')
             ->first();
@@ -494,7 +477,7 @@ class SongPlaybackService
 
             event(new DeviceUpdatedEvent($mix));
 
-            Cache::put("mix:{$mixId}:device_failure", true);
+            $this->playbackStateManager->set($mix, 'device_failure', true);
 
             return [
                 'success' => false,
@@ -502,11 +485,11 @@ class SongPlaybackService
             ];
         }
 
-        Cache::forget("mix:{$mixId}:device_failure");
+        $this->playbackStateManager->forget($mix, 'device_failure');
 
         // Cache the device ID again to ensure persistence
         if ($deviceId) {
-            Cache::put("mix:{$mixId}:device_id", $deviceId, now()->addHours(1));
+            $this->playbackStateManager->setDeviceId($mix, $deviceId);
         }
 
         Log::info("Successfully resumed intended track {$currentQueueSong->song->spotify_id}" . ($deviceId ? " on device {$deviceId}" : ""));
@@ -517,17 +500,31 @@ class SongPlaybackService
         ];
     }
 
-    public function prepareQueueForUserSwitch(int $mixId): void
+    public function prepareQueueForUserSwitch(Mix $mix): void
     {
-        // Only reset songs that are currently playing, NOT finished ones
-        QueueSong::where('mix_id', $mixId)
+        // Get the currently playing song BEFORE marking anything as pending
+        $currentlyPlaying = QueueSong::where('mix_id', $mix->id)
             ->where('status', 'playing')
-            ->update(['status' => 'pending']);
+            ->first();
 
-        // Important: don't touch 'finished' songs
+        if ($currentlyPlaying) {
+            // Store the current song ID in PlaybackStateManager
+            $this->playbackStateManager->set($mix, 'user_switch_song_id', $currentlyPlaying->id);
+            $this->playbackStateManager->set($mix, 'switch_track_id', $currentlyPlaying->song->spotify_id);
 
-        // Add debug log to trace ownership transition
-        Log::info("Reset queue state for user switch on mix {$mixId} - only changed 'playing' to 'pending'");
+            // Log the song that was playing during user switch
+            Log::info("Marked song {$currentlyPlaying->song->spotify_id} as the pre-switch active song for mix {$mix->id}");
+
+            // Reset the queue state - mark the currently playing song as pending
+            $currentlyPlaying->update(['status' => 'pending']);
+            Log::info("Reset queue state for user switch on mix {$mix->id} - changed 'playing' to 'pending'");
+
+            // Set the flag to indicate we're in a takeback state
+            if (!$mix->co_dj_id) {
+                $this->playbackStateManager->setRecentOwnerTakeback($mix, true);
+                Log::info("Set recent owner takeback flag for mix {$mix->id}");
+            }
+        }
     }
 
     /**
@@ -542,8 +539,7 @@ class SongPlaybackService
             return;
         }
 
-        // Use the cached count if available to avoid redundant queries
-        $pendingSongs = Cache::get("mix:{$mixId}:pending_count", null);
+        $pendingSongs = $this->playbackStateManager->getPendingSongCount($mix);
 
         // If not cached, get the count from the database
         if ($pendingSongs === null) {
@@ -551,8 +547,8 @@ class SongPlaybackService
                 ->where('status', 'pending')
                 ->count();
 
-            // Cache the result
-            Cache::put("mix:{$mixId}:pending_count", $pendingSongs, now()->addMinutes(1));
+            // Cache the result via PlaybackStateManager
+            $this->playbackStateManager->setPendingSongCount($mix, $pendingSongs);
         }
 
         // Get batch size to determine threshold
@@ -570,59 +566,58 @@ class SongPlaybackService
                 ->where('status', 'pending')
                 ->count();
 
-            Cache::put("mix:{$mixId}:pending_count", $newPendingCount, now()->addMinutes(1));
+            $this->playbackStateManager->setPendingSongCount($mix, $newPendingCount);
         }
     }
 
     /**
      * Public wrapper to check and extend queue
      */
-    public function extendQueueIfNeeded(int $mixId): bool
+    public function extendQueueIfNeeded(Mix $mix): bool
     {
         // Add debug logging to trace execution
-        Log::info("Checking if queue needs extension for mix {$mixId}");
+        Log::info("Checking if queue needs extension for mix {$mix->id}");
 
         // Check pending song count
-        $pendingSongs = QueueSong::where('mix_id', $mixId)
+        $pendingSongs = QueueSong::where('mix_id', $mix->id)
             ->where('status', 'pending')
             ->count();
 
-        Log::info("Mix {$mixId} has {$pendingSongs} pending songs left");
+        Log::info("Mix {$mix->id} has {$pendingSongs} pending songs left");
 
         // Get the mix
-        $mix = Mix::find($mixId);
         if (!$mix) {
-            Log::warning("Cannot extend queue: Mix {$mixId} not found");
+            Log::warning("Cannot extend queue: Mix {$mix->id} not found");
             return false;
         }
 
         // Get batch size to determine threshold
         $batchSize = $mix->preset->batch_size;
 
-        // IMPORTANT: Use a much higher threshold when fewer songs remain
-        // If we only have 3 or fewer songs OR less than threshold, extend
-        if ($pendingSongs <= 3 || $pendingSongs <= ($batchSize * 0.5)) {
-            Log::info("Queue for mix {$mixId} is running low ({$pendingSongs} songs left). Adding more rounds.");
+        // If fewer than 3 songs or half a batch size (whichever is larger), add more rounds
+        $threshold = max(3, ($batchSize * 0.5));
+        if ($pendingSongs <= $threshold) {
+            Log::info("Queue for mix {$mix->id} is running low ({$pendingSongs} songs left). Adding more rounds.");
 
             // Force add 2 more rounds
             $result = app(QueueManagementService::class)->appendRoundsToQueue($mix, 2);
 
             if (isset($result['success']) && $result['success']) {
                 // Force update the cache after extending
-                $newCount = QueueSong::where('mix_id', $mixId)
+                $newCount = QueueSong::where('mix_id', $mix->id)
                     ->where('status', 'pending')
                     ->count();
 
-                Log::info("Successfully extended queue for mix {$mixId}. Now has {$newCount} pending songs");
-                Cache::put("mix:{$mixId}:pending_count", $newCount, now()->addMinutes(5));
+                Log::info("Successfully extended queue for mix {$mix->id}. Now has {$newCount} pending songs");
+                $this->playbackStateManager->setPendingSongCount($mix, $newCount);
                 return true;
             } else {
-                Log::warning("Failed to extend queue for mix {$mixId}");
+                Log::warning("Failed to extend queue for mix {$mix->id}");
                 return false;
             }
         }
 
-        Log::info("Queue extension not needed for mix {$mixId} ({$pendingSongs} pending songs)");
+        Log::info("Queue extension not needed for mix {$mix->id} ({$pendingSongs} pending songs)");
         return false;
     }
 

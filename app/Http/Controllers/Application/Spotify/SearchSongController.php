@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Application\Spotify;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SearchSongRequest;
 use App\Http\Resources\SpotifySearchResource;
-use App\Services\SpotifyService;
+use App\Services\Spotify\SpotifyService;
 use Illuminate\Http\JsonResponse;
 
 class SearchSongController extends Controller
