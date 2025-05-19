@@ -1,6 +1,6 @@
 <template>
     <section class="mb-16">
-        <h1 class="text-3xl sm:text-4xl font-medium mb-2">Top songs</h1>
+        <h1 class="text-3xl sm:text-4xl font-medium mb-2">Fun stats</h1>
         <!-- <p class="mb-8">Blablabla</p> -->
         <div class="grid grid-cols-1sm:grid-cols-2 lg:grid-cols-4 gap-2">
             <div
