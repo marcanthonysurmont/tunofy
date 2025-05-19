@@ -1,6 +1,11 @@
 <template>
     <section class="mb-16">
-        <h1 class="text-3xl sm:text-4xl font-medium mb-2">User facts</h1>
+        <div class="flex flex-row items-center mb-6 lg:mb-8">
+            <h1 class="text-3xl sm:text-4xl font-medium mb-2">User facts</h1>
+            <RegularButton color="blue" external-class="inline-flex mb-2 ml-6"
+                >Refresh cards</RegularButton
+            >
+        </div>
         <p class="mb-8">Here are some fun facts about the users in your mix.</p>
 
         <div class="relative">
@@ -73,6 +78,7 @@ import {
     QuestionMarkCircleIcon,
 } from "@heroicons/vue/24/solid";
 import { ref, onMounted } from "vue";
+import RegularButton from "@/components/buttons/RegularButton.vue";
 
 const flippedCards = ref(new Set());
 
