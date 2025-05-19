@@ -26,10 +26,10 @@
                     >
                         {{ news.title }}
                     </h3>
-                    <p class="text-zinc-400 flex-grow mb-4">
+                    <p class="text-zinc-300 flex-grow mb-4">
                         {{ news.teaser }}
                     </p>
-                    <small class="text-zinc-500 mb-4">{{ news.date }}</small>
+                    <small class="text-zinc-400 mb-4">{{ news.date }}</small>
                     <button
                         class="self-start text-primary hover:text-blue-600 font-semibold cursor-pointer"
                         @click="handleReadMore(news.id)"
@@ -99,28 +99,28 @@ const newsItems = [
     },
     {
         id: 2,
-        img: "https://www.hdwallpapers.in/thumbs/2020/playboi_carti_is_looking_up_wearing_purple_and_black_coat_with_white_tshirt_and_goggles_hd_music-t2.jpg",
+        img: "https://storage.googleapis.com/pr-newsroom-wp/1/2025/04/AI-Playlist-Newsroom-Header-2048x1166.jpg",
         title: "Sneak Peek: Upcoming UI Overhaul",
         teaser: "Get ready for a fresh, modern look coming soon in the next update.",
         date: "2025-05-10",
     },
     {
         id: 3,
-        img: "https://www.hdwallpapers.in/thumbs/2020/playboi_carti_is_looking_up_wearing_purple_and_black_coat_with_white_tshirt_and_goggles_hd_music-t2.jpg",
+        img: "https://storage.googleapis.com/pr-newsroom-wp/1/2025/05/Final-Use_Aparshakti-Khurana-Dustee-Jenkins-Badshah-1-768x440.jpg",
         title: "Community Contest Winners",
         teaser: "Congratulations to the winners of our latest design contest!",
         date: "2025-05-01",
     },
     {
         id: 4,
-        img: "https://www.hdwallpapers.in/thumbs/2020/playboi_carti_is_looking_up_wearing_purple_and_black_coat_with_white_tshirt_and_goggles_hd_music-t2.jpg",
+        img: "https://storage.googleapis.com/pr-newsroom-wp/1/2025/03/Spotify_FTRGenericHeaders_250219_ML_V02-24-1440x821.jpg",
         title: "Server Maintenance Scheduled",
         teaser: "We'll be offline for maintenance on May 25th from 1 AM to 3 AM UTC.",
         date: "2025-04-28",
     },
     {
         id: 5,
-        img: "https://www.hdwallpapers.in/thumbs/2020/playboi_carti_is_looking_up_wearing_purple_and_black_coat_with_white_tshirt_and_goggles_hd_music-t2.jpg",
+        img: "https://storage.googleapis.com/pr-newsroom-wp/1/2025/05/Play-Counts_FTR_ArticleHeader_1440x820_2xOptimized-1536x875.jpg",
         title: "New Feature Teaser",
         teaser: "We're working on an exciting feature to make collaboration easier.",
         date: "2025-04-20",
