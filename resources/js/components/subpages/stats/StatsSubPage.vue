@@ -4,7 +4,7 @@
         <!-- <p class="mb-8">Blablabla</p> -->
         <div class="grid grid-cols-1sm:grid-cols-2 lg:grid-cols-4 gap-2">
             <div
-                class="bg-zinc-900 px-4 py-6 sm:px-6 lg:px-8 border-card-stroke border-2 rounded-sm"
+                class="bg-card-background px-4 py-6 sm:px-6 lg:px-8 border-card-stroke border-2 rounded-sm"
             >
                 <p class="text-sm/6 font-medium text-zinc-400">
                     Amount of songs
