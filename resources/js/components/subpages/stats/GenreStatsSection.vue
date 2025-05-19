@@ -9,7 +9,7 @@
         >
             <div
                 ref="barTarget"
-                class="text-white bg-primary px-4 py-1 rounded-4xl transition-all duration-1000"
+                class="text-white bg-primary px-4 py-1 rounded-4xl transition-all duration-1000 ease-out"
                 :style="{
                     width: targetIsVisible ? `${genre.frequency}%` : '0%',
                 }"
