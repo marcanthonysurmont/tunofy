@@ -14,7 +14,10 @@
                     <span
                         class="text-4xl font-semibold tracking-tight text-white"
                     >
-                        <NumberFlow :value="amountOfSongs" will-change="true" />
+                        <NumberFlow
+                            :value="amountOfSongs"
+                            :will-change="true"
+                        />
                     </span>
                 </p>
                 <div
@@ -57,7 +60,10 @@
                     <span
                         class="text-4xl font-semibold tracking-tight text-white"
                     >
-                        <NumberFlow :value="amountOfKills" will-change="true" />
+                        <NumberFlow
+                            :value="amountOfKills"
+                            :will-change="true"
+                        />
                     </span>
                     <span class="text-sm text-zinc-400">kills</span>
                 </p>
@@ -91,7 +97,7 @@
                     >
                         <NumberFlow
                             :value="amountOfVotesForSong"
-                            will-change="true"
+                            :will-change="true"
                         />
                     </span>
                 </p>
@@ -125,7 +131,7 @@
                     >
                         <NumberFlow
                             :value="amountOfMinutesListened"
-                            will-change="true"
+                            :will-change="true"
                         />
                     </span>
                 </p>
