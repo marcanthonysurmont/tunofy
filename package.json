@@ -23,6 +23,7 @@
         "@heroicons/vue": "^2.2.0",
         "@inertiajs/inertia": "^0.11.1",
         "@inertiajs/vue3": "^2.0.8",
+        "@number-flow/vue": "^0.4.7",
         "@vitejs/plugin-vue": "^5.2.3",
         "@vueuse/core": "^13.1.0",
         "lodash": "^4.17.21",
