@@ -8,7 +8,7 @@
             <h1 class="text-3xl">Are you sure?</h1>
             <p class="text-muted">
                 Once your account is deleted you will not be able to recover it.
-                All your data will be wiped. Type <strong>"PASSWORD"</strong> to
+                All your data will be wiped. Type <strong>"CONFIRM"</strong> to
                 confirm you want to delete your account.
             </p>
         </template>
@@ -61,8 +61,8 @@ const isLoading = ref(false);
 
 function deleteAccount() {
     userInput.value.error = "";
-    if (userInput.value.deleteConfirmation !== "PASSWORD") {
-        userInput.value.error = "Please type PASSWORD to confirm";
+    if (userInput.value.deleteConfirmation !== "CONFIRM") {
+        userInput.value.error = "Please type CONFIRM to confirm";
         return;
     }
     isLoading.value = true;
