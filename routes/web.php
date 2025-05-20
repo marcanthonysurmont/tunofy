@@ -17,6 +17,7 @@ use App\Http\Controllers\Application\Mixes\JoinMixController;
 use App\Http\Controllers\Application\Mixes\ShowMixController;
 use App\Http\Controllers\Application\Mixes\StoreMixController;
 use App\Http\Controllers\General\ShowTermsOfUsePageController;
+use App\Http\Controllers\Application\ShowSettingsPageController;
 use App\Http\Controllers\Application\Mixes\UpdateMixController;
 use App\Http\Controllers\Application\Mixes\DestroyMixController;
 use App\Http\Controllers\Application\Mixes\AddSongToMixController;
@@ -91,6 +92,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
             Route::post('/transfer-playback/{mix}', TransferPlaybackController::class)->name('transfer-playback');
         });
 
+        Route::get('/settings', ShowSettingsPageController::class)->name('settings');
         Route::get('/', ShowAppPageController::class)->name('app');
         Route::get('/{mix:slug}/{tab?}', ShowMixController::class)->name('mix.show');
         Route::post('/logout', LogoutController::class)->name('logout');
