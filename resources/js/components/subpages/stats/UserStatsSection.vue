@@ -2,7 +2,7 @@
     <section class="mb-16">
         <div class="flex flex-row items-center mb-2">
             <h1 class="text-3xl sm:text-4xl font-medium">User facts</h1>
-            <RegularButton color="blue" external-class="inline-flex mb-2 ml-6"
+            <RegularButton color="blue" external-class="inline-flex ml-6"
                 >Refresh cards</RegularButton
             >
         </div>
