@@ -9,7 +9,7 @@
             <!-- Scrollable container -->
             <div
                 ref="scrollContainer"
-                class="flex overflow-x-auto gap-4 pb-12 hide-scrollbar"
+                class="flex overflow-x-auto gap-4 pb-12 hide-scrollbar scroll-container"
             >
                 <div
                     v-for="news in newsItems"
@@ -66,16 +66,66 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/solid";
 import { ref, onMounted } from "vue";
 
+//container for the scrollable items
 const scrollContainer = ref(null);
+
+//chevron tracking
 const isAtStart = ref(true);
 const isAtEnd = ref(false);
 
+function getCenteredIndex() {
+    //get container element (el = element)
+    const el = scrollContainer.value;
+    //get all items inside container
+    const items = el.querySelectorAll(".peeking-item");
+
+    //calculate horizontal center position of container
+    const containerCenter = el.scrollLeft + el.clientWidth / 2;
+
+    //find the item whose center is closest to containerCenter
+    let closestIndex = 0;
+    let closestDistance = Infinity;
+
+    //returns index of the item whose center is closest to containerCenter
+    items.forEach((item, index) => {
+        const itemCenter = item.offsetLeft + item.offsetWidth / 2;
+        const distance = Math.abs(containerCenter - itemCenter);
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            closestIndex = index;
+        }
+    });
+    return closestIndex;
+}
+
+function scrollToIndex(index) {
+    const el = scrollContainer.value;
+    const items = el.querySelectorAll(".peeking-item");
+    //check if index is out bounds
+    if (index < 0 || index >= items.length) {
+        return;
+    }
+
+    const item = items[index];
+    const scrollPos =
+        item.offsetLeft + item.offsetWidth / 2 - el.clientWidth / 2;
+
+    //smoothly scroll container to that item and make it centered
+    el.scrollTo({ left: scrollPos, behavior: "smooth" });
+}
+
 function scrollLeft() {
-    scrollContainer.value.scrollBy({ left: -200, behavior: "smooth" });
+    //step is 2 for desktop and 1 for mobile
+    const step = window.innerWidth >= 768 ? 2 : 1;
+    const currentIndex = getCenteredIndex();
+    scrollToIndex(currentIndex - step);
 }
 
 function scrollRight() {
-    scrollContainer.value.scrollBy({ left: 200, behavior: "smooth" });
+    //step is 2 for desktop and 1 for mobile
+    const step = window.innerWidth >= 768 ? 2 : 1;
+    const currentIndex = getCenteredIndex();
+    scrollToIndex(currentIndex + step);
 }
 
 function updateScrollState() {
@@ -85,7 +135,6 @@ function updateScrollState() {
 }
 
 function handleReadMore(id) {
-    // For now just console.log, you can replace with navigation or modal opening
     console.log("Read more clicked for news id:", id);
 }
 
@@ -126,6 +175,13 @@ const newsItems = [
         date: "2025-04-20",
     },
     {
+        id: 5,
+        img: "https://ev-database.org/img/auto/Tesla_Model_X/Tesla_Model_X-01.jpg",
+        title: "Tesla Model X Giveaway",
+        teaser: "We're giving away a Tesla Model X! Participate in our contest to win.",
+        date: "2025-04-17",
+    },
+    {
         id: 6,
         img: "https://www.hdwallpapers.in/thumbs/2020/playboi_carti_is_looking_up_wearing_purple_and_black_coat_with_white_tshirt_and_goggles_hd_music-t2.jpg",
         title: "Launch of Tunofy!",
@@ -136,11 +192,19 @@ const newsItems = [
 
 onMounted(() => {
     updateScrollState();
+    //add event listener to update scroll state
     scrollContainer.value.addEventListener("scroll", updateScrollState);
 });
 </script>
 
 <style scoped>
+.scroll-container {
+    scroll-snap-type: x mandatory;
+}
+
+.peeking-item {
+    scroll-snap-align: center;
+}
 @media (max-width: 468px) {
     .peeking-item {
         min-width: 40dvw;
