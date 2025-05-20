@@ -18,6 +18,11 @@
                     'Technically, no. However, you do need Spotify Premium to use our playback feature. You can always assign another Premium user as the co-DJ to allow playback.',
             ],
             [
+                'question' => 'Do my guests need Spotify to use this platform?',
+                'answer' =>
+                    'Yes, guests do need a Spotify account to use this platform. However, they do not need Spotify Premium.',
+            ],
+            [
                 'question' => 'Is this web application free?',
                 'answer' =>
                     'Yes! This web application is completely free to use. We do not charge any fees for using the platform. We might however add a some "premium" features in the future, but the core functionality will always be free.',
