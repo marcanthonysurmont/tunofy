@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Application\Mixes;
 
 use App\Http\Controllers\Controller;
+use Exception;
 use App\Http\Requests\ImportSpotifyPlaylistRequest;
 use App\Models\Mix;
 use App\Services\Spotify\SpotifyService;
@@ -16,28 +17,48 @@ class ImportSpotifyPlaylistController extends Controller
 
         $user = Auth::user();
 
-        $playlistSongs = $spotifyService->getPlaylistTracks($user, $validated['playlist_id']);
+        try {
+            $existingTrackIds = $mix->songs()->pluck('spotify_id')->toArray();
 
-        foreach ($playlistSongs as $song) {            
-            $artistNames = collect($song['track']['artists'])
-                ->pluck('name')
-                ->filter()
-                ->join(', ');
+            $playlistSongs = $spotifyService->getPlaylistTracks($user, $validated['playlist_id'], $existingTrackIds);
 
-            $mix->songs()->create([
-                'spotify_id' => $song['track']['id'],
-                'user_id' => $user->id,
-                'duration_ms' => $song['track']['duration_ms'],
-                'last_fetched_at' => now(),
-                'name' => $song['track']['name'],
-                'artist' => $artistNames,
-                'image_url' => $song['track']['album']['images']['0']['url'],
-            ]);
+            // Count imported songs
+            $songsCount = count($playlistSongs);
+
+            // If no songs to import, return early with appropriate message
+            if ($songsCount === 0) {
+                return redirect()->back()
+                    ->with('error', 'No new songs to import. All tracks from this playlist are already in your mix.');
+            }
+
+            foreach ($playlistSongs as $song) {
+                $artistNames = collect($song['track']['artists'])
+                    ->pluck('name')
+                    ->filter()
+                    ->join(', ');
+
+                $mix->songs()->create([
+                    'spotify_id' => $song['track']['id'],
+                    'user_id' => $user->id,
+                    'duration_ms' => $song['track']['duration_ms'],
+                    'last_fetched_at' => now(),
+                    'name' => $song['track']['name'],
+                    'artist' => $artistNames,
+                    'image_url' => $song['track']['album']['images']['0']['url'],
+                ]);
+            }
+
+            $mix->update(['mix_count' => $mix->mix_count + $songsCount]);
+
+            $successMessage = $songsCount === 1
+                ? '1 song imported successfully!'
+                : "{$songsCount} songs imported successfully!";
+
+            return redirect()->back()
+                ->with('success', $successMessage);
+        } catch (Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to import playlist: ' . $e->getMessage());
         }
-
-        $mix->update(['mix_count' => $mix->mix_count + collect($playlistSongs)->count()]);
-
-        return redirect()->back()
-            ->with('success', 'Playlist imported successfully!');
     }
 }

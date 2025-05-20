@@ -461,12 +461,13 @@ class SpotifyService
         }
     }
 
-    public function getPlaylistTracks(User $user, string $playlistId): array
+    public function getPlaylistTracks(User $user, string $playlistId, array $existingTrackIds): array
     {
         try {
             $allTracks = [];
             $nextUrl = "https://api.spotify.com/v1/playlists/{$playlistId}/tracks";
             $pageCount = 0;
+            $filteredCount = 0;
 
             // Loop until we have no more pages
             while ($nextUrl) {
@@ -501,22 +502,33 @@ class SpotifyService
                     }
                 }
 
-                if (!$response->successful()) {
+                 if (!$response->successful()) {
                     Log::error("Failed to get Spotify playlist tracks: " . $response->status());
                     return $allTracks;
                 }
 
                 $responseData = $response->json();
 
-                // Add tracks from this page to our collection
-                if (isset($responseData['items']) && is_array($responseData['items'])) {
-                    $allTracks = array_merge($allTracks, $responseData['items']);
-                    Log::info("Added " . count($responseData['items']) . " tracks from page {$pageCount}");
-                }
 
-                // Get the next URL for pagination, or null if we're done
-                $nextUrl = $responseData['next'] ?? null;
+                if (isset($responseData['items']) && is_array($responseData['items'])) {
+                $newTracks = array_filter($responseData['items'], function ($item) use ($existingTrackIds) {
+                    // Make sure track isn't null and has an ID
+                    if (!isset($item['track']['id'])) {
+                        return false;
+                    }
+                    
+                    // Only include tracks that aren't already in our database
+                    return !in_array($item['track']['id'], $existingTrackIds);
+                });
+                
+                $filteredCount += count($responseData['items']) - count($newTracks);
+                $allTracks = array_merge($allTracks, array_values($newTracks));
+                Log::info("Added " . count($newTracks) . " new tracks from page {$pageCount}");
             }
+
+            // Get the next URL for pagination, or null if we're done
+            $nextUrl = $responseData['next'] ?? null;
+        }
 
             Log::info("Fetched " . count($allTracks) . " tracks from playlist {$playlistId} in {$pageCount} pages");
             return $allTracks;
