@@ -5,7 +5,7 @@
             <div class="flex flex-col gap-8 max-w-3xl">
                 <section class="mb-8">
                     <div class="mb-8 py-6 border-b-2 border-card-stroke">
-                        <h1 class="text-3xl sm:text-4xl font-medium mb-2">
+                        <h1 class="text-3xl sm:text-4xl font-medium">
                             Settings
                         </h1>
                         <p class="text-muted">
@@ -30,7 +30,11 @@
                                 undone.
                             </p>
                         </div>
-                        <RegularButton type="danger" external-class="mt-2">
+                        <RegularButton
+                            type="danger"
+                            external-class="mt-2"
+                            @click="isDeleteAccountModalVisible = true"
+                        >
                             Delete account
                         </RegularButton>
                     </div>
@@ -47,6 +51,10 @@
                 </section>
             </div>
         </Transition>
+        <DeleteAccountModal
+            :isVisible="isDeleteAccountModalVisible"
+            @closeModal="isDeleteAccountModalVisible = false"
+        />
     </AppLayout>
 </template>
 
@@ -55,4 +63,7 @@ import { ref } from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head } from "@inertiajs/vue3";
 import RegularButton from "@/components/buttons/RegularButton.vue";
+import DeleteAccountModal from "../components/modals/settings/DeleteAccountModal.vue";
+
+const isDeleteAccountModalVisible = ref(false);
 </script>
