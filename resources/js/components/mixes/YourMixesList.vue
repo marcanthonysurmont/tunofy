@@ -7,7 +7,7 @@
         />
     </ul>
     <div v-else>
-        <p class="text-zinc-400">You don't own any mixes yet.</p>
+        <p class="text-muted">You don't own any mixes yet.</p>
     </div>
 </template>
 

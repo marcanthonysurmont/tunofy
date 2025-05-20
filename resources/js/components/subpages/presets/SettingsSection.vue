@@ -1,6 +1,6 @@
 <template>
-    <h1 class="text-3xl sm:text-4xl font-medium mb-2">Settings</h1>
-    <p class="mb-8" v-if="isCustomTemplate">
+    <h1 class="text-3xl sm:text-4xl font-medium">Settings</h1>
+    <p class="mb-8 text-muted" v-if="isCustomTemplate">
         Tailor the settings of your mix to your needs.
     </p>
     <p class="mb-8" v-else-if="!isCustomTemplate">

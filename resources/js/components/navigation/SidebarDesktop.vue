@@ -75,6 +75,11 @@
                             }}</span>
                         </a>
                         <div class="flex items-center gap-x-2">
+                            <Link :href="route('settings')">
+                                <Cog8ToothIcon
+                                    class="size-6 stroke-2 text-white font-bold cursor-pointer custom-item-hover"
+                                />
+                            </Link>
                             <Link :href="route('logout')" method="POST">
                                 <ArrowLeftEndOnRectangleIcon
                                     class="size-6 stroke-2 text-white font-bold cursor-pointer custom-item-hover"
@@ -95,6 +100,7 @@ import { Link, usePage } from "@inertiajs/vue3";
 import {
     PlusIcon,
     ArrowLeftEndOnRectangleIcon,
+    Cog8ToothIcon,
 } from "@heroicons/vue/24/outline";
 
 const emit = defineEmits(["show-join-mix-modal", "show-add-mix-modal"]);

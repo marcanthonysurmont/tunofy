@@ -21,7 +21,7 @@
             <h2 class="text-2xl font-semibold font-body">
                 {{ template.name }}
             </h2>
-            <p>{{ template.description }}</p>
+            <p class="text-muted">{{ template.description }}</p>
         </div>
     </div>
 </template>

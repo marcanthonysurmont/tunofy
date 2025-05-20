@@ -10,6 +10,9 @@
             type === 'secondary'
                 ? 'bg-zinc-600 text-white hover:bg-zinc-700'
                 : '',
+            type === 'danger'
+                ? 'bg-red-400/75 text-white hover:bg-red-400/65'
+                : '',
             block ? 'w-full' : '',
             rounded ? 'rounded-full' : 'rounded-md',
             'px-5 py-2',
@@ -18,7 +21,7 @@
         @click="$emit('click')"
     >
         <span
-            class="inline-block font-semibold text-sm sm:text-base"
+            class="inline-block font-semibold text-sm"
             :class="{ invisible: loading }"
         >
             <slot />
@@ -37,7 +40,7 @@ const props = defineProps({
     type: {
         type: String,
         default: "primary",
-        validator: (val) => ["primary", "secondary"].includes(val),
+        validator: (val) => ["primary", "secondary", "danger"].includes(val),
     },
     disabled: {
         type: Boolean,
