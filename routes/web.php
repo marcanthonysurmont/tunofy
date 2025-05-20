@@ -47,6 +47,7 @@ use App\Http\Controllers\Application\Mixes\RemoveUserMixAccessController;
 use App\Http\Controllers\Application\Mixes\ImportSpotifyPlaylistController;
 use App\Http\Controllers\Application\Mixes\UpdateMixThemeController;
 use App\Http\Controllers\Application\Mixes\UpdateMixUserPermissionsController;
+use Inertia\Inertia;
 
 Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function () {
     Route::middleware('auth')->group(function () {
@@ -74,7 +75,6 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
                 Route::post('/update-selected/{mix}', UpdateSelectedPresetController::class)->name('update-selected');
                 Route::delete('/destroy/{preset}', DestroyPresetController::class)->name('destroy');
             });
-
         });
 
         Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
@@ -94,6 +94,9 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
 
         Route::get('/settings', ShowSettingsPageController::class)->name('settings');
         Route::get('/', ShowAppPageController::class)->name('app');
+        Route::get('/remix', function () {
+            return Inertia::render(('RemixPage'));
+        });
         Route::get('/{mix:slug}/{tab?}', ShowMixController::class)->name('mix.show');
         Route::post('/logout', LogoutController::class)->name('logout');
     });
