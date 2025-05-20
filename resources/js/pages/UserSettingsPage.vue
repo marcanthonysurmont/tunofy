@@ -12,14 +12,14 @@
                             Manage your profile and account settings
                         </p>
                     </div>
-                    <div class="mb-4 space-y-1">
+                    <div class="mb-4">
                         <h2 class="text-xl sm:text-2xl">Delete account</h2>
                         <p class="text-muted">
                             Delete your account and all of its resources
                         </p>
                     </div>
                     <div
-                        class="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10"
+                        class="space-y-2 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10"
                     >
                         <div
                             class="relative space-y-1.5 text-red-600 dark:text-red-100"
@@ -36,7 +36,7 @@
                     </div>
                 </section>
                 <section class="mb-8">
-                    <div class="mb-4 space-y-1">
+                    <div class="mb-4">
                         <h2 class="text-xl sm:text-2xl">
                             Accessibility (coming soon)
                         </h2>
