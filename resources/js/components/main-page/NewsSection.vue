@@ -1,7 +1,7 @@
 <template>
     <section class="mb-16">
         <h1 class="text-3xl sm:text-4xl font-medium mb-2">Latest News</h1>
-        <p class="mb-8">
+        <p class="mb-8 text-zinc-400">
             Stay updated with the latest versions, teasers, and announcements.
         </p>
 
