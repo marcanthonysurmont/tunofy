@@ -257,11 +257,19 @@ class Mix extends Model
             return collect();
         }
 
-        return $this->queueSongs()
+        $queueSongs = $this->queueSongs()
             ->where('status', 'pending')
             ->where('is_killed', false)
             ->where('round_number', $lowestRound)
             ->with(['song.user'])
             ->get();
+        
+        $queueSongIds = $queueSongs->pluck('id')->toArray();
+        $votedSongIds = Vote::where('user_id', Auth::id())
+            ->whereIn('queue_song_id', $queueSongIds)
+            ->pluck('queue_song_id')
+            ->toArray();
+
+        return $queueSongs->whereNotIn('id', $votedSongIds);
     }
 }
