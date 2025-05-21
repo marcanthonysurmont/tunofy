@@ -7,7 +7,10 @@
                 class="h-1 flex-1 bg-zinc-500 overflow-hidden rounded-full"
             >
                 <div
-                    class="h-full bg-white transition-all duration-700"
+                    class="h-full bg-white"
+                    :class="{
+                        'transition-all duration-700': transitionEnabled,
+                    }"
                     :style="{
                         width:
                             index < currentStep
@@ -36,16 +39,14 @@
                         />
                     </button>
 
-                    <Transition name="fade" mode="out-in">
-                        <div
-                            class="flex-grow flex justify-center items-center overflow-hidden"
-                        >
-                            <component
-                                :is="steps[currentStep]"
-                                :key="steps[currentStep]"
-                            />
-                        </div>
-                    </Transition>
+                    <div
+                        class="flex-grow flex justify-center items-center overflow-hidden"
+                    >
+                        <component
+                            :is="steps[currentStep]"
+                            :key="steps[currentStep]"
+                        />
+                    </div>
 
                     <button
                         class="hidden sm:block flex-shrink-0"
@@ -77,25 +78,76 @@ import StepTwo from "@/components/remix/StepTwo.vue";
 import StepThree from "@/components/remix/StepThree.vue";
 import StepFour from "@/components/remix/StepFour.vue";
 import StepFive from "@/components/remix/StepFive.vue";
-import { ref } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 
 const totalSteps = 5;
 const currentStep = ref(0);
 const progress = ref(0);
 
+//reactive flag to toggle CSS transition
+const transitionEnabled = ref(false);
+
 const steps = [StepOne, StepTwo, StepThree, StepFour, StepFive];
 
+//custom durations per step in ms
+const stepDurations = [15000, 7000, 4000, 6000, 5000];
+
+let timer = null;
+let fillCompleteTimeout = null;
+
+function startProgress() {
+    clearInterval(timer);
+    clearTimeout(fillCompleteTimeout);
+    progress.value = 0;
+    transitionEnabled.value = false;
+
+    const duration = stepDurations[currentStep.value] || 5000;
+    const intervalMs = 50;
+    const increments = duration / intervalMs;
+    const incrementValue = 100 / increments;
+
+    timer = setInterval(() => {
+        //disable transition while incrementing
+        transitionEnabled.value = false;
+        progress.value += incrementValue;
+
+        if (progress.value >= 100) {
+            progress.value = 100;
+            clearInterval(timer);
+            //enable transition for final fill animation
+            transitionEnabled.value = true;
+
+            fillCompleteTimeout = setTimeout(() => {
+                goNext();
+            }, 700);
+        }
+    }, intervalMs);
+}
+
 function goNext() {
+    clearTimeout(fillCompleteTimeout);
     if (currentStep.value < totalSteps - 1) {
         currentStep.value++;
+        startProgress();
+    } else {
+        clearInterval(timer);
     }
-    progress.value = 0;
 }
 
 function goPrev() {
+    clearTimeout(fillCompleteTimeout);
     if (currentStep.value > 0) {
         currentStep.value--;
+        startProgress();
     }
-    progress.value = 0;
 }
+
+onMounted(() => {
+    startProgress();
+});
+
+onBeforeUnmount(() => {
+    clearInterval(timer);
+    clearTimeout(fillCompleteTimeout);
+});
 </script>

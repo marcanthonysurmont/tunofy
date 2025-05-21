@@ -6,4 +6,10 @@
     </div>
 </template>
 
-<script setup></script>
+<script setup>
+import { onMounted } from "vue";
+
+onMounted(() => {
+    console.log("StepTwo mounted");
+});
+</script>
