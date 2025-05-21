@@ -5,17 +5,17 @@
         <div class="flex flex-col items-center justify-center h-full w-full">
             <template v-if="!showStats">
                 <h2 ref="woahText" class="text-5xl text-center">Woah!</h2>
-                <p ref="masterText" class="text-xl text-center opacity-0">
-                    You're a true tunofy master.
+                <p ref="masterText" class="text-center opacity-0 text-md">
+                    You're a true song master.
                 </p>
             </template>
 
             <template v-else-if="showStats === 'totalSongs'">
                 <div ref="statsBox" class="text-center opacity-0">
                     <h2 class="text-4xl">You added</h2>
-                    <p class="text-lg">
+                    <p class="text-sm">
                         a total of
-                        <NumberFlow :value="totalSongs" />
+                        <NumberFlow :value="totalSongs" :will-change="true" />
                         songs!
                     </p>
                 </div>
@@ -24,11 +24,25 @@
             <template v-else-if="showStats === 'totalMixes'">
                 <div ref="mixesBox" class="text-center opacity-0">
                     <h2 class="text-4xl">You created</h2>
-                    <p class="text-lg">{{ totalMixes }} mixes!</p>
+                    <p class="text-md">{{ totalMixes }} mixes!</p>
                 </div>
             </template>
 
             <template v-else-if="showStats === 'mostAdded'">
+                <div
+                    class="absolute inset-0 z-0 overflow-hidden pointer-events-none"
+                    v-if="showStats === 'mostAdded'"
+                >
+                    <div class="flex flex-col animate-scrollUp">
+                        <div
+                            v-for="i in 20"
+                            :key="i"
+                            class="text-white text-3xl font-black text-center opacity-5 leading-[2.5rem] whitespace-nowrap"
+                        >
+                            OFF THE WALL
+                        </div>
+                    </div>
+                </div>
                 <div ref="mostBox" class="opacity-0">
                     <h2 class="text-3xl text-center mb-2">Most added song</h2>
                     <div
@@ -47,7 +61,7 @@
                             <div
                                 class="font-medium truncate text-neutral-100 text-sm"
                             >
-                                OFF THE WALl!
+                                OFF THE WALL!
                             </div>
                             <div
                                 class="text-neutral-200 text-xs sm:text-sm truncate"
@@ -204,6 +218,18 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.animate-scrollUp {
+    animation: scrollUp 9s linear infinite;
+}
+@keyframes scrollUp {
+    0% {
+        transform: translateY(0%);
+    }
+    100% {
+        transform: translateY(-50%);
+    }
+}
+
 @keyframes pulseBg {
     0%,
     100% {
