@@ -8,6 +8,7 @@ use App\Http\Controllers\General\ShowDPAPageController;
 use App\Http\Controllers\Auth\SpotifyCallbackController;
 use App\Http\Controllers\Auth\RedirectToSpotifyController;
 use App\Http\Controllers\Application\ShowAppPageController;
+use App\Http\Controllers\Application\ShowRemixPageController;
 
 use App\Http\Controllers\General\ShowLandingPageController;
 use App\Http\Controllers\General\ShowPrivacyPageController;
@@ -78,11 +79,9 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
                 Route::post('/update-selected/{mix}', UpdateSelectedPresetController::class)->name('update-selected');
                 Route::delete('/destroy/{preset}', DestroyPresetController::class)->name('destroy');
             });
-
             Route::prefix('/voting')->name('voting.')->group(function () {
                 Route::post('/vote/{queueSong}', VoteSongController::class)->name('vote');
             });
-
         });
 
         Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
@@ -102,6 +101,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
 
         Route::get('/settings', ShowSettingsPageController::class)->name('settings');
         Route::get('/', ShowAppPageController::class)->name('app');
+        Route::get('/remix', ShowRemixPageController::class)->name('remix');
         Route::get('/{mix:slug}/{tab?}', ShowMixController::class)->name('mix.show');
         Route::post('/logout', LogoutController::class)->name('logout');
     });

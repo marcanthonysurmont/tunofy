@@ -17,7 +17,7 @@
                 {{ description }}
             </p>
             <button
-                @click="onClick"
+                @click="visitMix"
                 class="self-center md:self-start bg-zinc-100 text-zinc-900 text-sm md:text-base font-semibold px-5 py-2 rounded-full hover:bg-zinc-300 transition"
             >
                 {{ ctaText }}
@@ -27,6 +27,7 @@
 </template>
 
 <script setup>
+import { router } from "@inertiajs/vue3";
 defineProps({
     imgUrl: String,
     title: String,
@@ -34,4 +35,8 @@ defineProps({
     ctaText: String,
     onClick: Function,
 });
+
+function visitMix() {
+    router.visit(route("remix"));
+}
 </script>
