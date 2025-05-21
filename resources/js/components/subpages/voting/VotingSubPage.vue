@@ -113,10 +113,10 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import RegularButton from "@/components/buttons/RegularButton.vue";
 import VotingFullScreen from "@/components/subpages/voting/VotingFullScreen.vue";
-import { usePage } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 
 const page = usePage();
 const props = computed(() => page.props);
@@ -131,5 +131,12 @@ const rankedSongs = computed(() => {
         ...song,
         rankChange: (song.like_count || 0) - (song.dislike_count || 0),
     }));
+});
+
+onMounted(() => {
+    Echo.channel(`mix.${props.value.mix.id}`)
+        .listen(".vote-updated", () => {
+            router.reload({ only: ["allPendingSongs", "success", "error"] });
+        })
 });
 </script>

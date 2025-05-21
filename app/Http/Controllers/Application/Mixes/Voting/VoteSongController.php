@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Models\QueueSong;
+use App\Events\VoteUpdatedEvent;
 
 class VoteSongController extends Controller
 {
@@ -66,6 +67,8 @@ class VoteSongController extends Controller
                 }
                 $order++;
             }
+
+            VoteUpdatedEvent::dispatch($mix);
 
             return redirect()->back();
         } catch (Exception $e) {
