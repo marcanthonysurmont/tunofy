@@ -24,7 +24,7 @@
                         {{ mix.mix_count }}
                         {{ mix.mix_count === 1 ? "song" : "songs" }},
                         approx.
-                        {{ readableTime }}
+                        {{ mixDuration }}
                     </span>
                 </div>
             </div>
@@ -350,15 +350,7 @@ const showUpdateMixModal = ref(false);
 const showUpdateThemeModal = ref(false);
 const showImportSpotifyModal = ref(false);
 
-const readableTime = computed(() => {
-    const totalMs = songs.value.data.reduce(
-        (sum, song) => sum + song.duration_ms,
-        0
-    );
-    const hours = Math.floor(totalMs / 3600000);
-    const minutes = Math.floor((totalMs % 3600000) / 60000);
-    return `${hours > 0 ? hours + "h " : ""}${minutes}min`;
-});
+const mixDuration = page.props.mixDuration;
 
 const showMenuDropdown = computed(() => {
     return (

@@ -18,6 +18,13 @@ class ShowMixController extends Controller
     {
         $this->authorize('view', $mix);
         $songs = $mix->songs()->with('user')->paginate(20);
+        $totalDuration = $mix->songs()->sum('duration_ms');
+        $mixDuration = function() use ($totalDuration) {
+            $hours = floor($totalDuration / 3600000);
+            $minutes = floor(($totalDuration % 3600000) / 60000);
+            return ($hours > 0 ? $hours . 'h ' : '') . $minutes . 'min';
+        };
+        
         if (request()->wantsJson()) {
             return SongResource::collection($songs);
         }
@@ -52,6 +59,7 @@ class ShowMixController extends Controller
         return Inertia::render('MixSlugPage', [
             'mix' => fn () => MixResource::make($mix)->jsonSerialize(),
             'songs' => fn () => SongResource::collection($songs),
+            'mixDuration' => fn () => $mixDuration,
             'collaborators' => fn () => CollaboratorResource::collection($collaborators),
             'activeConflictingMixes' => fn () => $activeConflictingMixes,
             'allPendingSongs' => fn () => $allPendingSongs,
