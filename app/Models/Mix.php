@@ -251,7 +251,7 @@ class Mix extends Model
         if ($pendingSongs->isEmpty()) {
             return collect();
         }
-        
+
         $queueSongIds = $pendingSongs->pluck('id')->toArray();
         $votedSongIds = Vote::where('user_id', Auth::id())
             ->whereIn('queue_song_id', $queueSongIds)
@@ -263,6 +263,7 @@ class Mix extends Model
 
     public function getAllPendingSongs()
     {
+        // Get the lowest round that has pending songs
         $lowestRound = $this->queueSongs()
             ->where('status', 'pending')
             ->where('is_killed', false)
@@ -272,6 +273,34 @@ class Mix extends Model
             return collect();
         }
 
+        // Check if we're on the last song of the current round
+        $pendingCountInLowestRound = $this->queueSongs()
+            ->where('status', 'pending')
+            ->where('is_killed', false)
+            ->where('round_number', $lowestRound)
+            ->count();
+
+        $currentlyPlayingSong = $this->queueSongs()
+            ->where('status', 'playing')
+            ->first();
+
+        // If we're playing the last song of the current round, look ahead to the next round
+        if ($pendingCountInLowestRound == 0 && $currentlyPlayingSong && $currentlyPlayingSong->round_number == $lowestRound) {
+            // Find the next round's songs
+            $nextRound = $lowestRound + 1;
+            $nextRoundSongs = $this->queueSongs()
+                ->where('status', 'pending')
+                ->where('is_killed', false)
+                ->where('round_number', $nextRound)
+                ->with(['song.user'])
+                ->get();
+
+            if ($nextRoundSongs->isNotEmpty()) {
+                return $nextRoundSongs;
+            }
+        }
+
+        // Otherwise return current round's pending songs as usual
         return $this->queueSongs()
             ->where('status', 'pending')
             ->where('is_killed', false)
