@@ -1,75 +1,41 @@
 <template>
     <div
-        class="relative aspect-[9/16] w-full sm:w-[70%] md:w-[320px] h-auto max-h-[80vh] bg-gradient-to-r from-blue-600 to-violet-600 rounded-xl shadow-lg"
+        class="relative aspect-[9/16] w-full sm:w-[70%] md:w-[320px] h-auto max-h-[80vh] animated-gradient rounded-xl shadow-lg"
     >
         <div class="flex flex-col items-center justify-center h-full w-full">
             <template v-if="!showStats">
-                <h2 ref="woahText" class="text-5xl text-center">Woah!</h2>
-                <p ref="masterText" class="text-center opacity-0 text-md">
-                    You're a true song master.
+                <h1 ref="woahText" class="text-5xl text-center font-medium">
+                    Hi, Gilles
+                </h1>
+                <p
+                    ref="masterText"
+                    class="text-center opacity-0 text-md font-medium"
+                >
+                    It's the end of the year, and your yearly remix is ready.
+                    Are you too?
                 </p>
             </template>
-
-            <template v-else-if="showStats === 'totalSongs'">
-                <div ref="statsBox" class="text-center opacity-0">
-                    <h2 class="text-4xl">You added</h2>
-                    <p class="text-sm">
-                        a total of
-                        <NumberFlow :value="totalSongs" :will-change="true" />
-                        songs!
+            <template v-if="showStats === 'funFact'">
+                <div ref="funFact">
+                    <h1 class="text-4xl text-center font-medium">
+                        King of parties!
+                    </h1>
+                    <p class="text-center text-md font-medium">
+                        You did so much partying even our servers couldn't keep
+                        up!
                     </p>
                 </div>
             </template>
-
-            <template v-else-if="showStats === 'totalMixes'">
-                <div ref="mixesBox" class="text-center opacity-0">
-                    <h2 class="text-4xl">You created</h2>
-                    <p class="text-md">{{ totalMixes }} mixes!</p>
-                </div>
-            </template>
-
-            <template v-else-if="showStats === 'mostAdded'">
+            <template v-if="showStats === 'dancingGif'">
                 <div
-                    class="absolute inset-0 z-0 overflow-hidden pointer-events-none"
-                    v-if="showStats === 'mostAdded'"
+                    ref="dancingGif"
+                    class="text-center flex justify-center flex-col items-center"
                 >
-                    <div class="flex flex-col animate-scrollUp">
-                        <div
-                            v-for="i in 20"
-                            :key="i"
-                            class="text-white text-3xl font-black text-center opacity-5 leading-[2.5rem] whitespace-nowrap"
-                        >
-                            OFF THE WALL
-                        </div>
-                    </div>
-                </div>
-                <div ref="mostBox" class="opacity-0">
-                    <h2 class="text-3xl text-center mb-2">Most added song</h2>
-                    <div
-                        class="flex items-center gap-2 sm:gap-3 max-w-[200px] mx-auto truncate"
-                    >
-                        <img
-                            v-lazy="{
-                                src: 'https://i.scdn.co/image/ab67616d00001e0281e8dbcc784d8dbc7243ee0e',
-                                error: '/images/default-song.png',
-                                loading: '/images/default-song.png',
-                            }"
-                            alt="cover"
-                            class="w-8 h-8 sm:w-10 sm:h-10 rounded flex-shrink-0"
-                        />
-                        <div class="min-w-0 flex-1 overflow-hidden">
-                            <div
-                                class="font-medium truncate text-neutral-100 text-sm"
-                            >
-                                OFF THE WALL!
-                            </div>
-                            <div
-                                class="text-neutral-200 text-xs sm:text-sm truncate"
-                            >
-                                XXXTentacion & Ski Mask The Slump God
-                            </div>
-                        </div>
-                    </div>
+                    <img
+                        class="size-32 rounded-lg"
+                        alt="dancing gif"
+                        src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExZTRrcHJ5cG04MXJ0bjBkMHBpd24wNzF4cW4zaWxhNDRveXF0cnh3cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/cklPOHnHepdwBLRnQp/giphy.gif"
+                    />
                 </div>
             </template>
         </div>
@@ -81,14 +47,10 @@ import { onMounted, ref, nextTick } from "vue";
 import gsap from "gsap";
 import NumberFlow from "@number-flow/vue";
 
-const totalSongs = ref(0);
-const totalMixes = ref(12);
-
 const woahText = ref(null);
 const masterText = ref(null);
-const statsBox = ref(null);
-const mixesBox = ref(null);
-const mostBox = ref(null);
+const funFact = ref(null);
+const dancingGif = ref(null);
 
 const showStats = ref(false);
 
@@ -120,31 +82,19 @@ onMounted(() => {
             scale: 0.8,
             rotation: 5,
             duration: 0.5,
-            delay: 1.4,
+            delay: 5,
             ease: "power1.in",
         })
-
-        //stats section
         .add(async () => {
-            showStats.value = "totalSongs";
-            totalSongs.value = 0;
-            setTimeout(() => {
-                totalSongs.value = 406;
-            }, 50);
+            showStats.value = "funFact";
             await nextTick();
             gsap.fromTo(
-                statsBox.value,
-                { opacity: 0, y: 30, scale: 0.85 },
-                {
-                    opacity: 1,
-                    y: 0,
-                    scale: 1,
-                    duration: 0.6,
-                    ease: "back.out(1.7)",
-                }
+                funFact.value,
+                { opacity: 0, y: 20 },
+                { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
             );
         })
-        .to(statsBox.value, {
+        .to(funFact.value, {
             opacity: 0,
             scale: 0.8,
             rotation: -3,
@@ -152,82 +102,23 @@ onMounted(() => {
             delay: 3,
             ease: "power1.in",
         })
-
-        //mixes section
         .add(async () => {
-            showStats.value = "totalMixes";
+            showStats.value = "dancingGif";
             await nextTick();
             gsap.fromTo(
-                mixesBox.value,
-                { opacity: 0, y: 30, scale: 0.85 },
-                {
-                    opacity: 1,
-                    y: 0,
-                    scale: 1,
-                    duration: 0.6,
-                    ease: "back.out(1.7)",
-                    onComplete: () => {
-                        gsap.to(mixesBox.value, {
-                            scale: 1.05,
-                            duration: 0.4,
-                            yoyo: true,
-                            repeat: 1,
-                            ease: "sine.inOut",
-                        });
-                    },
-                }
-            );
-        })
-        .to(mixesBox.value, {
-            opacity: 0,
-            scale: 0.8,
-            rotation: 3,
-            duration: 0.4,
-            delay: 3,
-            ease: "power1.in",
-        })
-
-        //most added section
-        .add(async () => {
-            showStats.value = "mostAdded";
-            await nextTick();
-            gsap.fromTo(
-                mostBox.value,
-                { opacity: 0, y: 30, scale: 0.85 },
-                {
-                    opacity: 1,
-                    y: 0,
-                    scale: 1,
-                    duration: 0.6,
-                    ease: "back.out(1.7)",
-                    onComplete: () => {
-                        gsap.timeline({ repeat: 1, yoyo: true })
-                            .to(mostBox.value, {
-                                scale: 1.07,
-                                duration: 0.3,
-                                ease: "sine.inOut",
-                            })
-                            .to(mostBox.value, { rotation: 3, duration: 0.1 })
-                            .to(mostBox.value, { rotation: -3, duration: 0.1 })
-                            .to(mostBox.value, { rotation: 0, duration: 0.1 });
-                    },
-                }
+                dancingGif.value,
+                { opacity: 0, y: 20 },
+                { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
             );
         });
 });
 </script>
 
 <style scoped>
-.animate-scrollUp {
-    animation: scrollUp 9s linear infinite;
-}
-@keyframes scrollUp {
-    0% {
-        transform: translateY(0%);
-    }
-    100% {
-        transform: translateY(-50%);
-    }
+.animated-gradient {
+    background: linear-gradient(-45deg, #2563eb, #7c3aed, #2563eb);
+    background-size: 200% 200%;
+    animation: pulseBg 6s ease infinite;
 }
 
 @keyframes pulseBg {
@@ -237,6 +128,21 @@ onMounted(() => {
     }
     50% {
         background-position: 100% 50%;
+    }
+    25% {
+        background-position: 250% 75%;
+    }
+}
+
+.animate-scrollUp {
+    animation: scrollUp 9s linear infinite;
+}
+@keyframes scrollUp {
+    0% {
+        transform: translateY(0%);
+    }
+    100% {
+        transform: translateY(-50%);
     }
 }
 </style>

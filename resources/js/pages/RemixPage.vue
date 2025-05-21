@@ -90,7 +90,7 @@ const transitionEnabled = ref(false);
 const steps = [StepOne, StepTwo, StepThree, StepFour, StepFive];
 
 //custom durations per step in ms
-const stepDurations = [15000, 7000, 4000, 6000, 5000];
+const stepDurations = [15000, 15000, 4000, 6000, 5000];
 
 let timer = null;
 let fillCompleteTimeout = null;
