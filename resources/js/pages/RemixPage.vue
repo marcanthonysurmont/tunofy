@@ -1,4 +1,5 @@
 <template>
+    <Head title="Tunofy | Remix" />
     <div class="flex flex-col h-screen px-4 max-w-6xl mx-auto">
         <div class="w-full flex gap-2 py-4">
             <div
@@ -42,10 +43,20 @@
                     <div
                         class="flex-grow flex justify-center items-center overflow-hidden"
                     >
-                        <component
-                            :is="steps[currentStep]"
-                            :key="steps[currentStep]"
-                        />
+                        <template v-if="started">
+                            <component
+                                :is="steps[currentStep]"
+                                :key="steps[currentStep]"
+                            />
+                        </template>
+                        <template v-else>
+                            <StartStep
+                                @start-remix="
+                                    started = true;
+                                    startProgress;
+                                "
+                            />
+                        </template>
                     </div>
 
                     <button
@@ -77,20 +88,21 @@ import StepOne from "@/components/remix/StepOne.vue";
 import StepTwo from "@/components/remix/StepTwo.vue";
 import StepThree from "@/components/remix/StepThree.vue";
 import StepFour from "@/components/remix/StepFour.vue";
-import StepFive from "@/components/remix/StepFive.vue";
 import { ref, onMounted, onBeforeUnmount } from "vue";
+import { Head } from "@inertiajs/vue3";
+import StartStep from "@/components/remix/StartStep.vue";
 
-const totalSteps = 5;
+const steps = [StepOne, StepTwo, StepThree, StepFour];
+const totalSteps = steps.length;
 const currentStep = ref(0);
 const progress = ref(0);
+const started = ref(false);
 
 //reactive flag to toggle CSS transition
 const transitionEnabled = ref(false);
 
-const steps = [StepOne, StepTwo, StepThree, StepFour, StepFive];
-
 //custom durations per step in ms
-const stepDurations = [15000, 15000, 4000, 6000, 5000];
+const stepDurations = [15000, 15000, 15000, 10000];
 
 let timer = null;
 let fillCompleteTimeout = null;
@@ -141,10 +153,6 @@ function goPrev() {
         startProgress();
     }
 }
-
-onMounted(() => {
-    startProgress();
-});
 
 onBeforeUnmount(() => {
     clearInterval(timer);

@@ -7,26 +7,33 @@
                 <h1 ref="woahText" class="text-5xl text-center font-medium">
                     Woah!
                 </h1>
-                <h2 ref="masterText" class="text-center opacity-0 text-xl">
+                <p
+                    ref="masterText"
+                    class="text-center opacity-0 text-md font-medium"
+                >
                     You're a true song master.
-                </h2>
+                </p>
             </template>
 
             <template v-else-if="showStats === 'totalSongs'">
                 <div ref="statsBox" class="text-center opacity-0">
-                    <h1 class="text-4xl">You added</h1>
-                    <h2 class="text-xl">
+                    <h1 class="text-5xl font-medium">You added</h1>
+                    <p class="text-center text-md font-medium">
                         a total of
                         <NumberFlow :value="totalSongs" :will-change="true" />
                         songs!
-                    </h2>
+                    </p>
                 </div>
             </template>
 
             <template v-else-if="showStats === 'totalMixes'">
                 <div ref="mixesBox" class="text-center opacity-0">
-                    <h1 class="text-4xl">You created</h1>
-                    <h2 class="text-xl">a total of {{ totalMixes }} mixes!</h2>
+                    <h1 class="text-5xl font-medium">You created</h1>
+                    <p class="text-center text-md font-medium">
+                        a total of
+                        <NumberFlow :value="totalMixes" :will-change="true" />
+                        mixes!
+                    </p>
                 </div>
             </template>
 
@@ -46,7 +53,9 @@
                     </div>
                 </div>
                 <div ref="mostBox" class="opacity-0">
-                    <h2 class="text-3xl text-center mb-2">Most added song</h2>
+                    <h2 class="text-3xl text-center mb-2 font-medium">
+                        Most added song
+                    </h2>
                     <div
                         class="flex items-center gap-2 sm:gap-3 max-w-[200px] mx-auto truncate"
                     >
@@ -164,6 +173,10 @@ onMounted(() => {
         .add(async () => {
             showStats.value = "totalMixes";
             await nextTick();
+            totalMixes.value = 0;
+            setTimeout(() => {
+                totalMixes.value = 25;
+            }, 50);
             gsap.fromTo(
                 mixesBox.value,
                 { opacity: 0, y: 30, scale: 0.85 },

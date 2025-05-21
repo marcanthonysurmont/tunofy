@@ -45,7 +45,6 @@
 <script setup>
 import { onMounted, ref, nextTick } from "vue";
 import gsap from "gsap";
-import NumberFlow from "@number-flow/vue";
 
 const woahText = ref(null);
 const masterText = ref(null);
