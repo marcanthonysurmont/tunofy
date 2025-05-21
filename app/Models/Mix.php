@@ -266,7 +266,6 @@ class Mix extends Model
         // Get the lowest round that has pending songs
         $lowestRound = $this->queueSongs()
             ->where('status', 'pending')
-            ->where('is_killed', false)
             ->min('round_number');
 
         if ($lowestRound === null) {
@@ -276,7 +275,6 @@ class Mix extends Model
         // Check if we're on the last song of the current round
         $pendingCountInLowestRound = $this->queueSongs()
             ->where('status', 'pending')
-            ->where('is_killed', false)
             ->where('round_number', $lowestRound)
             ->count();
 
@@ -290,7 +288,6 @@ class Mix extends Model
             $nextRound = $lowestRound + 1;
             $nextRoundSongs = $this->queueSongs()
                 ->where('status', 'pending')
-                ->where('is_killed', false)
                 ->where('round_number', $nextRound)
                 ->with(['song.user'])
                 ->get();
@@ -303,7 +300,6 @@ class Mix extends Model
         // Otherwise return current round's pending songs as usual
         return $this->queueSongs()
             ->where('status', 'pending')
-            ->where('is_killed', false)
             ->where('round_number', $lowestRound)
             ->with(['song.user'])
             ->get();

@@ -56,7 +56,6 @@ class VoteSongController extends Controller
 
                 if($songKillCount > 0 && ($songKillCount / $collaboratorsCount) * 100 >= $preset->kill_percentage) {
                     $song->update([
-                        'status' => 'finished', 
                         'is_killed' => true
                     ]);
                 }
