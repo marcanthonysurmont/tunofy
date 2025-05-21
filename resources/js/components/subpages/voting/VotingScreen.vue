@@ -192,7 +192,7 @@ import { PauseIcon } from "@heroicons/vue/24/solid";
 import { HeartIcon, PlayIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import axios from "axios";
 import { ref, computed, onMounted, watch } from "vue";
-import { usePage } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 
 const page = usePage();
 
@@ -370,6 +370,12 @@ function clickRight() {
     ) {
         return;
     }
+
+    router.post(route('mix.voting.vote'), {
+        'queue_song_id' : votableSongs.value[currentIndex.value].id,
+        'vote_type' : 'like'
+    });
+
     bounceButton("right");
     fakeSwipe("right");
 }
@@ -383,6 +389,12 @@ function clickLeft() {
     ) {
         return;
     }
+
+    router.post(route('mix.voting.vote'), {
+        'queue_song_id' : votableSongs.value[currentIndex.value].id,
+        'vote_type' : 'dislike'
+    });
+
     bounceButton("left");
     fakeSwipe("left");
 }
@@ -396,6 +408,11 @@ function swipeRight() {
 }
 
 function kill() {
+    router.post(route('mix.voting.vote'), {
+        'queue_song_id' : votableSongs.value[currentIndex.value].id,
+        'vote_type' : 'kill'
+    });
+
     bounceButton("kill");
     skullAnimation.value = true;
 
@@ -433,7 +450,7 @@ function kill() {
 
 function nextSong() {
     //if there are more songs, move to the next one
-    if (currentIndex.value < votableSongs.songs.length - 1) {
+    if (currentIndex.value < votableSongs.value.length - 1) {
         //pause current audio if playing because user swiped
         //meaning that the user made their choice and audio should stop
         if (isPlaying.value && currentPlayingId.value) {
@@ -443,19 +460,19 @@ function nextSong() {
         currentIndex.value++;
         isNewCardAnimating.value = true;
 
-        const currentSong = votableSongs.songs[currentIndex.value];
-        const nextSong = votableSongs.songs[currentIndex.value + 1];
+        const currentSong = votableSongs[currentIndex.value];
+        const nextSong = votableSongs[currentIndex.value + 1];
 
         //check if current song audio is preloaded
         //if not, load it immediately
         if (currentSong && !audioPreviewCache.value[currentSong.track_id]) {
-            getSongFile(currentSong.track_id);
+            getSongFile(currentSong.song.spotify_id);
         }
 
         //check if next song audio is preloaded
         //if not, load it immediately
         if (nextSong && !audioPreviewCache.value[nextSong.track_id]) {
-            getSongFile(nextSong.track_id);
+            getSongFile(nextSong.song.spotify_id);
         }
 
         //reset animation flag after animation completes

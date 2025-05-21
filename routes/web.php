@@ -48,6 +48,8 @@ use App\Http\Controllers\Application\Mixes\ImportSpotifyPlaylistController;
 use App\Http\Controllers\Application\Mixes\UpdateMixThemeController;
 use App\Http\Controllers\Application\Mixes\UpdateMixUserPermissionsController;
 
+use App\Http\Controllers\Application\Mixes\Voting\VoteSongController;
+
 Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function () {
     Route::middleware('auth')->group(function () {
         Route::prefix('/mix')->name('mix.')->group(function () {
@@ -73,6 +75,10 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
                 Route::post('/update/{preset}', UpdatePresetController::class)->name('update');
                 Route::post('/update-selected/{mix}', UpdateSelectedPresetController::class)->name('update-selected');
                 Route::delete('/destroy/{preset}', DestroyPresetController::class)->name('destroy');
+            });
+
+            Route::prefix('/voting')->name('voting.')->group(function () {
+                Route::post('/upvote', VoteSongController::class)->name('vote');
             });
 
         });

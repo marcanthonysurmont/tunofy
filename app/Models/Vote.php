@@ -6,12 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Vote extends Model
 {
-    //
-
     /**************************************/
     /*             Attributes             */
     /**************************************/
 
+    protected $fillable = [
+        'queue_song_id',
+        'user_id',
+        'vote_type',
+    ];
+    
     /**************************************/
     /*           Relationships            */
     /**************************************/
