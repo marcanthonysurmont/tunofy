@@ -1,7 +1,7 @@
 <template>
     <section class="mb-16">
-        <h1 class="text-3xl sm:text-4xl font-medium mb-2">Top genres</h1>
-        <p class="mb-8">These genres were the most popular.</p>
+        <h1 class="text-3xl sm:text-4xl font-medium">Top genres</h1>
+        <p class="mb-8 text-muted">These genres were the most popular.</p>
         <div
             v-for="genre in genres"
             :key="genre.name"

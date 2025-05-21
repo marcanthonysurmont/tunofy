@@ -3,7 +3,7 @@
     <p class="mb-8 text-muted" v-if="isCustomTemplate">
         Tailor the settings of your mix to your needs.
     </p>
-    <p class="mb-8" v-else-if="!isCustomTemplate">
+    <p class="mb-8 text-muted" v-else-if="!isCustomTemplate">
         The settings below are of
         <strong>{{ templatesStore.getSelectedTemplate().name }}</strong>
         template. These are read-only and cannot be changed.

@@ -1,12 +1,14 @@
 <template>
     <section class="mb-16">
-        <div class="flex flex-row items-center mb-2">
+        <div class="flex flex-row items-center">
             <h1 class="text-3xl sm:text-4xl font-medium">User facts</h1>
             <RegularButton color="blue" external-class="inline-flex ml-6"
                 >Refresh cards</RegularButton
             >
         </div>
-        <p class="mb-8">Here are some fun facts about the users in your mix.</p>
+        <p class="mb-8 text-muted">
+            Here are some fun facts about the users in your mix.
+        </p>
 
         <div class="relative">
             <div
