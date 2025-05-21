@@ -14,16 +14,19 @@ use App\Services\Spotify\SpotifyService;
 
 class ShowMixController extends Controller
 {
-    public function __invoke(Mix $mix, SpotifyService $spotifyService, string $tab = 'overview'): Response
+    public function __invoke(Mix $mix, SpotifyService $spotifyService, string $tab = 'overview')
     {
         $this->authorize('view', $mix);
+        $songs = $mix->songs()->with('user')->paginate(20);
+        if (request()->wantsJson()) {
+            return SongResource::collection($songs);
+        }
 
         $user = Auth::user();
 
         $mix->load(['presets', 'user', 'collaborators', 'themes']);
         $user->load(['mixes', 'accessibleMixes']);
 
-        $songs = $mix->songs()->with('user')->paginate(20);
 
         // Get the controlling user ID first
         $controllingUserId = $mix->co_dj_id ?: $mix->user_id;
@@ -37,17 +40,17 @@ class ShowMixController extends Controller
         $collaborators->withPath("/{$mix->slug}/manage");
 
         return Inertia::render('MixSlugPage', [
-            'mix' => fn () => MixResource::make($mix)->jsonSerialize(),
-            'songs' => fn () => SongResource::collection($songs)->jsonSerialize(),
-            'collaborators' => fn () => CollaboratorResource::collection($collaborators),
-            'activeConflictingMixes' => fn () => $activeConflictingMixes,
-            'themes' => fn () => $mix->getThemeSettings(),
-            'presets' => fn () => $mix->all_presets,
-            'your_mixes' => fn () => $user->mixes,
-            'joined_mixes' => fn () => $user->accessibleMixes,
-            'owner' => fn () => $mix->user,
-            'devices' => fn () => $devices,
-            'activeTab' => fn () => $tab,
+            'mix' => fn() => MixResource::make($mix)->jsonSerialize(),
+            'songs' => fn() => SongResource::collection($songs),
+            'collaborators' => fn() => CollaboratorResource::collection($collaborators),
+            'activeConflictingMixes' => fn() => $activeConflictingMixes,
+            'themes' => fn() => $mix->getThemeSettings(),
+            'presets' => fn() => $mix->all_presets,
+            'your_mixes' => fn() => $user->mixes,
+            'joined_mixes' => fn() => $user->accessibleMixes,
+            'owner' => fn() => $mix->user,
+            'devices' => fn() => $devices,
+            'activeTab' => fn() => $tab,
         ]);
     }
 }

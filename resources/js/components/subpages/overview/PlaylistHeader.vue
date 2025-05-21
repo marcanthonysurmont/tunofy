@@ -21,8 +21,9 @@
                         class="text-dark-white text-base sm:text-lg mt-0 mb-0 leading-none"
                     >
                         <span class="font-bold">{{ owner.name }}</span> •
-                        {{ mix.songs.length }}
-                        {{ mix.songs.length === 1 ? "song" : "songs" }}, approx.
+                        {{ songs.data.length }}
+                        {{ songs.data.length === 1 ? "song" : "songs" }},
+                        approx.
                         {{ readableTime }}
                     </span>
                 </div>
@@ -339,6 +340,7 @@ const storeConfirmationModal = StoreConfirmationModal();
 const page = usePage();
 const props = computed(() => page.props);
 const mix = computed(() => props.value.mix);
+const songs = computed(() => props.value.songs);
 const owner = computed(() => props.value.owner);
 const authorization = computed(() => page.props.mix.authorized);
 const collaborators = computed(() => page.props.collaborators);
@@ -349,7 +351,7 @@ const showUpdateThemeModal = ref(false);
 const showImportSpotifyModal = ref(false);
 
 const readableTime = computed(() => {
-    const totalMs = mix.value.songs.reduce(
+    const totalMs = songs.value.data.reduce(
         (sum, song) => sum + song.duration_ms,
         0
     );

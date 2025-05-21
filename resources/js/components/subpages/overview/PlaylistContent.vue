@@ -51,12 +51,16 @@
         </div>
 
         <!-- songs w/ virtual list implementation -->
-        <div v-if="songs.length > 0" class="mb-32">
+        <div
+            v-if="renderedSongs.length > 0"
+            :class="isFetching ? 'mb-4' : 'mb-32'"
+        >
             <RecycleScroller
                 class="scroller"
-                :items="songs"
-                :item-size="windowWidth < 640 ? 64 : 72"
+                :items="renderedSongs"
+                :item-size="windowWidth < 640 ? 64 : 80"
                 key-field="id"
+                :key="windowWidth"
                 v-slot="{ item, index }"
                 page-mode
             >
@@ -138,7 +142,10 @@
                 </div>
             </RecycleScroller>
         </div>
-        <div v-if="!songs.length > 0" class="mb-32 mt-8">
+        <div v-if="isFetching" class="mb-32 flex justify-center w-full">
+            <SpinningCircle />
+        </div>
+        <div v-if="renderedSongs.length === 0" class="mb-32 mt-8">
             <p
                 class="text-white text-left text-base"
                 v-if="authorization.canAddSong"
@@ -158,30 +165,38 @@ import { usePage, router } from "@inertiajs/vue3";
 import { RecycleScroller } from "vue-virtual-scroller";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 import { TrashIcon, ArrowUpCircleIcon } from "@heroicons/vue/24/outline";
+import axios from "axios";
+import { useTimeUtils } from "@/composables/useTimeUtils";
+import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
+const { msToMinutes } = useTimeUtils();
 
 const page = usePage();
 const props = computed(() => page.props);
-const songs = computed(() => props.value.mix.songs);
+const songs = computed(() => props.value.songs);
 const authorization = computed(() => page.props.mix.authorized);
 const showButton = ref(false);
+const renderedSongs = ref(songs.value.data);
 
 const windowWidth = ref(window.innerWidth);
 
-function scrollToTop() {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-}
+const isFetching = ref(false);
 
-function checkScroll() {
-    showButton.value = window.scrollY > 600;
-}
+async function fetchMoreSongs() {
+    if (isFetching.value) {
+        return;
+    }
+    isFetching.value = true;
+    console.log("Fetching more songs...", isFetching.value);
 
-function msToMinutes(ms) {
-    let minutes = Math.floor(ms / 60000);
-    let seconds = Math.floor((ms % 60000) / 1000);
-
-    seconds = seconds < 10 ? "0" + seconds : seconds;
-
-    return `${minutes}:${seconds}`;
+    try {
+        const response = await axios.get(songs.value.links.next, {
+            headers: { Accept: "application/json" },
+        });
+        console.log("Fetched more songs:", response.data.data);
+        renderedSongs.value = [...renderedSongs.value, ...response.data.data];
+    } finally {
+        isFetching.value = false;
+    }
 }
 
 function deleteSong(id) {
@@ -194,6 +209,24 @@ function deleteSong(id) {
             },
         }
     );
+}
+
+function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function checkScroll() {
+    showButton.value = window.scrollY > 600;
+
+    const scrollPosition = window.scrollY + window.innerHeight;
+
+    //300px from bottom
+    const nearBottom =
+        document.documentElement.scrollHeight - scrollPosition < 300;
+
+    if (nearBottom) {
+        fetchMoreSongs();
+    }
 }
 
 function updateWindowWidth() {
