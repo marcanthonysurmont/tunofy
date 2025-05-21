@@ -60,7 +60,6 @@
                 :items="renderedSongs"
                 :item-size="windowWidth < 640 ? 64 : 80"
                 key-field="id"
-                :key="windowWidth"
                 v-slot="{ item, index }"
                 page-mode
             >
@@ -168,6 +167,7 @@ import { TrashIcon, ArrowUpCircleIcon } from "@heroicons/vue/24/outline";
 import axios from "axios";
 import { useTimeUtils } from "@/composables/useTimeUtils";
 import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
+import throttle from "lodash/throttle";
 const { msToMinutes } = useTimeUtils();
 
 const page = usePage();
@@ -180,35 +180,50 @@ const renderedSongs = ref(songs.value.data);
 const windowWidth = ref(window.innerWidth);
 
 const isFetching = ref(false);
-
+const nextFetchURL = ref(songs.value.links.next);
 async function fetchMoreSongs() {
-    if (isFetching.value) {
+    if (isFetching.value || nextFetchURL.value === null) {
         return;
     }
     isFetching.value = true;
     console.log("Fetching more songs...", isFetching.value);
 
     try {
-        const response = await axios.get(songs.value.links.next, {
+        const response = await axios.get(nextFetchURL.value, {
             headers: { Accept: "application/json" },
         });
-        console.log("Fetched more songs:", response.data.data);
+        console.log("Fetched more songs:", response.data);
         renderedSongs.value = [...renderedSongs.value, ...response.data.data];
+        nextFetchURL.value = response.data.links.next;
     } finally {
         isFetching.value = false;
     }
 }
 
+const isDeleting = ref(false);
 function deleteSong(id) {
-    router.delete(
-        route("mix.remove-song", id),
-        { preserveScroll: true },
-        {
-            onError: (error) => {
-                console.error("Error deleting song:", error);
-            },
-        }
-    );
+    if (isDeleting.value) {
+        return;
+    }
+    isDeleting.value = true;
+    router.delete(route("mix.remove-song", id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            renderedSongs.value = renderedSongs.value.filter(
+                (song) => song.id !== id
+            );
+            //added for edge case
+            //if user loads page, doesnt scroll and delete items it previously would corrupt the infinite scroll
+            //by checking scroll upon deletion, we solve this edge case
+            checkScroll();
+        },
+        onError: (error) => {
+            console.log("Error deleting song:", error);
+        },
+        onFinish: () => {
+            isDeleting.value = false;
+        },
+    });
 }
 
 function scrollToTop() {
@@ -235,12 +250,11 @@ function updateWindowWidth() {
 
 onMounted(() => {
     window.addEventListener("resize", updateWindowWidth);
-    window.addEventListener("scroll", checkScroll);
+    window.addEventListener("scroll", throttle(checkScroll, 200));
 });
-
 onBeforeUnmount(() => {
     window.removeEventListener("resize", updateWindowWidth);
-    window.removeEventListener("scroll", checkScroll);
+    window.removeEventListener("scroll", throttle(checkScroll, 200));
 });
 </script>
 
