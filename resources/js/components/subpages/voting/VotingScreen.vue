@@ -560,6 +560,16 @@ const songs = ref([
         avatar_url:
             "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
     },
+    {
+        id: 8,
+        track_id: "0GRmh4ZlobfhvDE9L4CbOs",
+        name: "Off The Wall!",
+        artist: "XXXTENTACION, Ski Mask The Slump God",
+        cover: "https://i.scdn.co/image/ab67616d0000b27381e8dbcc784d8dbc7243ee0e",
+        requested_by: "Gilles Serrien",
+        avatar_url:
+            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
+    },
 ]);
 
 function toggleAudio(trackId) {
