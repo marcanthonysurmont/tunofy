@@ -233,6 +233,9 @@ const props = ref(page.props);
 const songs = ref(
     Object.values(props.value.votableSongs).map((item) => item.song)
 );
+const votableSongs = computed(() => {
+    return Object.values(props.value.votableSongs);
+});
 
 // Audio related state
 const audioPreviewCache = ref({});
@@ -393,23 +396,35 @@ function clickLeft() {
 }
 
 function swipeLeft() {
-    router.post(route("mix.voting.vote", songs.value[currentIndex.value].id), {
-        vote_type: "dislike",
-    });
+    console.log(votableSongs.value[currentIndex.value]);
+    router.post(
+        route("mix.voting.vote", votableSongs.value[currentIndex.value].id),
+        {
+            vote_type: "dislike",
+        }
+    );
     nextSong();
 }
 
 function swipeRight() {
-    router.post(route("mix.voting.vote", songs.value[currentIndex.value].id), {
-        vote_type: "like",
-    });
+    console.log(votableSongs.value[currentIndex.value]);
+    router.post(
+        route("mix.voting.vote", votableSongs.value[currentIndex.value].id),
+        {
+            vote_type: "like",
+        }
+    );
     nextSong();
 }
 
 function kill() {
-    router.post(route("mix.voting.vote", songs.value[currentIndex.value].id), {
-        vote_type: "kill",
-    });
+    console.log(votableSongs.value[currentIndex.value]);
+    router.post(
+        route("mix.voting.vote", votableSongs.value[currentIndex.value].id),
+        {
+            vote_type: "kill",
+        }
+    );
 
     skullAnimation.value = true;
 
