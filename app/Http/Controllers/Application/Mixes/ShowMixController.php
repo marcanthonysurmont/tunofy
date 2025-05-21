@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Application\Mixes;
 
 use App\Http\Resources\CollaboratorResource;
+use App\Http\Resources\SongResource;
 use App\Models\Mix;
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
@@ -19,8 +20,10 @@ class ShowMixController extends Controller
 
         $user = Auth::user();
 
-        $mix->load(['songs.user', 'presets', 'user', 'collaborators', 'themes']);
+        $mix->load(['presets', 'user', 'collaborators', 'themes']);
         $user->load(['mixes', 'accessibleMixes']);
+
+        $songs = $mix->songs()->with('user')->paginate(20);
 
         // Get the controlling user ID first
         $controllingUserId = $mix->co_dj_id ?: $mix->user_id;
@@ -35,6 +38,7 @@ class ShowMixController extends Controller
 
         return Inertia::render('MixSlugPage', [
             'mix' => fn () => MixResource::make($mix)->jsonSerialize(),
+            'songs' => fn () => SongResource::collection($songs)->jsonSerialize(),
             'collaborators' => fn () => CollaboratorResource::collection($collaborators),
             'activeConflictingMixes' => fn () => $activeConflictingMixes,
             'themes' => fn () => $mix->getThemeSettings(),

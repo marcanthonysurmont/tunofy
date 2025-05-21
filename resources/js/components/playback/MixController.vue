@@ -69,9 +69,14 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    songs: {
+        type: Object,
+        required: true,
+    }
 });
 // Current state variables
-const songs = computed(() => props.mix.songs);
+const songs = computed(() => props.songs);
+console.log("Songs: ", songs.value);
 const isMixActive = ref(props.mix?.is_active || false);
 const isLoading = ref(false);
 const isTransferingDevice = ref(false);

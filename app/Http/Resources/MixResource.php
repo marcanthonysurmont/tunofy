@@ -23,7 +23,6 @@ class MixResource extends JsonResource
             'preset_id' => $this->preset_id,
             'avatar' => $this->avatar,
             'mix_count' => $this->mix_count,
-            'songs' => SongResource::collection($this->whenLoaded('songs'))->jsonSerialize(),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'authorized' => $this->authorized,

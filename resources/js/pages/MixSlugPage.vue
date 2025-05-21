@@ -42,7 +42,7 @@
                 </Transition>
             </template>
         </Suspense>
-        <MixController :mix="mix" />
+        <MixController :mix="mix" :songs="songs" />
         <CustomThemeContainer />
     </AppLayout>
 </template>
@@ -108,6 +108,7 @@ const tabs = ref([
 const page = usePage();
 const nameOfMix = computed(() => page.props.mix?.name || "Mix");
 const mix = computed(() => page.props.mix || null);
+const songs = computed(() => page.props.songs || null);
 
 const showFallback = ref(false);
 let fallbackTimer = null;
