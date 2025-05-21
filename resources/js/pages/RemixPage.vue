@@ -53,7 +53,7 @@
                             <StartStep
                                 @start-remix="
                                     started = true;
-                                    startProgress;
+                                    startProgress();
                                 "
                             />
                         </template>
