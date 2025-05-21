@@ -2,8 +2,8 @@
     <!-- card -->
     <div class="flex flex-col items-center">
         <div
-            v-for="(song, index) in songs"
-            :key="song.id"
+            v-for="(votableSong, index) in votableSongs"
+            :key="votableSong.id"
             :class="[
                 'w-[300px] h-[400px] rounded-2xl shadow-lg flex flex-col justify-end mb-4 bg-cover bg-center relative border-2 border-card-stroke overflow-hidden',
                 resetSwipe || transitionToNext
@@ -14,7 +14,7 @@
                     : '',
             ]"
             :style="{
-                backgroundImage: `url(${song.cover})`,
+                backgroundImage: `url(${votableSong.song.image_url})`,
                 transform: cardTransform(index),
                 opacity: cardOpacity(index),
                 cursor:
@@ -43,12 +43,12 @@
                     v-if="swipeLengthX >= -15 && swipeLengthX <= 15"
                 >
                     <button
-                        @click.stop="toggleAudio(song.track_id)"
+                        @click.stop="toggleAudio(votableSong.song.spotify_id)"
                         class="w-12 h-12 bg-primary bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all cursor-pointer"
                     >
                         <PlayIcon
                             v-if="
-                                currentPlayingId !== song.track_id || !isPlaying
+                                currentPlayingId !== votableSong.song.spotify_id || !isPlaying
                             "
                             class="w-6 h-6 text-white"
                         />
@@ -76,16 +76,16 @@
                 </svg>
             </div>
             <div class="relative z-10 text-white text-left px-4 pt-2 pb-5">
-                <h2 class="text-2xl font-semibold">{{ song.name }}</h2>
-                <p class="text-zinc-300 mb-6">{{ song.artist }}</p>
+                <h2 class="text-2xl font-semibold">{{ votableSong.song.name }}</h2>
+                <p class="text-zinc-300 mb-6">{{ votableSong.song.artist }}</p>
                 <div class="flex items-center gap-2 text-xs text-zinc-300">
                     <img
-                        :src="song.avatar_url"
+                        :src="votableSong.song.user.avatar_url"
                         alt="Avatar"
                         class="w-5 h-5 rounded-full object-cover"
                     />
                     <span class="font-medium text-zinc-400">{{
-                        song.requested_by
+                        votableSong.song.user.name
                     }}</span>
                 </div>
             </div>
@@ -192,6 +192,9 @@ import { PauseIcon } from "@heroicons/vue/24/solid";
 import { HeartIcon, PlayIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import axios from "axios";
 import { ref, computed, onMounted, watch } from "vue";
+import { usePage } from "@inertiajs/vue3";
+
+const page = usePage();
 
 const likeOpacity = computed(() => {
     return swipeLengthX.value > 0 ? Math.min(swipeLengthX.value / 100, 1) : 0;
@@ -430,7 +433,7 @@ function kill() {
 
 function nextSong() {
     //if there are more songs, move to the next one
-    if (currentIndex.value < songs.value.length - 1) {
+    if (currentIndex.value < votableSongs.songs.length - 1) {
         //pause current audio if playing because user swiped
         //meaning that the user made their choice and audio should stop
         if (isPlaying.value && currentPlayingId.value) {
@@ -440,8 +443,8 @@ function nextSong() {
         currentIndex.value++;
         isNewCardAnimating.value = true;
 
-        const currentSong = songs.value[currentIndex.value];
-        const nextSong = songs.value[currentIndex.value + 1];
+        const currentSong = votableSongs.songs[currentIndex.value];
+        const nextSong = votableSongs.songs[currentIndex.value + 1];
 
         //check if current song audio is preloaded
         //if not, load it immediately
@@ -489,78 +492,7 @@ function cardOpacity(index) {
     return 1 - Math.abs(swipeLengthX.value) / 300;
 }
 
-const songs = ref([
-    {
-        id: 1,
-        track_id: "6TQwgRWmnovDECDrHVOxlY",
-        name: "The Prayer",
-        artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b2730fc93fe41791c5aa51ae9645",
-        requested_by: "Gilles Serrien",
-        avatar_url:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
-    },
-    {
-        id: 2,
-        track_id: "42VsgItocQwOQC3XWZ8JNA",
-        name: "FE!N",
-        artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b273881d8d8378cd01099babcd44",
-        requested_by: "Johannes Van Dyck",
-        avatar_url:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
-    },
-    {
-        id: 3,
-        track_id: "2QeQNF182V61Im0QpjdVta",
-        name: "Pornography",
-        artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b2736cfd9a7353f98f5165ea6160",
-        requested_by: "Sam Serrien",
-        avatar_url:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
-    },
-    {
-        id: 4,
-        track_id: "4b7vk8SRcYgnxpk0JOIS7r",
-        name: "Drugs You Should Try It",
-        artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b2730fc93fe41791c5aa51ae9645",
-        requested_by: "Marc-Anthony Surmont",
-        avatar_url:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
-    },
-    {
-        id: 5,
-        track_id: "7AQim7LbvFVZJE3O8TYgf2",
-        name: "Fuck Love",
-        artist: "XXXTENTACION, Trippie Redd",
-        cover: "https://i.scdn.co/image/ab67616d0000b273203c89bd4391468eea4cc3f5",
-        requested_by: "Gilles Serrien",
-        avatar_url:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
-    },
-    {
-        id: 6,
-        track_id: "0TzxcB6dK46vgXZT2P8qeR",
-        name: "Trap Queen",
-        artist: "Fetty Wap",
-        cover: "https://i.scdn.co/image/ab67616d0000b27302928b251e41844f5186920e",
-        requested_by: "Jonas Verstappen",
-        avatar_url:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
-    },
-    {
-        id: 7,
-        track_id: "51EC3I1nQXpec4gDk0mQyP",
-        name: "90210 (feat. Kacy Hill)",
-        artist: "Travis Scott, Kacy Hill",
-        cover: "https://i.scdn.co/image/ab67616d0000b2736cfd9a7353f98f5165ea6160",
-        requested_by: "Gilles Serrien",
-        avatar_url:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
-    },
-]);
+const votableSongs = computed(() => page.props.votableSongs || []);
 
 function toggleAudio(trackId) {
     //if we don't have the audio element yet, queue it up
@@ -662,22 +594,22 @@ async function processLoadingQueue() {
 
 onMounted(() => {
     //initialize audio loading -- preload first song
-    if (songs.value.length > 0) {
-        const currentSong = songs.value[currentIndex.value];
-        getSongFile(currentSong.track_id);
+    if (votableSongs.value.length > 0) {
+        const currentSong = votableSongs.value[currentIndex.value];
+        getSongFile(currentSong.song.spotify_id);
 
         //queue up next song if available after 1 second
-        if (songs.value.length > 1) {
+        if (votableSongs.value.length > 1) {
             setTimeout(() => {
-                getSongFile(songs.value[1].track_id);
+                getSongFile(votableSongs.value[1].song.spotify_id);
             }, 1000);
         }
 
         //queue remaining songs with a delay of 2 seconds
-        if (songs.value.length > 2) {
+        if (votableSongs.length > 2) {
             setTimeout(() => {
-                for (let i = 2; i < songs.value.length; i++) {
-                    getSongFile(songs.value[i].track_id);
+                for (let i = 2; i < votableSongs.length; i++) {
+                    getSongFile(votableSongs.value[i].song.spotify_id);
                 }
             }, 2000);
         }
@@ -687,8 +619,8 @@ onMounted(() => {
 //watch for index changes to prefetch audio
 watch(currentIndex, (newIndex) => {
     const nextIndex = newIndex + 1;
-    if (nextIndex < songs.value.length) {
-        getSongFile(songs.value[nextIndex].track_id);
+    if (nextIndex < votableSongs.length) {
+        getSongFile(votableSongs[nextIndex].song.spotify_id);
     }
 });
 </script>

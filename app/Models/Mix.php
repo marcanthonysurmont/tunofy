@@ -245,4 +245,23 @@ class Mix extends Model
             ];
         });
     }
+
+    public function getVotableSongs()
+    {
+        $lowestRound = $this->queueSongs()
+            ->where('status', 'pending')
+            ->where('is_killed', false)
+            ->min('round_number');
+
+        if ($lowestRound === null) {
+            return collect();
+        }
+
+        return $this->queueSongs()
+            ->where('status', 'pending')
+            ->where('is_killed', false)
+            ->where('round_number', $lowestRound)
+            ->with(['song.user'])
+            ->get();
+    }
 }
