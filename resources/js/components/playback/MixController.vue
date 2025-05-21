@@ -120,14 +120,19 @@ watch(
 const selectedDevice = ref(devices.value.find((d) => d.is_active) || null);
 
 const hasActiveConflictingMixes = computed(() => {
-    return page.props.activeConflictingMixes && page.props.activeConflictingMixes.length > 0;
+    return (
+        page.props.activeConflictingMixes &&
+        page.props.activeConflictingMixes.length > 0
+    );
 });
 
 const queueActivationDisabled = computed(() => {
     // Disable the button if there are conflicting mixes and the mix isn't active already
-    return (hasActiveConflictingMixes.value && !isMixActive.value) || 
-           isLoading.value || 
-           songs.value.length === 0;
+    return (
+        (hasActiveConflictingMixes.value && !isMixActive.value) ||
+        isLoading.value ||
+        songs.value.length === 0
+    );
 });
 
 watch(
@@ -293,9 +298,9 @@ async function refreshDevices() {
             selectedDevice.value = activeDevice;
         }
 
-        if(!activeDevice) {
-            selectedDevice.value = null;
-        }
+        // if(!activeDevice) {
+        //     selectedDevice.value = null;
+        // }
 
         // else if (!selectedDevice.value && devices.value.length === 1) {
         //     // Auto-select the only device if no active device
@@ -579,8 +584,10 @@ onMounted(() => {
                     showQueueCompletedModal.value = true;
                 }
 
-                if(e.reason === "other_mix") {
-                    router.reload({ only: ["activeConflictingMixes" , "success", "error"] });
+                if (e.reason === "other_mix") {
+                    router.reload({
+                        only: ["activeConflictingMixes", "success", "error"],
+                    });
                 }
             })
             .listen(".device.updated", async () => {

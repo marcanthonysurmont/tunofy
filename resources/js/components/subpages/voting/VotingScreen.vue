@@ -2,8 +2,8 @@
     <!-- card -->
     <div class="flex flex-col items-center">
         <div
-            v-for="(votableSong, index) in votableSongs"
-            :key="votableSong.id"
+            v-for="(song, index) in songs"
+            :key="song.id"
             :class="[
                 'w-[300px] h-[400px] rounded-2xl shadow-lg flex flex-col justify-end mb-4 bg-cover bg-center relative border-2 border-card-stroke overflow-hidden',
                 resetSwipe || transitionToNext
@@ -14,7 +14,7 @@
                     : '',
             ]"
             :style="{
-                backgroundImage: `url(${votableSong.song.image_url})`,
+                backgroundImage: `url(${song.image_url})`,
                 transform: cardTransform(index),
                 opacity: cardOpacity(index),
                 cursor:
@@ -43,12 +43,13 @@
                     v-if="swipeLengthX >= -15 && swipeLengthX <= 15"
                 >
                     <button
-                        @click.stop="toggleAudio(votableSong.song.spotify_id)"
+                        @click.stop="toggleAudio(song.spotify_id)"
                         class="w-12 h-12 bg-primary bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all cursor-pointer"
                     >
                         <PlayIcon
                             v-if="
-                                currentPlayingId !== votableSong.song.spotify_id || !isPlaying
+                                currentPlayingId !== song.spotify_id ||
+                                !isPlaying
                             "
                             class="w-6 h-6 text-white"
                         />
@@ -76,16 +77,16 @@
                 </svg>
             </div>
             <div class="relative z-10 text-white text-left px-4 pt-2 pb-5">
-                <h2 class="text-2xl font-semibold">{{ votableSong.song.name }}</h2>
-                <p class="text-zinc-300 mb-6">{{ votableSong.song.artist }}</p>
+                <h2 class="text-2xl font-semibold">{{ song.name }}</h2>
+                <p class="text-zinc-300 mb-6">{{ song.artist }}</p>
                 <div class="flex items-center gap-2 text-xs text-zinc-300">
                     <img
-                        :src="votableSong.song.user.avatar_url"
+                        :src="song.user.avatar_url"
                         alt="Avatar"
                         class="w-5 h-5 rounded-full object-cover"
                     />
                     <span class="font-medium text-zinc-400">{{
-                        votableSong.song.user.name
+                        song.user.name
                     }}</span>
                 </div>
             </div>
@@ -190,11 +191,9 @@
 <script setup>
 import { PauseIcon } from "@heroicons/vue/24/solid";
 import { HeartIcon, PlayIcon, XMarkIcon } from "@heroicons/vue/24/solid";
+import { usePage, router } from "@inertiajs/vue3";
 import axios from "axios";
 import { ref, computed, onMounted, watch } from "vue";
-import { router, usePage } from "@inertiajs/vue3";
-
-const page = usePage();
 
 const likeOpacity = computed(() => {
     return swipeLengthX.value > 0 ? Math.min(swipeLengthX.value / 100, 1) : 0;
@@ -228,6 +227,12 @@ const skullAnimation = ref(false);
 const skullAnimationFading = ref(false);
 const isNewCardAnimating = ref(false);
 const isFakeSwipeAnimating = ref(false);
+
+const page = usePage();
+const props = ref(page.props);
+const songs = ref(
+    Object.values(props.value.votableSongs).map((item) => item.song)
+);
 
 // Audio related state
 const audioPreviewCache = ref({});
@@ -370,11 +375,6 @@ function clickRight() {
     ) {
         return;
     }
-
-    router.post(route("mix.voting.vote", votableSongs.value[currentIndex.value].id), {
-        'vote_type' : 'like'
-    });
-
     bounceButton("right");
     fakeSwipe("right");
 }
@@ -388,31 +388,29 @@ function clickLeft() {
     ) {
         return;
     }
-
-    router.post(route("mix.voting.vote", votableSongs.value[currentIndex.value].id), {
-        'queue_song_id' : votableSongs.value[currentIndex.value].id,
-        'vote_type' : 'dislike'
-    });
-
     bounceButton("left");
     fakeSwipe("left");
 }
 
 function swipeLeft() {
+    router.post(route("mix.voting.vote", songs.value[currentIndex.value].id), {
+        vote_type: "dislike",
+    });
     nextSong();
 }
 
 function swipeRight() {
+    router.post(route("mix.voting.vote", songs.value[currentIndex.value].id), {
+        vote_type: "like",
+    });
     nextSong();
 }
 
 function kill() {
-    router.post(route("mix.voting.vote", votableSongs.value[currentIndex.value].id), {
-        'queue_song_id' : votableSongs.value[currentIndex.value].id,
-        'vote_type' : 'kill'
+    router.post(route("mix.voting.vote", songs.value[currentIndex.value].id), {
+        vote_type: "kill",
     });
 
-    bounceButton("kill");
     skullAnimation.value = true;
 
     const shakeIntensity = 10;
@@ -445,11 +443,12 @@ function kill() {
             }, 600);
         }
     }, shakeDuration);
+    bounceButton("kill");
 }
 
 function nextSong() {
     //if there are more songs, move to the next one
-    if (currentIndex.value < votableSongs.value.length - 1) {
+    if (currentIndex.value < songs.value.length - 1) {
         //pause current audio if playing because user swiped
         //meaning that the user made their choice and audio should stop
         if (isPlaying.value && currentPlayingId.value) {
@@ -459,19 +458,19 @@ function nextSong() {
         currentIndex.value++;
         isNewCardAnimating.value = true;
 
-        const currentSong = votableSongs[currentIndex.value];
-        const nextSong = votableSongs[currentIndex.value + 1];
+        const currentSong = songs.value[currentIndex.value];
+        const nextSong = songs.value[currentIndex.value + 1];
 
         //check if current song audio is preloaded
         //if not, load it immediately
-        if (currentSong && !audioPreviewCache.value[currentSong.track_id]) {
-            getSongFile(currentSong.song.spotify_id);
+        if (currentSong && !audioPreviewCache.value[currentSong.spotify_id]) {
+            getSongFile(currentSong.spotify_id);
         }
 
         //check if next song audio is preloaded
         //if not, load it immediately
-        if (nextSong && !audioPreviewCache.value[nextSong.track_id]) {
-            getSongFile(nextSong.song.spotify_id);
+        if (nextSong && !audioPreviewCache.value[nextSong.spotify_id]) {
+            getSongFile(nextSong.spotify_id);
         }
 
         //reset animation flag after animation completes
@@ -507,8 +506,6 @@ function cardOpacity(index) {
 
     return 1 - Math.abs(swipeLengthX.value) / 300;
 }
-
-const votableSongs = computed(() => page.props.votableSongs || []);
 
 function toggleAudio(trackId) {
     //if we don't have the audio element yet, queue it up
@@ -610,22 +607,22 @@ async function processLoadingQueue() {
 
 onMounted(() => {
     //initialize audio loading -- preload first song
-    if (votableSongs.value.length > 0) {
-        const currentSong = votableSongs.value[currentIndex.value];
-        getSongFile(currentSong.song.spotify_id);
+    if (songs.value.length > 0) {
+        const currentSong = songs.value[currentIndex.value];
+        getSongFile(currentSong.spotify_id);
 
         //queue up next song if available after 1 second
-        if (votableSongs.value.length > 1) {
+        if (songs.value.length > 1) {
             setTimeout(() => {
-                getSongFile(votableSongs.value[1].song.spotify_id);
+                getSongFile(songs.value[1].spotify_id);
             }, 1000);
         }
 
         //queue remaining songs with a delay of 2 seconds
-        if (votableSongs.length > 2) {
+        if (songs.value.length > 2) {
             setTimeout(() => {
-                for (let i = 2; i < votableSongs.length; i++) {
-                    getSongFile(votableSongs.value[i].song.spotify_id);
+                for (let i = 2; i < songs.value.length; i++) {
+                    getSongFile(songs.value[i].spotify_id);
                 }
             }, 2000);
         }
@@ -635,8 +632,8 @@ onMounted(() => {
 //watch for index changes to prefetch audio
 watch(currentIndex, (newIndex) => {
     const nextIndex = newIndex + 1;
-    if (nextIndex < votableSongs.length) {
-        getSongFile(votableSongs[nextIndex].song.spotify_id);
+    if (nextIndex < songs.value.length) {
+        getSongFile(songs.value[nextIndex].spotify_id);
     }
 });
 </script>
