@@ -7,7 +7,7 @@
             <ToggleSwitchReadValue
                 :model-value="isMixActive"
                 :disabled="isLoading || queueActivationDisabled"
-                :label="isMixActive ? 'Queue inactive' : 'Queue active'"
+                :label="isMixActive ? 'Queue active' : 'Queue inactive'"
                 @click="emit('toggle-mix-active')"
             />
         </div>
