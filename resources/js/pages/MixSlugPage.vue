@@ -54,6 +54,7 @@ import {
     defineAsyncComponent,
     onBeforeMount,
     onBeforeUnmount,
+    watch,
 } from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
 import TabNav from "@/components/navigation/TabNav.vue";
@@ -108,6 +109,21 @@ const tabs = ref([
 const page = usePage();
 const nameOfMix = computed(() => page.props.mix?.name || "Mix");
 const mix = computed(() => page.props.mix || null);
+const votableSongs = computed(
+    () => Object.values(page.props.votableSongs) || {}
+);
+
+watch(
+    () => votableSongs.value,
+    (newVal) => {
+        if (newVal.length > 0) {
+            tabs.value[1].votingActive = true;
+        } else {
+            tabs.value[1].votingActive = false;
+        }
+    },
+    { immediate: true }
+);
 
 const showFallback = ref(false);
 let fallbackTimer = null;

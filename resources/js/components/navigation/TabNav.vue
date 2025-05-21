@@ -25,13 +25,13 @@
                             }
                         "
                         :class="[
-                            'border-2 rounded-lg flex items-center justify-center px-3 pb-1.5 pt-2.5 tab-nav-item-center tab-nav-peeking-item sm:text-xl md:text-2xl font-medium font-headers hover:text-neutral-300 z-10 transition-colors duration-300 ease-in-out relative whitespace-nowrap',
+                            'border-2 rounded-lg flex cursor-pointer items-center justify-center px-3 pb-1.5 pt-2.5 tab-nav-item-center tab-nav-peeking-item sm:text-xl md:text-2xl font-medium font-headers hover:text-neutral-300 z-10 transition-colors duration-300 ease-in-out relative whitespace-nowrap',
                             tab.active
                                 ? 'border-primary text-white'
                                 : 'border-tab-stroke-inactive text-white',
-                            tab.votingActive === false && !tab.active
-                                ? 'opacity-50 cursor-not-allowed'
-                                : 'cursor-pointer',
+                            // tab.votingActive === false && !tab.active
+                            //     ? 'opacity-50 cursor-not-allowed'
+                            //     : 'cursor-pointer',
                         ]"
                         :aria-current="tab.active ? 'page' : undefined"
                         @click.prevent="handleTabClick(tab.name, index)"
@@ -84,9 +84,9 @@ function isActiveTab(index) {
 }
 
 function handleTabClick(tabName, index) {
-    if (tabName === "Voting" && !props.tabs[index].votingActive) {
-        return;
-    }
+    // if (tabName === "Voting" && !props.tabs[index].votingActive) {
+    //     return;
+    // }
     emit("tab-changed", tabName);
     scrollToTab(index);
 
