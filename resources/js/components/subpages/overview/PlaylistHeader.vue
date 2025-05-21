@@ -21,8 +21,8 @@
                         class="text-dark-white text-base sm:text-lg mt-0 mb-0 leading-none"
                     >
                         <span class="font-bold">{{ owner.name }}</span> •
-                        {{ songs.data.length }}
-                        {{ songs.data.length === 1 ? "song" : "songs" }},
+                        {{ mix.mix_count }}
+                        {{ mix.mix_count === 1 ? "song" : "songs" }},
                         approx.
                         {{ readableTime }}
                     </span>
