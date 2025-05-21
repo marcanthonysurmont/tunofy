@@ -21,7 +21,7 @@
         </li> -->
 
         <li
-            v-for="(song, index) in songsWithRankChange"
+            v-for="(song, index) in rankedSongs"
             :key="song.id || index"
             class="flex flex-row justify-between items-center px-1 py-2 rounded-lg"
         >
@@ -77,7 +77,7 @@
             <div class="flex items-center gap-2 flex-1 min-w-0">
                 <img
                     v-lazy="{
-                        src: song.image_url,
+                        src: song.song.image_url,
                         error: '/images/default-song.png',
                         loading: '/images/default-song.png',
                     }"
@@ -88,10 +88,10 @@
                     class="min-w-0 max-w-[75%] sm:max-w-xs md:max-w-md lg:max-w-lg"
                 >
                     <div class="font-medium truncate text-sm mb-1">
-                        {{ song.name }}
+                        {{ song.song.name }}
                     </div>
                     <div class="text-zinc-400 text-xs sm:text-sm truncate">
-                        {{ song.artist }}
+                        {{ song.song.artist }}
                     </div>
                 </div>
             </div>
@@ -128,15 +128,13 @@ import { HandThumbDownIcon, HandThumbUpIcon } from "@heroicons/vue/24/outline";
 
 const page = usePage();
 const props = computed(() => page.props);
-
 const isVisible = ref(false);
 
-const songsWithRankChange = computed(() => {
-    return props.value.mix.songs
-        .map((song) => ({
-            ...song,
-            rankChange: Math.floor(Math.random() * 21) - 10,
-        }))
-        .sort((a, b) => b.rankChange - a.rankChange);
+// Calculate rank change based on likes and dislikes
+const rankedSongs = computed(() => {
+    return props.value.allPendingSongs.map(song => ({
+        ...song,
+        rankChange: (song.like_count || 0) - (song.dislike_count || 0)
+    }));
 });
 </script>

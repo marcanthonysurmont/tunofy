@@ -246,31 +246,19 @@ class Mix extends Model
         });
     }
 
-    public function getVotableSongs()
+    public function filterVotableSongs($pendingSongs)
     {
-        $lowestRound = $this->queueSongs()
-            ->where('status', 'pending')
-            ->where('is_killed', false)
-            ->min('round_number');
-
-        if ($lowestRound === null) {
+        if ($pendingSongs->isEmpty()) {
             return collect();
         }
-
-        $queueSongs = $this->queueSongs()
-            ->where('status', 'pending')
-            ->where('is_killed', false)
-            ->where('round_number', $lowestRound)
-            ->with(['song.user'])
-            ->get();
         
-        $queueSongIds = $queueSongs->pluck('id')->toArray();
+        $queueSongIds = $pendingSongs->pluck('id')->toArray();
         $votedSongIds = Vote::where('user_id', Auth::id())
             ->whereIn('queue_song_id', $queueSongIds)
             ->pluck('queue_song_id')
             ->toArray();
 
-        return $queueSongs->whereNotIn('id', $votedSongIds);
+        return $pendingSongs->whereNotIn('id', $votedSongIds);
     }
 
     public function getAllPendingSongs()

@@ -27,7 +27,16 @@ class ShowMixController extends Controller
 
         // Then use it in the scope call
         $activeConflictingMixes = Mix::conflictingActiveMixes($mix->id, $controllingUserId)->get();
-        $votableSongs = $mix->getVotableSongs();
+
+        $allPendingSongs = $mix->getAllPendingSongs();
+
+        // Get votable songs after sorting
+        $votableSongs = $mix->filterVotableSongs($allPendingSongs);
+        
+        // Sort pending songs by rank (likes minus dislikes) in descending order
+        $allPendingSongs = $allPendingSongs->sortByDesc(function ($song) {
+            return ($song->like_count ?? 0) - ($song->dislike_count ?? 0);
+        })->values();
 
         // Get Spotify devices for the mix owner
         $devices = $spotifyService->getUserDevices($user);
@@ -38,6 +47,7 @@ class ShowMixController extends Controller
             'mix' => fn () => MixResource::make($mix)->jsonSerialize(),
             'collaborators' => fn () => CollaboratorResource::collection($collaborators),
             'activeConflictingMixes' => fn () => $activeConflictingMixes,
+            'allPendingSongs' => fn () => $allPendingSongs,
             'votableSongs' => fn () => $votableSongs,
             'themes' => fn () => $mix->getThemeSettings(),
             'presets' => fn () => $mix->all_presets,
