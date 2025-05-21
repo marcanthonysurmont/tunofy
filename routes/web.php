@@ -78,7 +78,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
             });
 
             Route::prefix('/voting')->name('voting.')->group(function () {
-                Route::post('/upvote', VoteSongController::class)->name('vote');
+                Route::post('/upvote/{queueSong}', VoteSongController::class)->name('vote');
             });
 
         });

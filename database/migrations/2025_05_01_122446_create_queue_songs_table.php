@@ -22,6 +22,7 @@ return new class extends Migration
             $table->integer('order');
             $table->integer('like_count')->default(0);
             $table->integer('dislike_count')->default(0);
+            $table->integer('kill_count')->default(0);
             $table->dateTime('played_at')->nullable();
             $table->timestamps();
 

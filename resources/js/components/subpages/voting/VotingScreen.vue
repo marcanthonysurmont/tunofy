@@ -371,8 +371,7 @@ function clickRight() {
         return;
     }
 
-    router.post(route('mix.voting.vote'), {
-        'queue_song_id' : votableSongs.value[currentIndex.value].id,
+    router.post(route("mix.voting.vote", votableSongs.value[currentIndex.value].id), {
         'vote_type' : 'like'
     });
 
@@ -390,7 +389,7 @@ function clickLeft() {
         return;
     }
 
-    router.post(route('mix.voting.vote'), {
+    router.post(route("mix.voting.vote", votableSongs.value[currentIndex.value].id), {
         'queue_song_id' : votableSongs.value[currentIndex.value].id,
         'vote_type' : 'dislike'
     });
@@ -408,7 +407,7 @@ function swipeRight() {
 }
 
 function kill() {
-    router.post(route('mix.voting.vote'), {
+    router.post(route("mix.voting.vote", votableSongs.value[currentIndex.value].id), {
         'queue_song_id' : votableSongs.value[currentIndex.value].id,
         'vote_type' : 'kill'
     });

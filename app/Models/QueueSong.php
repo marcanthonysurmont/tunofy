@@ -18,6 +18,7 @@ class QueueSong extends Model
         'is_killed',
         'like_count',
         'dislike_count',
+        'kill_count',
         'order',
         'round_number',
         'played_at',
