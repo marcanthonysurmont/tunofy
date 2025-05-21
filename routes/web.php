@@ -47,6 +47,7 @@ use App\Http\Controllers\Application\Mixes\RemoveUserMixAccessController;
 use App\Http\Controllers\Application\Mixes\ImportSpotifyPlaylistController;
 use App\Http\Controllers\Application\Mixes\UpdateMixThemeController;
 use App\Http\Controllers\Application\Mixes\UpdateMixUserPermissionsController;
+use App\Http\Controllers\Application\Mixes\GetMixSongsController;
 
 Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function () {
     Route::middleware('auth')->group(function () {
@@ -67,6 +68,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
             Route::post('/import-spotify-playlist/{mix}', ImportSpotifyPlaylistController::class)->name('import-spotify-playlist');
             Route::post('/update-theme/{mix}', UpdateMixThemeController::class)->name('update-theme');
             Route::post('/change-permission/{mix}', UpdateMixUserPermissionsController::class)->name('change-permission');
+            Route::post('/get-mix-songs/{mix}', GetMixSongsController::class)->name('get-mix-songs');
 
             // app/mix/presets (mix.presets)
             Route::prefix('/presets')->name('presets.')->group(function () {
