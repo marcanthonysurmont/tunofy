@@ -51,6 +51,7 @@ class ShowMixController extends Controller
 
         return Inertia::render('MixSlugPage', [
             'mix' => fn () => MixResource::make($mix)->jsonSerialize(),
+            'songs' => fn () => SongResource::collection($songs),
             'collaborators' => fn () => CollaboratorResource::collection($collaborators),
             'activeConflictingMixes' => fn () => $activeConflictingMixes,
             'allPendingSongs' => fn () => $allPendingSongs,
