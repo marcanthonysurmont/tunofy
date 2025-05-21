@@ -3,6 +3,7 @@
         <!-- <LiveIndicator :isLive="true" class="mb-2 mr-4" /> -->
         <h1 class="text-3xl sm:text-4xl font-medium mb-2">Live Rankings</h1>
         <RegularButton
+            v-if="votableSongs.length > 0"
             color="blue"
             @click="isVisible = true"
             external-class="hidden lg:inline-flex mb-2 ml-6"
@@ -12,14 +13,6 @@
     </div>
 
     <ul class="flex flex-col gap-3">
-        <!-- <li
-            class="flex flex-row justify-between py-2 px-2 rounded-lg bg-card-background border-2 border-card-stroke text-zinc-200 font-semibold text-sm"
-        >
-            <div class="w-12 md:w-14 text-left">#</div>
-            <div class="flex-1 pl-2">Song</div>
-            <div class="w-16 text-center">Rank</div>
-        </li> -->
-
         <li
             v-for="(song, index) in rankedSongs"
             :key="song.id || index"
@@ -101,6 +94,7 @@
     <!-- floating vote button for mobile -->
     <teleport to="body">
         <RegularButton
+            v-if="votableSongs.length > 0"
             color="blue"
             @click="isVisible = true"
             :class="[
@@ -123,18 +117,19 @@ import { computed, ref } from "vue";
 import RegularButton from "@/components/buttons/RegularButton.vue";
 import VotingFullScreen from "@/components/subpages/voting/VotingFullScreen.vue";
 import { usePage } from "@inertiajs/vue3";
-import LiveIndicator from "@/components/subpages/voting/LiveIndicator.vue";
-import { HandThumbDownIcon, HandThumbUpIcon } from "@heroicons/vue/24/outline";
 
 const page = usePage();
 const props = computed(() => page.props);
 const isVisible = ref(false);
+const votableSongs = computed(
+    () => Object.values(props.value.votableSongs) || {}
+);
 
 // Calculate rank change based on likes and dislikes
 const rankedSongs = computed(() => {
-    return props.value.allPendingSongs.map(song => ({
+    return props.value.allPendingSongs.map((song) => ({
         ...song,
-        rankChange: (song.like_count || 0) - (song.dislike_count || 0)
+        rankChange: (song.like_count || 0) - (song.dislike_count || 0),
     }));
 });
 </script>
