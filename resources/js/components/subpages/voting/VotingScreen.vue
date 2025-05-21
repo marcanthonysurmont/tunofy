@@ -14,7 +14,7 @@
                     : '',
             ]"
             :style="{
-                backgroundImage: `url(${song.cover})`,
+                backgroundImage: `url(${song.image_url})`,
                 transform: cardTransform(index),
                 opacity: cardOpacity(index),
                 cursor:
@@ -43,12 +43,13 @@
                     v-if="swipeLengthX >= -15 && swipeLengthX <= 15"
                 >
                     <button
-                        @click.stop="toggleAudio(song.track_id)"
+                        @click.stop="toggleAudio(song.spotify_id)"
                         class="w-12 h-12 bg-primary bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all cursor-pointer"
                     >
                         <PlayIcon
                             v-if="
-                                currentPlayingId !== song.track_id || !isPlaying
+                                currentPlayingId !== song.spotify_id ||
+                                !isPlaying
                             "
                             class="w-6 h-6 text-white"
                         />
@@ -80,12 +81,12 @@
                 <p class="text-zinc-300 mb-6">{{ song.artist }}</p>
                 <div class="flex items-center gap-2 text-xs text-zinc-300">
                     <img
-                        :src="song.avatar_url"
+                        :src="song.user.avatar_url"
                         alt="Avatar"
                         class="w-5 h-5 rounded-full object-cover"
                     />
                     <span class="font-medium text-zinc-400">{{
-                        song.requested_by
+                        song.user.name
                     }}</span>
                 </div>
             </div>
@@ -190,6 +191,7 @@
 <script setup>
 import { PauseIcon } from "@heroicons/vue/24/solid";
 import { HeartIcon, PlayIcon, XMarkIcon } from "@heroicons/vue/24/solid";
+import { usePage, router } from "@inertiajs/vue3";
 import axios from "axios";
 import { ref, computed, onMounted, watch } from "vue";
 
@@ -225,6 +227,15 @@ const skullAnimation = ref(false);
 const skullAnimationFading = ref(false);
 const isNewCardAnimating = ref(false);
 const isFakeSwipeAnimating = ref(false);
+
+const page = usePage();
+const props = ref(page.props);
+const songs = ref(
+    Object.values(props.value.votableSongs).map((item) => item.song)
+);
+const votableSongs = computed(() => {
+    return Object.values(props.value.votableSongs);
+});
 
 // Audio related state
 const audioPreviewCache = ref({});
@@ -385,15 +396,36 @@ function clickLeft() {
 }
 
 function swipeLeft() {
+    console.log(votableSongs.value[currentIndex.value]);
+    router.post(
+        route("mix.voting.vote", votableSongs.value[currentIndex.value].id),
+        {
+            vote_type: "dislike",
+        }
+    );
     nextSong();
 }
 
 function swipeRight() {
+    console.log(votableSongs.value[currentIndex.value]);
+    router.post(
+        route("mix.voting.vote", votableSongs.value[currentIndex.value].id),
+        {
+            vote_type: "like",
+        }
+    );
     nextSong();
 }
 
 function kill() {
-    bounceButton("kill");
+    console.log(votableSongs.value[currentIndex.value]);
+    router.post(
+        route("mix.voting.vote", votableSongs.value[currentIndex.value].id),
+        {
+            vote_type: "kill",
+        }
+    );
+
     skullAnimation.value = true;
 
     const shakeIntensity = 10;
@@ -426,6 +458,7 @@ function kill() {
             }, 600);
         }
     }, shakeDuration);
+    bounceButton("kill");
 }
 
 function nextSong() {
@@ -445,14 +478,14 @@ function nextSong() {
 
         //check if current song audio is preloaded
         //if not, load it immediately
-        if (currentSong && !audioPreviewCache.value[currentSong.track_id]) {
-            getSongFile(currentSong.track_id);
+        if (currentSong && !audioPreviewCache.value[currentSong.spotify_id]) {
+            getSongFile(currentSong.spotify_id);
         }
 
         //check if next song audio is preloaded
         //if not, load it immediately
-        if (nextSong && !audioPreviewCache.value[nextSong.track_id]) {
-            getSongFile(nextSong.track_id);
+        if (nextSong && !audioPreviewCache.value[nextSong.spotify_id]) {
+            getSongFile(nextSong.spotify_id);
         }
 
         //reset animation flag after animation completes
@@ -488,79 +521,6 @@ function cardOpacity(index) {
 
     return 1 - Math.abs(swipeLengthX.value) / 300;
 }
-
-const songs = ref([
-    {
-        id: 1,
-        track_id: "6TQwgRWmnovDECDrHVOxlY",
-        name: "The Prayer",
-        artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b2730fc93fe41791c5aa51ae9645",
-        requested_by: "Gilles Serrien",
-        avatar_url:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
-    },
-    {
-        id: 2,
-        track_id: "42VsgItocQwOQC3XWZ8JNA",
-        name: "FE!N",
-        artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b273881d8d8378cd01099babcd44",
-        requested_by: "Johannes Van Dyck",
-        avatar_url:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
-    },
-    {
-        id: 3,
-        track_id: "2QeQNF182V61Im0QpjdVta",
-        name: "Pornography",
-        artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b2736cfd9a7353f98f5165ea6160",
-        requested_by: "Sam Serrien",
-        avatar_url:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
-    },
-    {
-        id: 4,
-        track_id: "4b7vk8SRcYgnxpk0JOIS7r",
-        name: "Drugs You Should Try It",
-        artist: "Travis Scott",
-        cover: "https://i.scdn.co/image/ab67616d0000b2730fc93fe41791c5aa51ae9645",
-        requested_by: "Marc-Anthony Surmont",
-        avatar_url:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
-    },
-    {
-        id: 5,
-        track_id: "7AQim7LbvFVZJE3O8TYgf2",
-        name: "Fuck Love",
-        artist: "XXXTENTACION, Trippie Redd",
-        cover: "https://i.scdn.co/image/ab67616d0000b273203c89bd4391468eea4cc3f5",
-        requested_by: "Gilles Serrien",
-        avatar_url:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
-    },
-    {
-        id: 6,
-        track_id: "0TzxcB6dK46vgXZT2P8qeR",
-        name: "Trap Queen",
-        artist: "Fetty Wap",
-        cover: "https://i.scdn.co/image/ab67616d0000b27302928b251e41844f5186920e",
-        requested_by: "Jonas Verstappen",
-        avatar_url:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
-    },
-    {
-        id: 7,
-        track_id: "51EC3I1nQXpec4gDk0mQyP",
-        name: "90210 (feat. Kacy Hill)",
-        artist: "Travis Scott, Kacy Hill",
-        cover: "https://i.scdn.co/image/ab67616d0000b2736cfd9a7353f98f5165ea6160",
-        requested_by: "Gilles Serrien",
-        avatar_url:
-            "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1749990421&hash=AT-35nvFOuqbGEQcLparffsl",
-    },
-]);
 
 function toggleAudio(trackId) {
     //if we don't have the audio element yet, queue it up
@@ -664,12 +624,12 @@ onMounted(() => {
     //initialize audio loading -- preload first song
     if (songs.value.length > 0) {
         const currentSong = songs.value[currentIndex.value];
-        getSongFile(currentSong.track_id);
+        getSongFile(currentSong.spotify_id);
 
         //queue up next song if available after 1 second
         if (songs.value.length > 1) {
             setTimeout(() => {
-                getSongFile(songs.value[1].track_id);
+                getSongFile(songs.value[1].spotify_id);
             }, 1000);
         }
 
@@ -677,7 +637,7 @@ onMounted(() => {
         if (songs.value.length > 2) {
             setTimeout(() => {
                 for (let i = 2; i < songs.value.length; i++) {
-                    getSongFile(songs.value[i].track_id);
+                    getSongFile(songs.value[i].spotify_id);
                 }
             }, 2000);
         }
@@ -688,7 +648,7 @@ onMounted(() => {
 watch(currentIndex, (newIndex) => {
     const nextIndex = newIndex + 1;
     if (nextIndex < songs.value.length) {
-        getSongFile(songs.value[nextIndex].track_id);
+        getSongFile(songs.value[nextIndex].spotify_id);
     }
 });
 </script>
