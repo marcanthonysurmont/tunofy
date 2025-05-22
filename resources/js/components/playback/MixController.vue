@@ -72,10 +72,11 @@ const props = defineProps({
     songs: {
         type: Object,
         required: true,
-    }
+    },
 });
 // Current state variables
 const songs = computed(() => page.props.songs);
+const user = page.props.user;
 const isMixActive = ref(props.mix?.is_active || false);
 const isLoading = ref(false);
 const isTransferingDevice = ref(false);
@@ -409,6 +410,13 @@ async function refreshMixState() {
 // Update toggleMixActive to use selected device
 async function toggleMixActive() {
     try {
+        if (!user.authorized.hasPremium) {
+            toast.add({
+                message: `You must have premium to activate the queue.`,
+                type: "danger",
+            });
+            return;
+        }
         await refreshDevices();
         //if no active device is selected, show toast.
         if (selectedDevice.value === null && !isMixActive.value) {
