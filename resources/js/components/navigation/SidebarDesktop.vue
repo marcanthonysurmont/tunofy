@@ -19,12 +19,13 @@
                 <ul role="list" class="flex flex-1 flex-col gap-y-7 min-h-0">
                     <li class="flex flex-col mb-8 flex-1 min-h-0">
                         <div
-                            class="flex flex-row justify-between items-center mb-6"
+                            class="flex flex-row justify-between items-center mb-2"
                         >
                             <h1 class="text-2xl font-medium heading-center">
                                 Your Mixes
                             </h1>
                             <PlusIcon
+                                v-if="user.authorized.hasPremium"
                                 @click="emit('show-add-mix-modal')"
                                 class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
                             />
@@ -38,7 +39,7 @@
                     </li>
                     <li class="flex flex-col mb-8 flex-1 min-h-0">
                         <div
-                            class="flex flex-row justify-between items-center mb-6"
+                            class="flex flex-row justify-between items-center mb-2"
                         >
                             <h1 class="text-2xl font-medium heading-center">
                                 Joined Mixes
