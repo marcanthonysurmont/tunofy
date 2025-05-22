@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Application\Spotify;
 
+use App\Events\QueueStateUpdatedEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use App\Services\Playback\SongPlaybackService;
@@ -163,6 +164,8 @@ class PlayNextSongController extends Controller
             ];
 
             Cache::put("mix:{$mix->id}:last_next_response", $response, now()->addMinutes(1));
+
+            QueueStateUpdatedEvent::dispatch($mix);
 
             return response()->json($response);
         } else {

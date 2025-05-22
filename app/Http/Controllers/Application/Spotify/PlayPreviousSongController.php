@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Playback\PlaybackStateManager;
+use App\Events\QueueStateUpdatedEvent;
 
 class PlayPreviousSongController extends Controller
 {
@@ -107,6 +108,8 @@ class PlayPreviousSongController extends Controller
 
             // Broadcast AFTER successful API call
             event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+
+            QueueStateUpdatedEvent::dispatch($mix);
 
             return response()->json([
                 'success' => true,
