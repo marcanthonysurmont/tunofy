@@ -175,9 +175,11 @@ onMounted(() => {
     Echo.channel(`mix.${props.value.mix.id}`)
         .listen(".vote-updated", () => {
             router.reload({ only: ["allPendingSongs", "success", "error"] });
+            console.log("Vote updated");
         })
-        .listen(".song.completed", () => {
+        .listen(".queue-state-updated", () => {
             router.reload({ only: ["allPendingSongs", "votableSongs", "success", "error"]});
+            console.log("Queue state updated");
         });
 });
 </script>

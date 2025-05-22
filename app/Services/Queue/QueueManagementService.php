@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Cache;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Playback\PlaybackStateManager;
 use App\Services\Playback\SongPlaybackService;
+use App\Services\Queue\QueueBuilderService;
+use App\Events\QueueStateUpdatedEvent;
 
 /**
  * Central service for all queue operations
@@ -140,11 +142,16 @@ class QueueManagementService
         // Call Spotify API directly - no other operations
         try {
             // Direct API call without any intermediate steps
-            return $this->spotifyService->playTrackOnDevice(
+            $playTrackOnDevice = $this->spotifyService->playTrackOnDevice(
                 $user,
                 $currentSong->song->spotify_id,
                 $deviceId
             );
+
+            QueueStateUpdatedEvent::dispatch($mix);
+
+            return $playTrackOnDevice;
+
         } catch (\Exception $e) {
             Log::error("Error in QueueManagementService::startPlayback: " . $e->getMessage());
             return false;

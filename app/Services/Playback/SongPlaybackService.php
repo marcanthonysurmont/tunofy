@@ -3,6 +3,7 @@
 namespace App\Services\Playback;
 
 use App\Events\PlaybackDataUpdatedEvent;
+use App\Events\QueueStateUpdatedEvent;
 use App\Models\QueueSong;
 use App\Models\Mix;
 use App\Models\User;
@@ -15,7 +16,6 @@ use App\Events\DeviceUpdatedEvent;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Queue\QueueManagementService;
 use App\Services\Playback\PlaybackStateManager;
-use App\Events\SongCompletedEvent;
 
 class SongPlaybackService
 {
@@ -293,7 +293,7 @@ class SongPlaybackService
             ];
         }
 
-        SongCompletedEvent::dispatch($mix);
+        QueueStateUpdatedEvent::dispatch($mix);
 
         return $result;
     }

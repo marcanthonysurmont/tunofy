@@ -9,7 +9,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Mix;
 
-class SongCompletedEvent implements ShouldBroadcastNow
+class QueueStateUpdatedEvent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -25,6 +25,6 @@ class SongCompletedEvent implements ShouldBroadcastNow
 
     public function broadcastAs(): string
     {
-        return 'song.completed';
+        return 'queue-state-updated';
     }
 }
