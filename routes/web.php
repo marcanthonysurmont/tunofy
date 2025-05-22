@@ -49,6 +49,7 @@ use App\Http\Controllers\Application\Mixes\ImportSpotifyPlaylistController;
 use App\Http\Controllers\Application\Mixes\UpdateMixThemeController;
 use App\Http\Controllers\Application\Mixes\UpdateMixUserPermissionsController;
 use App\Http\Controllers\Application\Mixes\GetMixSongsController;
+use App\Http\Controllers\Auth\DeleteAccountController;
 
 use App\Http\Controllers\Application\Mixes\Voting\VoteSongController;
 
@@ -104,6 +105,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
         Route::get('/remix', ShowRemixPageController::class)->name('remix');
         Route::get('/{mix:slug}/{tab?}', ShowMixController::class)->name('mix.show');
         Route::post('/logout', LogoutController::class)->name('logout');
+        Route::post('/delete-account', DeleteAccountController::class)->name('delete-account');
     });
 
     Route::middleware('guest')->group(function () {

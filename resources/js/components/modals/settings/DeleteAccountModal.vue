@@ -44,6 +44,7 @@ import CreateModalDefault from "@/components/modals/CreateModalDefault.vue";
 import RegularButton from "@/components/buttons/RegularButton.vue";
 import InputField from "@/components/forms/InputField.vue";
 import { ref } from "vue";
+import { router } from "@inertiajs/vue3";
 
 defineProps({
     isVisible: Boolean,
@@ -65,6 +66,11 @@ function deleteAccount() {
         userInput.value.error = "Please type CONFIRM to confirm";
         return;
     }
+
     isLoading.value = true;
+
+    router.post(route("delete-account"), {
+        input: userInput.value.deleteConfirmation,
+    })
 }
 </script>
