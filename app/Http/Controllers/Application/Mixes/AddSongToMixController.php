@@ -8,6 +8,7 @@ use App\Models\Mix;
 use App\Models\Song;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
+use Exception;
 
 class AddSongToMixController extends Controller
 {
@@ -33,9 +34,15 @@ class AddSongToMixController extends Controller
 
             return redirect()->back()
                 ->with('success', 'Song added to mix successfully.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+
+            if($e->getCode() == 23000) {
+                return redirect()->back()
+                    ->with('error', 'Song already exists in the mix.');
+            }
+
             return redirect()->back()
-                ->with('danger', 'Failed to add song to mix');
+                ->with('error', 'Failed to add song to mix');
         }
     }
 }
