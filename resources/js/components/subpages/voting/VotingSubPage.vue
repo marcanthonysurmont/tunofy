@@ -1,10 +1,10 @@
 <template>
-    <div class="flex flex-row items-center mb-6 lg:mb-8">
+    <div class="flex flex-row items-center mb-4 lg:mb-5">
         <!-- <LiveIndicator :isLive="true" class="mb-2 mr-4" /> -->
         <div class="flex flex-col">
-            <h1 class="text-3xl sm:text-4xl font-medium">Live Rankings</h1>
+            <h1 class="text-3xl sm:text-4xl font-medium mb-3">Live Rankings</h1>
             <p v-if="rankedSongs.length === 0" class="text-muted">
-                No voting session is currently active. Come back later!
+                No voting ranks are available to display. Come back later!
             </p>
         </div>
         <RegularButton
