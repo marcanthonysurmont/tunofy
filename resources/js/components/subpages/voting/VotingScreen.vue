@@ -230,12 +230,10 @@ const isFakeSwipeAnimating = ref(false);
 
 const page = usePage();
 const props = computed(() => page.props);
-const songs = computed(() => 
+const songs = ref(
     Object.values(props.value.votableSongs).map((item) => item.song)
 );
-const votableSongs = computed(() => {
-    return Object.values(props.value.votableSongs);
-});
+const votableSongs = ref(Object.values(props.value.votableSongs));
 
 // Audio related state
 const audioPreviewCache = ref({});
