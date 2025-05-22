@@ -394,7 +394,6 @@ function clickLeft() {
 }
 
 function swipeLeft() {
-    console.log(votableSongs.value[currentIndex.value]);
     router.post(
         route("mix.voting.vote", votableSongs.value[currentIndex.value].id),
         {
@@ -405,7 +404,6 @@ function swipeLeft() {
 }
 
 function swipeRight() {
-    console.log(votableSongs.value[currentIndex.value]);
     router.post(
         route("mix.voting.vote", votableSongs.value[currentIndex.value].id),
         {
@@ -416,7 +414,6 @@ function swipeRight() {
 }
 
 function kill() {
-    console.log(votableSongs.value[currentIndex.value]);
     router.post(
         route("mix.voting.vote", votableSongs.value[currentIndex.value].id),
         {
@@ -639,14 +636,6 @@ onMounted(() => {
                 }
             }, 2000);
         }
-    }
-});
-
-//watch for index changes to prefetch audio
-watch(currentIndex, (newIndex) => {
-    const nextIndex = newIndex + 1;
-    if (nextIndex < songs.value.length) {
-        getSongFile(nextIndex.spotify_id);
     }
 });
 </script>
