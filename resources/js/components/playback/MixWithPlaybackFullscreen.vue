@@ -79,6 +79,7 @@
                             isMixActive
                                 ? 'cursor-pointer'
                                 : 'cursor-not-allowed opacity-50',
+                            selectedDevice === null ? 'opacity-50' : '',
                         ]"
                     />
                     <PauseCircleIcon
@@ -89,6 +90,7 @@
                             isMixActive
                                 ? 'cursor-pointer'
                                 : 'cursor-not-allowed opacity-50',
+                            selectedDevice === null ? 'opacity-50' : '',
                         ]"
                     />
                     <PlayCircleIcon
@@ -99,6 +101,7 @@
                             isMixActive
                                 ? 'cursor-pointer'
                                 : 'cursor-not-allowed opacity-50',
+                            selectedDevice === null ? 'opacity-50' : '',
                         ]"
                     />
                     <ForwardIcon
@@ -108,6 +111,7 @@
                             isMixActive
                                 ? 'cursor-pointer'
                                 : 'cursor-not-allowed opacity-50',
+                            selectedDevice === null ? 'opacity-50' : '',
                         ]"
                     />
                 </div>
