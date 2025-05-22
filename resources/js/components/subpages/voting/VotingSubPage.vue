@@ -1,7 +1,12 @@
 <template>
     <div class="flex flex-row items-center mb-6 lg:mb-8">
         <!-- <LiveIndicator :isLive="true" class="mb-2 mr-4" /> -->
-        <h1 class="text-3xl sm:text-4xl font-medium mb-2">Live Rankings</h1>
+        <div class="flex flex-col">
+            <h1 class="text-3xl sm:text-4xl font-medium">Live Rankings</h1>
+            <p v-if="rankedSongs.length === 0" class="text-muted">
+                No voting session is currently active. Come back later!
+            </p>
+        </div>
         <RegularButton
             v-if="votableSongs.length > 0"
             color="blue"
@@ -134,9 +139,8 @@ const rankedSongs = computed(() => {
 });
 
 onMounted(() => {
-    Echo.channel(`mix.${props.value.mix.id}`)
-        .listen(".vote-updated", () => {
-            router.reload({ only: ["allPendingSongs", "success", "error"] });
-        })
+    Echo.channel(`mix.${props.value.mix.id}`).listen(".vote-updated", () => {
+        router.reload({ only: ["allPendingSongs", "success", "error"] });
+    });
 });
 </script>
