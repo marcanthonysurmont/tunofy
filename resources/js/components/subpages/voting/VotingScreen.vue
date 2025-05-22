@@ -229,8 +229,8 @@ const isNewCardAnimating = ref(false);
 const isFakeSwipeAnimating = ref(false);
 
 const page = usePage();
-const props = ref(page.props);
-const songs = ref(
+const props = computed(() => page.props);
+const songs = computed(() => 
     Object.values(props.value.votableSongs).map((item) => item.song)
 );
 const votableSongs = computed(() => {
@@ -648,7 +648,7 @@ onMounted(() => {
 watch(currentIndex, (newIndex) => {
     const nextIndex = newIndex + 1;
     if (nextIndex < songs.value.length) {
-        getSongFile(songs.value[nextIndex].spotify_id);
+        getSongFile(nextIndex.spotify_id);
     }
 });
 </script>

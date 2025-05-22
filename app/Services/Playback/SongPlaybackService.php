@@ -14,6 +14,8 @@ use App\Events\MixStatusChangedEvent;
 use App\Events\DeviceUpdatedEvent;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Queue\QueueManagementService;
+use App\Services\Playback\PlaybackStateManager;
+use App\Events\SongCompletedEvent;
 
 class SongPlaybackService
 {
@@ -290,6 +292,8 @@ class SongPlaybackService
                 'queue_completed' => true
             ];
         }
+
+        SongCompletedEvent::dispatch($mix);
 
         return $result;
     }

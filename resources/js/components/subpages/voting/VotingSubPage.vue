@@ -172,8 +172,12 @@ const rankedSongs = computed(() => {
 });
 
 onMounted(() => {
-    Echo.channel(`mix.${props.value.mix.id}`).listen(".vote-updated", () => {
-        router.reload({ only: ["allPendingSongs", "success", "error"] });
-    });
+    Echo.channel(`mix.${props.value.mix.id}`)
+        .listen(".vote-updated", () => {
+            router.reload({ only: ["allPendingSongs", "success", "error"] });
+        })
+        .listen(".song.completed", () => {
+            router.reload({ only: ["allPendingSongs", "votableSongs", "success", "error"]});
+        });
 });
 </script>
