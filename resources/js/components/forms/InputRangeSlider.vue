@@ -1,10 +1,23 @@
 <template>
     <div class="w-full" :class="{ 'opacity-40 cursor-not-allowed': disabled }">
-        <label v-if="label" class="block text-sm font-medium text-white mb-4">
+        <label
+            v-if="label"
+            class="block text-sm font-medium text-white mb-4 flex items-center gap-2"
+        >
             {{ label }}
+            <InformationCircleIcon
+                v-if="tooltip"
+                v-tippy="{
+                    content: tooltip,
+                    touch: true,
+                    hideOnClick: 'toggle',
+                }"
+                class="size-5 text-zinc-400 hover:text-zinc-200 transition"
+                aria-label="Information"
+            />
         </label>
 
-        <div class="flex items-center justify-between text-xs text-gray-400">
+        <div class="flex items-center justify-between text-xs text-zinc-400">
             <span>{{ min }}</span>
             <span>{{ modelValue }}</span>
             <span>{{ max }}</span>
@@ -13,7 +26,7 @@
         <input
             type="range"
             :class="disabled ? 'cursor-not-allowed' : ''"
-            class="w-full appearance-none bg-zinc-700 h-1 rounded-lg outline-none transition-all duration-200 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:hover:bg-gray-200 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white"
+            class="w-full appearance-none bg-zinc-700 h-1 rounded-lg outline-none transition-all duration-200 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:hover:bg-zinc-200 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white"
             :min="min"
             :max="max"
             :step="step"
@@ -25,6 +38,8 @@
 </template>
 
 <script setup>
+import { InformationCircleIcon } from "@heroicons/vue/24/solid";
+
 defineProps({
     label: {
         type: String,
@@ -49,6 +64,10 @@ defineProps({
     disabled: {
         type: Boolean,
         default: false,
+    },
+    tooltip: {
+        type: String,
+        default: "",
     },
 });
 

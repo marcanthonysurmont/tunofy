@@ -17,14 +17,27 @@
                 ]"
             />
         </Switch>
-        <SwitchLabel as="span" class="ml-3 text-sm text-zinc-100">
+        <SwitchLabel
+            as="span"
+            class="ml-3 text-sm text-zinc-100 flex items-center gap-1"
+        >
             <span
                 class="font-medium transition-all duration-200 ease-in-out"
                 :class="disabled ? 'opacity-40' : ''"
+                @click.stop
             >
                 {{ label }}
             </span>
             <span class="text-zinc-500">{{ description }}</span>
+            <InformationCircleIcon
+                v-if="tooltip"
+                class="size-5 text-zinc-400 hover:text-zinc-200 transition"
+                v-tippy="{
+                    content: tooltip,
+                    touch: true,
+                }"
+                @click.stop
+            />
         </SwitchLabel>
     </SwitchGroup>
 </template>
@@ -32,24 +45,14 @@
 <script setup>
 import { ref, watch, defineProps, defineEmits } from "vue";
 import { Switch, SwitchGroup, SwitchLabel } from "@headlessui/vue";
+import { InformationCircleIcon } from "@heroicons/vue/24/solid";
 
 const props = defineProps({
-    label: {
-        type: String,
-        required: true,
-    },
-    description: {
-        type: String,
-        required: false,
-    },
-    modelValue: {
-        type: [Boolean, Number],
-        default: false,
-    },
-    disabled: {
-        type: Boolean,
-        default: false,
-    },
+    label: { type: String, required: true },
+    description: { type: String, required: false },
+    modelValue: { type: [Boolean, Number], default: false },
+    disabled: { type: Boolean, default: false },
+    tooltip: { type: String, default: null }, // Optional tooltip text
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -64,7 +67,6 @@ watch(
 );
 
 watch(enabled, (newValue) => {
-    //0 and 1 values for the backend
     emit("update:modelValue", newValue ? 1 : 0);
 });
 </script>
