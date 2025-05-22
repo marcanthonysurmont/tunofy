@@ -108,19 +108,6 @@ class SetMixActiveController extends Controller
                                 // Mark the song as playing
                                 $firstSong->update(['status' => 'playing']);
 
-                                // Get the device ID from state manager
-                                $deviceId = $playbackState->getDeviceId($mix);
-
-                                // Get the user for this mix
-                                $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
-
-                                // Play directly on the correct device ID from the start
-                                app(SpotifyService::class)->playTrackOnDevice(
-                                    $user,
-                                    $firstSong->song->spotify_id,
-                                    $deviceId
-                                );
-
                                 // Send an intermediate "loading" state if you want (optional)
                                 $loadingData = [
                                     'is_playing' => true,
