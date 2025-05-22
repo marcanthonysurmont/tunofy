@@ -17,8 +17,10 @@ class ShowMixController extends Controller
     public function __invoke(Mix $mix, SpotifyService $spotifyService, string $tab = 'overview')
     {
         $this->authorize('view', $mix);
-        $songs = $mix->songs()->with('user')->paginate(20);
-        $totalDuration = $mix->songs()->sum('duration_ms');
+        $songsQuery = $mix->songs()->with('user');
+        $songs = (clone $songsQuery)->paginate(20);
+        $totalDuration = (clone $songsQuery)->sum('duration_ms');
+
         $mixDuration = function() use ($totalDuration) {
             $hours = floor($totalDuration / 3600000);
             $minutes = floor(($totalDuration % 3600000) / 60000);
