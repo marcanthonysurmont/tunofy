@@ -58,6 +58,29 @@
 }
 
 
+/* font for dyslexia */
+.font-lexend {
+    --font-body: "Lexend", sans-serif;
+    --font-headers: "Lexend", sans-serif;
+    font-family: var(--font-headers);
+    line-height: normal;
+    margin: 0;
+}
+
+.font-lexend h1,
+.font-lexend h2,
+.font-lexend h3,
+.font-lexend h4,
+.font-lexend h5,
+.font-lexend h6 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    margin: 0;
+    line-height: normal;
+    font-family: var(--font-headers);
+}
+
+
 @layer base {
 
     h1,

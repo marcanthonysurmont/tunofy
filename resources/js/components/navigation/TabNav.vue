@@ -25,10 +25,11 @@
                             }
                         "
                         :class="[
-                            'border-2 rounded-lg flex cursor-pointer items-center justify-center px-3 pb-1.5 pt-2.5 tab-nav-item-center tab-nav-peeking-item sm:text-xl md:text-2xl font-medium font-headers hover:text-neutral-300 z-10 transition-colors duration-300 ease-in-out relative whitespace-nowrap',
+                            'border-2 rounded-lg flex cursor-pointer items-center justify-center px-3 tab-nav-item-center tab-nav-peeking-item sm:text-xl md:text-2xl font-medium font-headers hover:text-neutral-300 z-10 transition-colors duration-300 ease-in-out relative whitespace-nowrap',
                             tab.active
                                 ? 'border-primary text-white'
                                 : 'border-tab-stroke-inactive text-white',
+                            dyslexiaFontEnabled ? 'pb-2 pt-2' : 'pb-1.5 pt-2.5',
                             // tab.votingActive === false && !tab.active
                             //     ? 'opacity-50 cursor-not-allowed'
                             //     : 'cursor-pointer',
@@ -72,6 +73,10 @@ const emit = defineEmits(["tab-changed"]);
 const activeTabIndicator = ref(null);
 const tabRefs = ref([]);
 const tabsContainer = ref(null);
+
+const dyslexiaFontEnabled = ref(
+    localStorage.getItem("dyslexiaFontEnabled") === "true"
+);
 
 const page = usePage();
 const authorization = computed(() => page.props.mix.authorized);

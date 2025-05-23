@@ -131,7 +131,7 @@ import {
     TransitionRoot,
 } from "@headlessui/vue";
 import { Bars3Icon, XMarkIcon } from "@heroicons/vue/24/outline";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import CreateMixModal from "@/components/modals/mixes/CreateMixModal.vue";
 import JoinMixModal from "@/components/modals/mixes/JoinMixModal.vue";
 import ToastList from "@/components/toasts/ToastList.vue";
@@ -156,4 +156,10 @@ const isJoinMixModalVisible = ref(false);
 function closeJoinMixModal() {
     isJoinMixModalVisible.value = false;
 }
+
+onMounted(() => {
+    if (localStorage.getItem("dyslexiaFontEnabled") === "true") {
+        document.documentElement.classList.add("font-lexend");
+    }
+});
 </script>

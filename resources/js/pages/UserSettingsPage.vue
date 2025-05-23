@@ -59,12 +59,17 @@
                 </section>
                 <section class="mb-8">
                     <div class="mb-4">
-                        <h2 class="text-xl sm:text-2xl">
-                            Accessibility (coming soon)
-                        </h2>
+                        <h2 class="text-xl sm:text-2xl">Accessibility</h2>
                         <p class="text-muted">
                             Manage accessibility settings for your account
                         </p>
+                    </div>
+                    <div class="flex flex-col gap-4">
+                        <ToggleSwitchDescription
+                            tooltip="For users with dyslexia, this font is designed to make reading easier. It has unique letter shapes that help prevent letter confusion."
+                            label="Dyslexia font"
+                            v-model="dyslexiaFontEnabled"
+                        />
                     </div>
                 </section>
             </div>
@@ -77,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head } from "@inertiajs/vue3";
 import RegularButton from "@/components/buttons/RegularButton.vue";
@@ -88,4 +93,25 @@ const isDeleteAccountModalVisible = ref(false);
 
 const dataCollectionEnabled = ref(true);
 const analyticsTrackingEnabled = ref(true);
+
+//get dyslexia font preference from localstorage
+const dyslexiaFontEnabled = ref(
+    localStorage.getItem("dyslexiaFontEnabled") === "true"
+);
+console.log("dyslexiaFontEnabled", localStorage.getItem("dyslexiaFontEnabled"));
+watch(
+    dyslexiaFontEnabled,
+    (newValue) => {
+        //save to localstorage
+        localStorage.setItem("dyslexiaFontEnabled", Boolean(newValue));
+
+        //toggle
+        if (newValue) {
+            document.documentElement.classList.add("font-lexend");
+        } else {
+            document.documentElement.classList.remove("font-lexend");
+        }
+    },
+    { immediate: true }
+);
 </script>
