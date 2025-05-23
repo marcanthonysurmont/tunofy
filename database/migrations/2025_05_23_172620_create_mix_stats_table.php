@@ -15,7 +15,7 @@ return new class extends Migration
             $table->integer('songs_liked')->default(0);
             $table->integer('songs_disliked')->default(0);
             $table->integer('songs_killed')->default(0);
-            $table->integer('minutes_played')->default(0);
+            $table->decimal('minutes_played')->default(0);
             $table->integer('total_votes')->default(0);
             $table->timestamps();
         });

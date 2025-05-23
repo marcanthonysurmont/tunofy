@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Log;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Playback\PlaybackStateManager;
 use App\Events\QueueStateUpdatedEvent;
+use App\Models\MixStat;
+use Illuminate\Support\Facades\DB;
 
 class PlayPreviousSongController extends Controller
 {
@@ -79,6 +81,15 @@ class PlayPreviousSongController extends Controller
         $deviceId = $playbackStateManager->getDeviceId($mix);
         $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
         $recentlyActivated = Cache::get("mix:{$mix->id}:device_activated", false);
+        $oldPlaybackData = $spotifyService->getCurrentPlayback($user);
+
+        MixStat::updateOrCreate(
+            ['mix_id' => $mix->id],
+            [
+                'songs_played' => DB::raw('songs_played + 1'),
+                'minutes_played' => DB::raw('minutes_played + ' . $oldPlaybackData['progress_ms'] / 60000),
+            ]
+        );
 
         if ($deviceId) {
             // Only activate if not recently activated

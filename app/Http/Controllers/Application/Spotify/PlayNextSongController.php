@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Application\Spotify;
 use App\Events\QueueStateUpdatedEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
+use App\Services\Playback\PlaybackService;
 use App\Services\Playback\SongPlaybackService;
 use Illuminate\Http\JsonResponse;
 use App\Events\PlaybackDataUpdatedEvent;
@@ -15,6 +16,8 @@ use App\Services\Spotify\SpotifyService;
 use App\Services\Playback\PlaybackStateManager;
 use App\Models\QueueSong;
 use Illuminate\Support\Facades\Auth;
+use App\Models\MixStat;
+use Illuminate\Support\Facades\DB;
 
 class PlayNextSongController extends Controller
 {
@@ -55,6 +58,12 @@ class PlayNextSongController extends Controller
         // Set last command time
         Cache::put($lastCommandKey, $now, now()->addMinutes(5));
 
+        if($mix->coDJ) {
+            $playbackData = $spotifyService->getCurrentPlayback($mix->coDJ);
+        } else {
+            $playbackData = $spotifyService->getCurrentPlayback($mix->user);
+        }
+
         // 1. Get the next song data and mark current song as finished
         $nextSong = $songPlaybackService->getNextSongToPlay($mix->id);
         $currentSong = $songPlaybackService->getCurrentlyPlayingSong($mix);
@@ -81,6 +90,14 @@ class PlayNextSongController extends Controller
             // Re-fetch next song since queue might have changed
             $nextSong = $songPlaybackService->getNextSongToPlay($mix->id);
         }
+
+        MixStat::updateOrCreate(
+            ['mix_id' => $mix->id],
+            [
+                'songs_played' => DB::raw('songs_played + 1'),
+                'minutes_played' => DB::raw('minutes_played + ' . $playbackData['progress_ms'] / 60000),
+            ]
+        );
 
         // Check if queue is completed
         if (!$nextSong) {

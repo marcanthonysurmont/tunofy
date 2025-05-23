@@ -19,6 +19,7 @@ use App\Models\PlaybackSession;
 use App\Services\Playback\PlaybackStateManager;
 use App\Models\GlobalUserStat;
 use Illuminate\Support\Facades\DB;
+use App\Models\MixStat;
 
 class SetMixActiveController extends Controller
 {
@@ -221,6 +222,16 @@ class SetMixActiveController extends Controller
 
                 // Broadcast deactivation event
                 event(new MixStatusChangedEvent($mix, false));
+
+                $playbackData = $spotifyService->getCurrentPlayback($mix->user);
+
+                MixStat::updateOrCreate(
+                    ['mix_id' => $mix->id],
+                    [
+                        'songs_played' => DB::raw('songs_played + 1'),
+                        'minutes_played' => DB::raw('minutes_played + ' . $playbackData['progress_ms'] / 60000),
+                    ]
+                );
 
                 GlobalUserStat::updateOrCreate(
                     [
