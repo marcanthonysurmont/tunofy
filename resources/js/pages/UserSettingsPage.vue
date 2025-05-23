@@ -41,6 +41,26 @@
                 </section>
                 <section class="mb-8">
                     <div class="mb-4">
+                        <h2 class="text-xl sm:text-2xl">Privacy</h2>
+                        <p class="text-muted">
+                            Manage accessibility settings for your account
+                        </p>
+                    </div>
+                    <div class="flex flex-col gap-4">
+                        <ToggleSwitchDescription
+                            tooltip="We collect data to create your yearly Tunofy Remix - our version of Spotify Wrapped. This also helps us improve our services and enhance your overall experience."
+                            label="Data collection"
+                            v-model="dataCollectionEnabled"
+                        />
+                        <ToggleSwitchDescription
+                            tooltip="We use analytics to understand how our users interact with the app. This helps us improve our services and enhance your overall experience."
+                            label="Analytics tracking"
+                            v-model="analyticsTrackingEnabled"
+                        />
+                    </div>
+                </section>
+                <section class="mb-8">
+                    <div class="mb-4">
                         <h2 class="text-xl sm:text-2xl">
                             Accessibility (coming soon)
                         </h2>
@@ -63,7 +83,11 @@ import { ref } from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head } from "@inertiajs/vue3";
 import RegularButton from "@/components/buttons/RegularButton.vue";
-import DeleteAccountModal from "../components/modals/settings/DeleteAccountModal.vue";
+import DeleteAccountModal from "@/components/modals/settings/DeleteAccountModal.vue";
+import ToggleSwitchDescription from "@/components/forms/ToggleSwitchDescription.vue";
 
 const isDeleteAccountModalVisible = ref(false);
+
+const dataCollectionEnabled = ref(true);
+const analyticsTrackingEnabled = ref(true);
 </script>
