@@ -248,13 +248,16 @@ function updateWindowWidth() {
     windowWidth.value = window.innerWidth;
 }
 
+//function that is executed when the user scrolls, throttled 200ms
+const throttledCheckScroll = throttle(checkScroll, 200);
+
 onMounted(() => {
     window.addEventListener("resize", updateWindowWidth);
-    window.addEventListener("scroll", throttle(checkScroll, 200));
+    window.addEventListener("scroll", throttledCheckScroll);
 });
 onBeforeUnmount(() => {
     window.removeEventListener("resize", updateWindowWidth);
-    window.removeEventListener("scroll", throttle(checkScroll, 200));
+    window.removeEventListener("scroll", throttledCheckScroll);
 });
 </script>
 
