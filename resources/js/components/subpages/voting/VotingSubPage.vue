@@ -54,8 +54,7 @@
                                     ]"
                                 >
                                     <NumberFlow
-                                        :will-change
-                                        :animated
+                                        :will-change="true"
                                         :value="Math.abs(song.rankChange)"
                                     />
                                 </p>
@@ -98,7 +97,7 @@
                             }"
                             alt="cover"
                             :class="[
-                                'rounded flex-shrink-0',
+                                'rounded flex-shrink-0 object-cover',
                                 index === 0 && song.is_killed === 0
                                     ? 'size-20'
                                     : 'size-11',
