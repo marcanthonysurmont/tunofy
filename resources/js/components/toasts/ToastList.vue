@@ -38,7 +38,7 @@ let removeFinishEventListener = Inertia.on("finish", () => {
             type: "success",
         });
     }
-    //if msg is success, show success prop
+    //if msg is danger, show danger prop
     if (page.props.danger) {
         toast.add({
             message: page.props.danger,

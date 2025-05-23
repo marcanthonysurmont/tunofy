@@ -598,7 +598,7 @@ onMounted(() => {
 
                 if (e.reason === "other_mix") {
                     router.reload({
-                        only: ["activeConflictingMixes", "success", "error"],
+                        only: ["activeConflictingMixes", "success", "danger"],
                     });
                 }
             })
@@ -611,7 +611,7 @@ onMounted(() => {
             async () => {
                 await refreshDevices();
 
-                router.reload({ only: ["mix", "success", "error"] });
+                router.reload({ only: ["mix", "success", "danger"] });
             }
         );
     }
