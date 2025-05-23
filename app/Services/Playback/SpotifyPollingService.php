@@ -10,6 +10,11 @@ use App\Events\PlaybackDataUpdatedEvent;
 use App\Events\CoDJUpdatedEvent;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Queue\QueueManagementService;
+use App\Services\Playback\PlaybackStateManager;
+use App\Services\Playback\SongPlaybackService;
+use App\Models\GlobalUserStat;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class SpotifyPollingService
 {
