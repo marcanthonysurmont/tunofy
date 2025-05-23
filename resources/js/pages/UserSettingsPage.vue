@@ -42,9 +42,7 @@
                 <section class="mb-8">
                     <div class="mb-4">
                         <h2 class="text-xl sm:text-2xl">Privacy</h2>
-                        <p class="text-muted">
-                            Manage accessibility settings for your account
-                        </p>
+                        <p class="text-muted">Manage your privacy settings</p>
                     </div>
                     <div class="flex flex-col gap-4">
                         <ToggleSwitchDescription
