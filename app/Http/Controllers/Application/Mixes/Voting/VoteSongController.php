@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Application\Mixes\Voting;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\VoteSongRequest;
 use App\Models\GlobalUserStat;
+use App\Models\MixUserStat;
 use App\Models\Vote;
 use Exception;
 use Illuminate\Http\RedirectResponse;
@@ -21,9 +22,11 @@ class VoteSongController extends Controller
         $validated = $request->validated();
 
         try {
+            $user = Auth::user();
+
             Vote::create([
                 'queue_song_id' => $queueSong->id,
-                'user_id' => Auth::id(),
+                'user_id' => $user->id,
                 'vote_type' => $validated['vote_type'],
             ]);
 
@@ -32,7 +35,7 @@ class VoteSongController extends Controller
                 $queueSong->increment('like_count');
 
                 GlobalUserStat::updateOrCreate(
-                    ['user_id' => Auth::id()],
+                    ['user_id' => $user->id],
                     [
                         'like_count' => DB::raw('like_count + 1'),
                         'total_votes' => DB::raw('total_votes + 1'),
@@ -44,7 +47,18 @@ class VoteSongController extends Controller
                 $queueSong->increment('dislike_count');
 
                 GlobalUserStat::updateOrCreate(
-                    ['user_id' => Auth::id()],
+                    ['user_id' => $user->id],
+                    [
+                        'dislike_count' => DB::raw('dislike_count + 1'),
+                        'total_votes' => DB::raw('total_votes + 1'),
+                    ]
+                );
+
+                MixUserStat::updateOrCreate(
+                    [
+                        'mix_id' => $queueSong->mix_id,
+                        'user_id' => $user->id,
+                    ],
                     [
                         'dislike_count' => DB::raw('dislike_count + 1'),
                         'total_votes' => DB::raw('total_votes + 1'),
@@ -56,7 +70,7 @@ class VoteSongController extends Controller
                 $queueSong->increment('kill_count');
 
                 GlobalUserStat::updateOrCreate(
-                    ['user_id' => Auth::id()],
+                    ['user_id' => $user->id],
                     [
                         'kill_count' => DB::raw('kill_count + 1'),
                         'total_votes' => DB::raw('total_votes + 1'),

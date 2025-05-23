@@ -13,6 +13,8 @@ class MixStat extends Model
     protected $fillable = [
         'mix_id',
         'songs_played',
+        'songs_liked',
+        'songs_disliked',
         'songs_killed',
         'minutes_played',
         'total_votes',

@@ -14,8 +14,10 @@ class MixUserStat extends Model
         'mix_id',
         'user_id',
         'songs_added',
+        'songs_liked',
+        'songs_disliked',
         'songs_killed',
-        'votes_casted',
+        'total_votes',
     ];
 
     /**************************************/

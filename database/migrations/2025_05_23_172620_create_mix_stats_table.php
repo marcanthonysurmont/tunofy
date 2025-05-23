@@ -12,6 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('mix_id')->constrained()->onDelete('cascade');
             $table->integer('songs_played')->default(0);
+            $table->integer('songs_liked')->default(0);
+            $table->integer('songs_disliked')->default(0);
             $table->integer('songs_killed')->default(0);
             $table->integer('minutes_played')->default(0);
             $table->integer('total_votes')->default(0);

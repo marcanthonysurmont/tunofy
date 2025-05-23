@@ -18,7 +18,6 @@ class Song extends Model
         'last_fetched_at',
         'name',
         'artist',
-        'genre',
         'image_url',
     ];
 

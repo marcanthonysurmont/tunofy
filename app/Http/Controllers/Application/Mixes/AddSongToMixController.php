@@ -7,6 +7,7 @@ use App\Http\Requests\AddSongToMixRequest;
 use App\Models\GlobalUserStat;
 use App\Models\Mix;
 use App\Models\Song;
+use App\Models\UserSongHistory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
 use Exception;
@@ -42,6 +43,18 @@ class AddSongToMixController extends Controller
                 ],
                 [
                     'songs_added' => DB::raw('songs_added + 1'),
+                ],
+            );
+
+            UserSongHistory::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'spotify_id' => $validated['spotify_id'],
+                ],
+                [
+                    'song_name' => $validated['name'],
+                    'artist' => $validated['artist'],
+                    'times_added' => DB::raw('times_added + 1'),
                 ],
             );
 
