@@ -24,6 +24,11 @@ class GlobalUserStat extends Model
     /**************************************/
     /*           Relationships            */
     /**************************************/
+    
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     /**************************************/
     /*       Accessors / Mutators         */
