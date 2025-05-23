@@ -10,10 +10,19 @@
             @click="routeUser"
             class="flex flex-row gap-4 w-full items-center relative z-10 py-2 px-2 cursor-pointer"
         >
-            <img
-                :src="imageUrl"
-                class="size-14 object-cover flex-shrink-0 rounded-sm"
-            />
+            <div class="relative size-14 flex-shrink-0">
+                <img :src="imageUrl" class="size-14 object-cover rounded-sm" />
+                <div
+                    class="absolute inset-0 bg-black/75 rounded-xs"
+                    v-if="mix.is_active === 1"
+                ></div>
+                <div
+                    v-if="mix.is_active === 1"
+                    class="absolute inset-0 flex items-center justify-center pointer-events-none"
+                >
+                    <SoundWave :bar-count="4" color="white" size="md" />
+                </div>
+            </div>
             <div
                 class="flex flex-col justify-center gap-3 h-14 flex-1 min-w-0 py-0"
             >
@@ -36,6 +45,7 @@
 <script setup>
 import { router } from "@inertiajs/vue3";
 import { computed } from "vue";
+import SoundWave from "@/components/spinners/SoundWave.vue";
 
 const props = defineProps({
     mix: {
