@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Application\Mixes\Voting;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\VoteSongRequest;
+use App\Models\GlobalUserStat;
 use App\Models\Vote;
 use Exception;
 use Illuminate\Http\RedirectResponse;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Models\QueueSong;
 use App\Events\VoteUpdatedEvent;
+use Illuminate\Support\Facades\DB;
 
 class VoteSongController extends Controller
 {
@@ -28,14 +30,38 @@ class VoteSongController extends Controller
             // Update the vote counts for the current song
             if ($validated['vote_type'] === 'like') {
                 $queueSong->increment('like_count');
+
+                GlobalUserStat::updateOrCreate(
+                    ['user_id' => Auth::id()],
+                    [
+                        'like_count' => DB::raw('like_count + 1'),
+                        'total_votes' => DB::raw('total_votes + 1'),
+                    ],
+                );
             }
 
             if ($validated['vote_type'] === 'dislike') {
                 $queueSong->increment('dislike_count');
+
+                GlobalUserStat::updateOrCreate(
+                    ['user_id' => Auth::id()],
+                    [
+                        'dislike_count' => DB::raw('dislike_count + 1'),
+                        'total_votes' => DB::raw('total_votes + 1'),
+                    ]
+                );
             }
 
             if ($validated['vote_type'] === 'kill') {
                 $queueSong->increment('kill_count');
+
+                GlobalUserStat::updateOrCreate(
+                    ['user_id' => Auth::id()],
+                    [
+                        'kill_count' => DB::raw('kill_count + 1'),
+                        'total_votes' => DB::raw('total_votes + 1'),
+                    ]
+                );
             }
 
             $mix = $queueSong->mix;
