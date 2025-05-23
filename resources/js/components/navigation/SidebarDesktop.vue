@@ -65,9 +65,13 @@
                         >
                             <img
                                 class="size-10 border-regular-stroke border-2 rounded-full bg-zinc-700"
-                                :src="
-                                    user.avatar || '/images/default-avatar.jpg'
-                                "
+                                v-lazy="{
+                                    src:
+                                        user.avatar ||
+                                        '/images/default-avatar.jpg',
+                                    error: '/images/default-avatar.jpg',
+                                    loading: '/images/default-avatar.jpg',
+                                }"
                                 alt="User avatar of logged in user"
                             />
                             <span class="sr-only">Your profile</span>
