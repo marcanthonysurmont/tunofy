@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Song extends Model
+class MixUserStat extends Model
 {
     /**************************************/
     /*             Attributes             */
@@ -12,29 +12,15 @@ class Song extends Model
 
     protected $fillable = [
         'mix_id',
-        'spotify_id',
         'user_id',
-        'duration_ms',
-        'last_fetched_at',
-        'name',
-        'artist',
-        'genre',
-        'image_url',
+        'songs_added',
+        'songs_killed',
+        'votes_casted',
     ];
 
     /**************************************/
     /*           Relationships            */
     /**************************************/
-
-    public function mix()
-    {
-        return $this->belongsTo(Mix::class);
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
 
     /**************************************/
     /*       Accessors / Mutators         */

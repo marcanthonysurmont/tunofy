@@ -4,37 +4,26 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Song extends Model
+class GlobalUserStat extends Model
 {
     /**************************************/
     /*             Attributes             */
     /**************************************/
 
     protected $fillable = [
-        'mix_id',
-        'spotify_id',
         'user_id',
-        'duration_ms',
-        'last_fetched_at',
-        'name',
-        'artist',
-        'genre',
-        'image_url',
+        'mixes_created',
+        'mixes_played',
+        'songs_added',
+        'like_count',
+        'dislike_count',
+        'kill_count',
+        'total_votes',
     ];
 
     /**************************************/
     /*           Relationships            */
     /**************************************/
-
-    public function mix()
-    {
-        return $this->belongsTo(Mix::class);
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
 
     /**************************************/
     /*       Accessors / Mutators         */

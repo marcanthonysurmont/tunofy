@@ -20,6 +20,7 @@ return new class extends Migration
             $table->dateTime('last_fetched_at')->nullable();
             $table->string('name');
             $table->string('artist');
+            $table->string('genre');
             $table->string('image_url');
             $table->timestamps();
 

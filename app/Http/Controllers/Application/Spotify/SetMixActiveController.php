@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Application\Spotify;
 use App\Events\MixStatusChangedEvent;
 use App\Events\QueueStateUpdatedEvent;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Mix;
 use App\Services\Queue\QueueManagementService;
@@ -16,6 +17,8 @@ use App\Events\PlaybackDataUpdatedEvent;
 use App\Jobs\PollSpotifyMixJob;
 use App\Models\PlaybackSession;
 use App\Services\Playback\PlaybackStateManager;
+use App\Models\GlobalUserStat;
+use Illuminate\Support\Facades\DB;
 
 class SetMixActiveController extends Controller
 {
@@ -218,6 +221,15 @@ class SetMixActiveController extends Controller
 
                 // Broadcast deactivation event
                 event(new MixStatusChangedEvent($mix, false));
+
+                GlobalUserStat::updateOrCreate(
+                    [
+                        'user_id' => Auth::id(),
+                    ],
+                    [
+                        'mixes_played' => DB::raw('mixes_played + 1'),
+                    ],
+                );
 
                 return response()->json([
                     'success' => true,
