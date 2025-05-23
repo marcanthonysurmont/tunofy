@@ -55,10 +55,11 @@ import {
     onBeforeMount,
     onBeforeUnmount,
     watch,
+    onMounted,
 } from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
 import TabNav from "@/components/navigation/TabNav.vue";
-import { Head, usePage } from "@inertiajs/vue3";
+import { Head, usePage, router } from "@inertiajs/vue3";
 import SkeletonOverviewSubPage from "@/components/skeletons/SkeletonOverviewSubPage.vue";
 import SkeletonPresetsSubPage from "@/components/skeletons/SkeletonPresetsSubPage.vue";
 import SkeletonDefault from "@/components/skeletons/SkeletonDefault.vue";
@@ -107,12 +108,15 @@ const tabs = ref([
 ]);
 
 const page = usePage();
+const props = computed(() => page.props);
 const nameOfMix = computed(() => page.props.mix?.name || "Mix");
 const mix = computed(() => page.props.mix || null);
 const votableSongs = computed(
     () => Object.values(page.props.votableSongs) || {}
 );
 
+//if there are votable songs, set the votingActive property to true
+//this makes sure an exclamation mark icon is shown in the voting tab
 watch(
     () => votableSongs.value,
     (newVal) => {
@@ -242,5 +246,19 @@ window.addEventListener("popstate", (event) => {
         tab.active =
             tab.name.toLowerCase() === localActiveTab.value.toLowerCase();
     });
+});
+
+onMounted(() => {
+    Echo.channel(`mix.${props.value.mix.id}`)
+        .listen(".vote-updated", () => {
+            router.reload({ only: ["allPendingSongs", "success", "danger"] });
+            console.log("Vote updated");
+        })
+        .listen(".queue-state-updated", () => {
+            router.reload({
+                only: ["allPendingSongs", "votableSongs", "success", "danger"],
+            });
+            console.log("Queue state updated");
+        });
 });
 </script>

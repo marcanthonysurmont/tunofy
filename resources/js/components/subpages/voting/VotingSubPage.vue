@@ -207,18 +207,4 @@ const rankedSongs = computed(() => {
             return a.is_killed === 1 ? 1 : -1;
         });
 });
-
-onMounted(() => {
-    Echo.channel(`mix.${props.value.mix.id}`)
-        .listen(".vote-updated", () => {
-            router.reload({ only: ["allPendingSongs", "success", "danger"] });
-            console.log("Vote updated");
-        })
-        .listen(".queue-state-updated", () => {
-            router.reload({
-                only: ["allPendingSongs", "votableSongs", "success", "danger"],
-            });
-            console.log("Queue state updated");
-        });
-});
 </script>
