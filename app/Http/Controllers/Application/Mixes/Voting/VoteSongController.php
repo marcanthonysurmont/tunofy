@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\QueueSong;
 use App\Events\VoteUpdatedEvent;
 use Illuminate\Support\Facades\DB;
+use App\Models\MixStat;
 
 class VoteSongController extends Controller
 {
@@ -41,6 +42,27 @@ class VoteSongController extends Controller
                         'total_votes' => DB::raw('total_votes + 1'),
                     ],
                 );
+
+                MixUserStat::updateOrCreate(
+                    [
+                        'mix_id' => $queueSong->mix_id,
+                        'user_id' => $user->id,
+                    ],
+                    [
+                        'songs_liked' => DB::raw('songs_liked + 1'),
+                        'total_votes' => DB::raw('total_votes + 1'),
+                    ]
+                );
+
+                MixStat::updateOrCreate(
+                    [
+                        'mix_id' => $queueSong->mix_id,
+                    ],
+                    [
+                        'songs_liked' => DB::raw('songs_liked + 1'),
+                        'total_votes' => DB::raw('total_votes + 1'),
+                    ]
+                );
             }
 
             if ($validated['vote_type'] === 'dislike') {
@@ -60,7 +82,17 @@ class VoteSongController extends Controller
                         'user_id' => $user->id,
                     ],
                     [
-                        'dislike_count' => DB::raw('dislike_count + 1'),
+                        'songs_disliked' => DB::raw('songs_disliked + 1'),
+                        'total_votes' => DB::raw('total_votes + 1'),
+                    ]
+                );
+
+                MixStat::updateOrCreate(
+                    [
+                        'mix_id' => $queueSong->mix_id,
+                    ],
+                    [
+                        'songs_disliked' => DB::raw('songs_disliked + 1'),
                         'total_votes' => DB::raw('total_votes + 1'),
                     ]
                 );
@@ -73,6 +105,27 @@ class VoteSongController extends Controller
                     ['user_id' => $user->id],
                     [
                         'kill_count' => DB::raw('kill_count + 1'),
+                        'total_votes' => DB::raw('total_votes + 1'),
+                    ]
+                );
+
+                MixUserStat::updateOrCreate(
+                    [
+                        'mix_id' => $queueSong->mix_id,
+                        'user_id' => $user->id,
+                    ],
+                    [
+                        'songs_killed' => DB::raw('songs_killed + 1'),
+                        'total_votes' => DB::raw('total_votes + 1'),
+                    ]
+                );
+
+                MixStat::updateOrCreate(
+                    [
+                        'mix_id' => $queueSong->mix_id,
+                    ],
+                    [
+                        'songs_killed' => DB::raw('songs_killed + 1'),
                         'total_votes' => DB::raw('total_votes + 1'),
                     ]
                 );

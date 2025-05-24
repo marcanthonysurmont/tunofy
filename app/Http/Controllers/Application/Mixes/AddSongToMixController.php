@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\AddSongToMixRequest;
 use App\Models\GlobalUserStat;
 use App\Models\Mix;
+use App\Models\MixUserStat;
 use App\Models\Song;
 use App\Models\UserSongHistory;
 use Illuminate\Support\Facades\Auth;
@@ -55,6 +56,16 @@ class AddSongToMixController extends Controller
                     'song_name' => $validated['name'],
                     'artist' => $validated['artist'],
                     'times_added' => DB::raw('times_added + 1'),
+                ],
+            );
+
+            MixUserStat::updateOrCreate(
+                [
+                    'mix_id' => $mix->id,
+                    'user_id' => $user->id,
+                ],
+                [
+                    'songs_added' => DB::raw('songs_added + 1'),
                 ],
             );
 
