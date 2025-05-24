@@ -73,6 +73,8 @@ class ShowMixController extends Controller
             'owner' => fn () => $mix->user,
             'devices' => fn () => $devices,
             'activeTab' => fn () => $tab,
+            'mixStats' => fn () => $mix->mixStats,
+            'userStats' => fn () => $mix->mixUserStats
         ]);
     }
 }

@@ -24,6 +24,16 @@ class MixUserStat extends Model
     /*           Relationships            */
     /**************************************/
 
+    public function mix()
+    {
+        return $this->belongsTo(Mix::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     /**************************************/
     /*       Accessors / Mutators         */
     /**************************************/

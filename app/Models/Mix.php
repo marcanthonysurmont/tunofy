@@ -101,6 +101,16 @@ class Mix extends Model
         return $this->hasOne(Theme::class);
     }
 
+    public function mixStats()
+    {
+        return $this->hasOne(MixStat::class);
+    }
+
+    public function mixUserStats()
+    {
+        return $this->hasMany(MixUserStat::class)->with('user');
+    }
+
     /**************************************/
     /*       Accessors / Mutators         */
     /**************************************/
