@@ -16,6 +16,7 @@ use App\Events\DeviceUpdatedEvent;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Queue\QueueManagementService;
 use App\Services\Playback\PlaybackStateManager;
+use App\Models\MixStat;
 
 class SongPlaybackService
 {
@@ -94,6 +95,16 @@ class SongPlaybackService
         $currentlyPlaying = QueueSong::where('mix_id', $mixId)
             ->where('status', 'playing')
             ->first();
+
+        $playbackData = $this->spotifyService->getCurrentPlayback($user);
+
+        MixStat::updateOrCreate(
+            ['mix_id' => $mix->id],
+            [
+                'songs_played' => DB::raw('songs_played + 1'),
+                'minutes_played' => DB::raw('minutes_played + ' . $playbackData['progress_ms'] / 60000),
+            ]
+        );
 
         if ($currentlyPlaying) {
             // If this song doesn't have a session, associate it now

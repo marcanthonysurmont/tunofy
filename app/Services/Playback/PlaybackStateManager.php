@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Log;
 use App\Events\MixStatusChangedEvent;
 use App\Models\QueueSong;
 use App\Services\Spotify\SpotifyService;
+use App\Models\GlobalUserStat;
+use Illuminate\Support\Facades\DB;
 
 class PlaybackStateManager
 {
@@ -181,6 +183,27 @@ class PlaybackStateManager
             } catch (\Exception $e) {
                 Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
             }
+
+                $coDj = $mix->coDj;
+                if ($coDj) {
+                    GlobalUserStat::updateOrCreate(
+                        [
+                            'user_id' => $coDj->id,
+                        ],
+                        [
+                            'mixes_played' => DB::raw('mixes_played + 1'),
+                        ],
+                    );
+                }
+
+                GlobalUserStat::updateOrCreate(
+                    [
+                        'user_id' => $mix->user_id,
+                    ],
+                    [
+                        'mixes_played' => DB::raw('mixes_played + 1'),
+                    ],
+                );
 
             Log::info("Set queue completed for mix {$mix->id}");
         } else {

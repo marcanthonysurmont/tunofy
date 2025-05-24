@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\Application\Mixes;
 
 use App\Http\Controllers\Controller;
+use App\Models\GlobalUserStat;
+use App\Models\MixUserStat;
+use App\Models\UserSongHistory;
 use Exception;
 use App\Http\Requests\ImportSpotifyPlaylistRequest;
 use App\Models\Mix;
 use App\Services\Spotify\SpotifyService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ImportSpotifyPlaylistController extends Controller
 {
@@ -31,24 +35,105 @@ class ImportSpotifyPlaylistController extends Controller
                     ->with('error', 'No new songs to import. All tracks from this playlist are already in your mix.');
             }
 
+            // Prepare data for batch operations
+            $songsToInsert = [];
+            $spotifyIds = [];
+            $now = now();
+
             foreach ($playlistSongs as $song) {
                 $artistNames = collect($song['track']['artists'])
                     ->pluck('name')
                     ->filter()
                     ->join(', ');
 
-                $mix->songs()->create([
+                $songsToInsert[] = [
+                    'mix_id' => $mix->id,
                     'spotify_id' => $song['track']['id'],
                     'user_id' => $user->id,
                     'duration_ms' => $song['track']['duration_ms'],
-                    'last_fetched_at' => now(),
+                    'last_fetched_at' => $now,
                     'name' => $song['track']['name'],
                     'artist' => $artistNames,
                     'image_url' => $song['track']['album']['images']['0']['url'],
-                ]);
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+
+                $spotifyIds[] = $song['track']['id'];
+            }
+
+            // Batch insert songs
+            $mix->songs()->insert($songsToInsert);
+
+            // Efficiently handle UserSongHistory updates
+            if (!empty($spotifyIds)) {
+                // Get existing records to determine which ones to update vs insert
+                $existingRecords = UserSongHistory::where('user_id', $user->id)
+                    ->whereIn('spotify_id', $spotifyIds)
+                    ->get(['id', 'spotify_id']);
+
+                // Update existing records in a single query if any exist
+                if ($existingRecords->isNotEmpty()) {
+                    $existingIds = $existingRecords->pluck('id')->toArray();
+                    UserSongHistory::whereIn('id', $existingIds)
+                        ->update([
+                            'times_added' => DB::raw('times_added + 1'),
+                            'updated_at' => $now
+                        ]);
+                }
+
+                // Prepare new records for insertion
+                $existingSpotifyIds = $existingRecords->pluck('spotify_id')->toArray();
+                $newHistoryRecords = [];
+
+                // Create a mapping of spotify_id to song details for easy lookup
+                $songDetails = [];
+                foreach ($playlistSongs as $song) {
+                    $artistNames = collect($song['track']['artists'])
+                        ->pluck('name')
+                        ->filter()
+                        ->join(', ');
+
+                    $songDetails[$song['track']['id']] = [
+                        'name' => $song['track']['name'],
+                        'artist' => $artistNames
+                    ];
+                }
+
+                foreach ($spotifyIds as $spotifyId) {
+                    if (!in_array($spotifyId, $existingSpotifyIds)) {
+                        $newHistoryRecords[] = [
+                            'user_id' => $user->id,
+                            'song_name' => $songDetails[$spotifyId]['name'],
+                            'artist' => $songDetails[$spotifyId]['artist'],
+                            'spotify_id' => $spotifyId,
+                            'times_added' => 1,
+                            'created_at' => $now,
+                            'updated_at' => $now
+                        ];
+                    }
+                }
+
+                // Batch insert new history records if any
+                if (!empty($newHistoryRecords)) {
+                    UserSongHistory::insert($newHistoryRecords);
+                }
             }
 
             $mix->update(['mix_count' => $mix->mix_count + $songsCount]);
+
+            GlobalUserStat::updateOrCreate(
+                ['user_id' => $user->id],
+                ['songs_added' => DB::raw('songs_added + ' . $songsCount)]
+            );
+
+            MixUserStat::updateOrCreate(
+                [
+                    'mix_id' => $mix->id,
+                    'user_id' => $user->id,
+                ],
+                ['songs_added' => DB::raw('songs_added + ' . $songsCount)]
+            );
 
             $successMessage = $songsCount === 1
                 ? '1 song imported successfully!'

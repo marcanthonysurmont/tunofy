@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\StoreMixRequest;
+use App\Models\GlobalUserStat;
+use Illuminate\Support\Facades\DB;
 
 class StoreMixController extends Controller
 {
@@ -21,8 +23,10 @@ class StoreMixController extends Controller
                 $avatarPath = $request->file('image')->store('mix_avatars', 'public');
             }
 
+            $user = Auth::user();
+
             $mix = Mix::create([
-                'user_id' => Auth::id(),
+                'user_id' => $user->id,
                 'name' => $validated['name'],
                 'is_public' => $validated['is_public'],
                 'avatar' => $avatarPath,
@@ -43,6 +47,16 @@ class StoreMixController extends Controller
                 'auto_remove_negative' => 0,
                 'emoji_chat_enabled' => 0,
             ]);
+
+            GlobalUserStat::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                ],
+                [
+                    'mixes_created' => DB::raw('mixes_created + 1'),
+                ],
+            );
+            
             return redirect()->route('mix.show', $mix->slug)
                 ->with('success', 'Mix created successfully!');
         } catch (\Exception $e) {

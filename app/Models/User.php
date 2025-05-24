@@ -69,6 +69,11 @@ class User extends Authenticatable
         return $this->hasMany(MixAccess::class);
     }
 
+    public function globalUserStat()
+    {
+        return $this->hasOne(GlobalUserStat::class);
+    }
+
     /**************************************/
     /*       Accessors / Mutators         */
     /**************************************/
