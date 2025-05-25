@@ -1,6 +1,6 @@
 <template>
     <section class="mb-16">
-        <h1 class="text-3xl sm:text-4xl font-medium mb-2">Fun stats</h1>
+        <h1 class="text-3xl sm:text-4xl font-medium mb-6">Fun stats</h1>
         <!-- <p class="mb-8">Blablabla</p> -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
             <!-- Amount of songs -->
@@ -8,14 +8,14 @@
                 class="relative bg-card-background px-4 py-6 sm:px-6 lg:px-8 border-card-stroke border-2 rounded-sm overflow-hidden"
             >
                 <p class="text-sm/6 font-medium text-zinc-400">
-                    Amount of songs
+                    Amount of songs played
                 </p>
                 <p class="mt-2 flex items-baseline gap-x-2">
                     <span
                         class="text-4xl font-semibold tracking-tight text-white"
                     >
                         <NumberFlow
-                            :value="amountOfSongs"
+                            :value="mixStats.songs_played"
                             :will-change="true"
                         />
                     </span>
@@ -54,18 +54,20 @@
                 class="relative bg-card-background px-4 py-6 sm:px-6 lg:px-8 border-card-stroke border-2 rounded-sm overflow-hidden"
             >
                 <p class="text-sm/6 font-medium text-zinc-400">
-                    Average song kills
+                    Amount of songs killed
                 </p>
                 <p class="mt-2 flex items-baseline gap-x-2">
                     <span
                         class="text-4xl font-semibold tracking-tight text-white"
                     >
                         <NumberFlow
-                            :value="amountOfKills"
+                            :value="mixStats.songs_killed"
                             :will-change="true"
                         />
                     </span>
-                    <span class="text-sm text-zinc-400">kills</span>
+                    <span class="text-sm text-zinc-400">
+                        {{ mixStats.songs_killed === 1 ? "kill" : "kills" }}
+                    </span>
                 </p>
                 <div
                     class="absolute bottom-4 right-4 scale-225 rotate-12 opacity-10"
@@ -88,15 +90,13 @@
             <div
                 class="relative bg-card-background px-4 py-6 sm:px-6 lg:px-8 border-card-stroke border-2 rounded-sm overflow-hidden"
             >
-                <p class="text-sm/6 font-medium text-zinc-400">
-                    Most votes for a song
-                </p>
+                <p class="text-sm/6 font-medium text-zinc-400">Total votes</p>
                 <p class="mt-2 flex items-baseline gap-x-2">
                     <span
                         class="text-4xl font-semibold tracking-tight text-white"
                     >
                         <NumberFlow
-                            :value="amountOfVotesForSong"
+                            :value="mixStats.total_votes"
                             :will-change="true"
                         />
                     </span>
@@ -130,7 +130,7 @@
                         class="text-4xl font-semibold tracking-tight text-white"
                     >
                         <NumberFlow
-                            :value="amountOfMinutesListened"
+                            :value="Math.round(mixStats.minutes_played)"
                             :will-change="true"
                         />
                     </span>
@@ -147,31 +147,11 @@
 
 <script setup>
 import { ClockIcon } from "@heroicons/vue/24/outline";
+import { usePage } from "@inertiajs/vue3";
 import NumberFlow from "@number-flow/vue";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 
-const amountOfKills = ref(0);
-const amountOfSongs = ref(0);
-const amountOfVotesForSong = ref(0);
-const amountOfMinutesListened = ref(0);
-
-onMounted(() => {
-    //changing the values to trigger numberflow animation
-    setTimeout(() => {
-        amountOfKills.value = 5;
-        amountOfSongs.value = 405;
-        amountOfVotesForSong.value = 10;
-        amountOfMinutesListened.value = 8593;
-    }, 75);
-
-    setTimeout(() => {
-        amountOfSongs.value = 406;
-    }, 1200);
-    setTimeout(() => {
-        amountOfSongs.value = 407;
-    }, 2000);
-    setTimeout(() => {
-        amountOfSongs.value = 415;
-    }, 5000);
-});
+const page = usePage();
+const props = computed(() => page.props);
+const mixStats = computed(() => props.value.mixStats);
 </script>
