@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class Mix extends Model
 {
@@ -297,14 +298,18 @@ class Mix extends Model
             return collect();
         }
 
-        // Check if we're playing the last song of the current round
+        // Check if we should show the next round's songs for voting
+        // This happens when:
+        // 1. There's a song currently playing AND
+        // 2. That song is from the current round AND
+        // 3. There are very few (0 or 1) pending songs left in current round
         $pendingCountInLowestRound = $this->queueSongs()
             ->where('status', 'pending')
             ->where('round_number', $lowestRound)
             ->count();
 
-        // If we're playing the last song of the current round, look ahead to the next round
-        if ($pendingCountInLowestRound == 0 && $currentlyPlayingSong && $currentlyPlayingSong->round_number == $lowestRound) {
+        // Modified condition: look ahead when 1 or 0 songs are left in current round
+        if ($pendingCountInLowestRound <= 1 && $currentlyPlayingSong && $currentlyPlayingSong->round_number == $lowestRound) {
             // Find the next round's songs
             $nextRound = $lowestRound + 1;
             $nextRoundSongs = $this->queueSongs()
@@ -314,6 +319,7 @@ class Mix extends Model
                 ->get();
 
             if ($nextRoundSongs->isNotEmpty()) {
+                Log::info("Showing next round {$nextRound} for voting as round {$lowestRound} is ending");
                 return $nextRoundSongs;
             }
         }

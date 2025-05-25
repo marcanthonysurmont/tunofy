@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use App\Models\PlaybackSession;
 
 class AddSongToMixController extends Controller
 {
@@ -25,7 +28,7 @@ class AddSongToMixController extends Controller
         try {
             $user = Auth::user();
 
-            Song::create([
+            $song = Song::create([
                 'mix_id' => $mix->id,
                 'spotify_id' => $validated['spotify_id'],
                 'user_id' => $user->id,
@@ -69,12 +72,32 @@ class AddSongToMixController extends Controller
                 ],
             );
 
+            $session = PlaybackSession::where('mix_id', $mix->id)
+                ->where('is_active', true)
+                ->latest('started_at')
+                ->first();
 
+
+            if($session && $mix->is_active) {
+                 // Update the cached shuffled IDs to include the new song
+                $shuffledIds = Cache::get("mix_{$mix->id}_shuffled_ids", []);
+                if (!empty($shuffledIds)) {
+                    // Add the new song ID at the end to ensure it appears in future rounds
+                    // but doesn't disrupt the current queue flow
+                    $shuffledIds[] = $song->id;
+                    Cache::put("mix_{$mix->id}_shuffled_ids", $shuffledIds);
+
+                    // Log the update for debugging
+                    Log::info("Added song ID {$song->id} to shuffled IDs cache for mix {$mix->id}");
+                }
+            }
+  
+       
             return redirect()->back()
                 ->with('success', 'Song added to mix successfully.');
         } catch (Exception $e) {
 
-            if($e->getCode() == 23000) {
+            if ($e->getCode() == 23000) {
                 return redirect()->back()
                     ->with('error', 'Song already exists in the mix.');
             }
