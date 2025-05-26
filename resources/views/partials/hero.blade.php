@@ -13,7 +13,7 @@
             and control the
             music together.</p>
         <div class="flex flex-row gap-4 items-center justify-center mt-8">
-            <a href=""
+            <a href="{{ route('login') }}"
                 class="custom-item-hover font-headings font-normal bg-primary rounded-md px-4 pb-2 pt-2.5 flex items-center justify-center text-lg md:text-2xl">Join
                 now</a>
             <a href="#key-features"
