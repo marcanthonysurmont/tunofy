@@ -72,6 +72,19 @@
                         />
                     </div>
                 </section>
+                <section class="mb-8">
+                    <div class="mb-4">
+                        <h2 class="text-xl sm:text-2xl">Troubleshooting</h2>
+                    </div>
+                    <div class="flex flex-col gap-4">
+                        <Accordion
+                            v-for="(troubleshoot, index) in troubleshooting"
+                            :key="index"
+                            :question="troubleshoot.issue"
+                            :answer="troubleshoot.solution"
+                        />
+                    </div>
+                </section>
             </div>
         </Transition>
         <DeleteAccountModal
@@ -88,6 +101,35 @@ import { Head } from "@inertiajs/vue3";
 import RegularButton from "@/components/buttons/RegularButton.vue";
 import DeleteAccountModal from "@/components/modals/settings/DeleteAccountModal.vue";
 import ToggleSwitchDescription from "@/components/forms/ToggleSwitchDescription.vue";
+import Accordion from "@/components/forms/Accordion.vue";
+
+const troubleshooting = ref([
+    {
+        issue: "Playback controls are not responding",
+        solution:
+            "Make sure your internet connection is stable. Try refreshing the page and reconnecting your Tunofy account. Also, check that your device supports Tunofy playback.",
+    },
+    {
+        issue: "Unable to connect to Tunofy Premium features",
+        solution:
+            "Verify that your subscription is active. Log out and log back in to refresh your session. If the problem persists, contact Tunofy support for assistance.",
+    },
+    {
+        issue: "Guests cannot join the session",
+        solution:
+            "Ensure your guests have valid Tunofy accounts. They need to log in before joining. If they're having trouble, ask them to clear their browser cache or try a different browser.",
+    },
+    {
+        issue: "Playback is lagging or buffering",
+        solution:
+            "Close any unnecessary apps or tabs that might be using bandwidth. Try lowering the stream quality in settings. If the issue continues, restart your device or router.",
+    },
+    {
+        issue: "Track info not updating in real-time",
+        solution:
+            "Refresh the web app to re-sync the playback data. Check for any browser extensions that might block real-time updates and disable them temporarily.",
+    },
+]);
 
 const isDeleteAccountModalVisible = ref(false);
 
@@ -98,7 +140,6 @@ const analyticsTrackingEnabled = ref(true);
 const dyslexiaFontEnabled = ref(
     localStorage.getItem("dyslexiaFontEnabled") === "true"
 );
-console.log("dyslexiaFontEnabled", localStorage.getItem("dyslexiaFontEnabled"));
 watch(
     dyslexiaFontEnabled,
     (newValue) => {
