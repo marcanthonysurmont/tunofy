@@ -3,7 +3,8 @@
         <div
             v-for="(bar, index) in bars"
             :key="index"
-            class="w-1 bg-white rounded-full wave-bar"
+            class="w-1 rounded-full wave-bar"
+            :class="selectedColor"
             :style="{ animationDelay: `${index * 0.1}s` }"
         ></div>
     </div>
@@ -30,6 +31,17 @@ const props = defineProps({
 
 //makes it [0, 1, 2, 3, 4] if barCount is 5
 const bars = computed(() => [...Array(props.barCount).keys()]);
+
+const selectedColor = computed(() => {
+    switch (props.color) {
+        case "primary":
+            return "bg-primary";
+        case "white":
+            return "bg-white";
+        default:
+            return "bg-white";
+    }
+});
 </script>
 
 <style scoped>

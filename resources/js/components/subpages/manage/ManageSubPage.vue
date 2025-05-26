@@ -1,6 +1,5 @@
 <template>
     <h1 class="text-3xl sm:text-4xl font-medium mb-6">Users</h1>
-    <!-- <p class="mb-6">Manage the users in your playlist.</p> -->
     <SearchBarUsers
         @clear-search="searchResult = {}"
         @search-updated="searchResult = $event"

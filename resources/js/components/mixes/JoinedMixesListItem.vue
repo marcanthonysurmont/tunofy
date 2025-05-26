@@ -16,14 +16,18 @@
                     class="size-14 object-cover flex-shrink-0 rounded-sm"
                 />
                 <div
-                    class="absolute inset-0 bg-black/75 rounded-xs"
+                    class="absolute inset-0 bg-black/85 rounded-xs"
                     v-if="mix.is_active === 1"
                 ></div>
                 <div
                     v-if="mix.is_active === 1"
                     class="absolute inset-0 flex items-center justify-center pointer-events-none"
                 >
-                    <SoundWave :bar-count="4" color="white" size="md" />
+                    <SoundWave
+                        :bar-count="4"
+                        :color="isActive ? 'primary' : 'white'"
+                        size="md"
+                    />
                 </div>
             </div>
             <div
