@@ -49,7 +49,7 @@
                                 background: `linear-gradient(135deg, ${
                                     card.dominantColor?.replace(
                                         '1)',
-                                        '0.12)'
+                                        '0.30)'
                                     ) || '#44444422'
                                 } 0%, #27272a 100%)`,
                                 borderColor: card.dominantColor || '#444',
@@ -72,7 +72,7 @@
                                         ? {}
                                         : { crossorigin: 'anonymous' }
                                 "
-                                class="size-32 rounded-full mb-2"
+                                class="size-32 rounded-full mb-2 object-cover"
                             />
                             <h3 class="text-zinc-100 text-2xl font-medium">
                                 {{ card.user.name }}
