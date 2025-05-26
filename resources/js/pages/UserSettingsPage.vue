@@ -105,24 +105,18 @@ import Accordion from "@/components/forms/Accordion.vue";
 
 const troubleshooting = ref([
     {
-        issue: "Playback controls are not responding",
+        issue: "Spotify web player is buggy when using Tunofy.",
         solution:
-            "Make sure your internet connection is stable. Try refreshing the page and reconnecting your Tunofy account. Also, check that your device supports Tunofy playback.",
-    },
-    {
-        issue: "Unable to connect to Tunofy Premium features",
-        solution:
-            "Verify that your subscription is active. Log out and log back in to refresh your session. If the problem persists, contact Tunofy support for assistance.",
+            "To make everything work smoothly, make sure to play one random song before activating the queue. This helps the web player to work as expected.",
     },
     {
         issue: "Guests cannot join the session",
-        solution:
-            "Ensure your guests have valid Tunofy accounts. They need to log in before joining. If they're having trouble, ask them to clear their browser cache or try a different browser.",
+        solution: "Guests need a Tunofy account to join a session.",
     },
     {
         issue: "Playback is lagging or buffering",
         solution:
-            "Close any unnecessary apps or tabs that might be using bandwidth. Try lowering the stream quality in settings. If the issue continues, restart your device or router.",
+            "Close any unnecessary apps or tabs that might be using bandwidth. If the issue continues, restart your device or router.",
     },
     {
         issue: "Track info not updating in real-time",
