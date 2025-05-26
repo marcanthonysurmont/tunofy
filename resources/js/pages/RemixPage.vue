@@ -36,7 +36,12 @@
                         @click="goPrev"
                     >
                         <ChevronLeftIcon
-                            class="w-6 h-6 md:w-8 md:h-8 text-white"
+                            :class="
+                                !started || currentStep === 0
+                                    ? 'text-zinc-500'
+                                    : 'text-white'
+                            "
+                            class="w-6 h-6 md:w-8 md:h-8 cursor-pointer"
                         />
                     </button>
 
@@ -64,7 +69,12 @@
                         @click="goNext"
                     >
                         <ChevronRightIcon
-                            class="w-6 h-6 md:w-8 md:h-8 text-white"
+                            class="w-6 h-6 md:w-8 md:h-8 cursor-pointer"
+                            :class="
+                                !started || currentStep === totalSteps - 1
+                                    ? 'text-zinc-500'
+                                    : 'text-white'
+                            "
                         />
                     </button>
                 </div>
@@ -137,6 +147,9 @@ function startProgress() {
 }
 
 function goNext() {
+    if (!started.value || currentStep.value >= totalSteps - 1) {
+        return;
+    }
     clearTimeout(fillCompleteTimeout);
     if (currentStep.value < totalSteps - 1) {
         currentStep.value++;
@@ -147,6 +160,9 @@ function goNext() {
 }
 
 function goPrev() {
+    if (!started.value || currentStep.value === 0) {
+        return;
+    }
     clearTimeout(fillCompleteTimeout);
     if (currentStep.value > 0) {
         currentStep.value--;
