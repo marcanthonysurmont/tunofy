@@ -1,141 +1,145 @@
 <template>
     <Head title="Tunofy | Remix" />
-    <div class="flex flex-col h-screen px-4 max-w-6xl mx-auto">
-        <div class="w-full flex gap-2 py-4 mb-4 md:mb-8">
-            <div
-                v-for="(step, index) in totalSteps"
-                :key="index"
-                class="h-1 flex-1 bg-zinc-500 overflow-hidden rounded-full"
-            >
+    <Transition name="fade-with-slide" appear mode="out-in" :duration="300">
+        <div class="flex flex-col h-screen px-4 max-w-6xl mx-auto">
+            <div class="w-full flex gap-2 py-4 mb-4 md:mb-8">
                 <div
-                    class="h-full bg-white"
-                    :class="{
-                        'transition-all duration-700': transitionEnabled,
-                    }"
-                    :style="{
-                        width:
-                            index < currentStep
-                                ? '100%'
-                                : index === currentStep
-                                ? progress + '%'
-                                : '0%',
-                    }"
-                />
-            </div>
-        </div>
-        <div class="flex justify-between flex-row mb-4 md:mb-0">
-            <Link :href="route('app')" class="flex items-center gap-2">
-                <ChevronLeftIcon
-                    class="w-6 h-6 md:w-8 md:h-8 text-white cursor-pointer"
-                />
-                <p class="m-0 font-medium text-lg md:text-xl">Go back</p>
-            </Link>
-            <div class="flex items-center gap-2 flex-row">
-                <PauseIcon
-                    class="size-7 cursor-pointer"
-                    :class="started ? '' : 'opacity-50'"
-                    @click="handlePause"
-                    v-if="!paused"
-                />
-                <PlayIcon
-                    class="size-7 cursor-pointer"
-                    :class="started ? '' : 'opacity-50'"
-                    @click="handlePause"
-                    v-else
-                />
-                <SpeakerWaveIcon
-                    @click="handleAudio"
-                    class="size-6 cursor-pointer"
-                    v-if="!storeRemixAudio.isMuted"
-                />
-                <SpeakerXMarkIcon
-                    @click="handleAudio"
-                    class="size-6 cursor-pointer"
-                    v-else
-                />
-            </div>
-        </div>
-        <div class="flex-grow flex justify-center items-center overflow-hidden">
-            <div
-                class="w-full max-w-full md:max-w-none flex items-center justify-center"
-            >
-                <div
-                    class="flex items-center justify-center gap-2 md:gap-6 w-full"
+                    v-for="(step, index) in totalSteps"
+                    :key="index"
+                    class="h-1 flex-1 bg-zinc-500 overflow-hidden rounded-full"
                 >
-                    <button
-                        class="hidden sm:block flex-shrink-0"
-                        @click="goPrev"
-                    >
-                        <ChevronLeftIcon
-                            :class="
-                                !started || currentStep === 0
-                                    ? 'text-zinc-500'
-                                    : 'text-white'
-                            "
-                            class="w-6 h-6 md:w-8 md:h-8 cursor-pointer"
-                        />
-                    </button>
-
                     <div
-                        class="flex-grow flex justify-center items-center overflow-hidden"
-                    >
-                        <template v-if="started">
-                            <component
-                                ref="stepComponentRef"
-                                :is="steps[currentStep]"
-                                :key="steps[currentStep]"
-                            />
-                        </template>
-                        <template v-else>
-                            <StartStep
-                                @start-remix="
-                                    started = true;
-                                    startProgress();
-                                "
-                            />
-                        </template>
-                    </div>
-
-                    <button
-                        class="hidden sm:block flex-shrink-0"
-                        @click="goNext"
-                    >
-                        <ChevronRightIcon
-                            class="w-6 h-6 md:w-8 md:h-8 cursor-pointer"
-                            :class="
-                                !started || currentStep === totalSteps - 1
-                                    ? 'text-zinc-500'
-                                    : 'text-white'
-                            "
-                        />
-                    </button>
+                        class="h-full bg-white"
+                        :class="{
+                            'transition-all duration-700': transitionEnabled,
+                        }"
+                        :style="{
+                            width:
+                                index < currentStep
+                                    ? '100%'
+                                    : index === currentStep
+                                    ? progress + '%'
+                                    : '0%',
+                        }"
+                    />
                 </div>
             </div>
-        </div>
+            <div class="flex justify-between flex-row mb-4 md:mb-0">
+                <Link :href="route('app')" class="flex items-center gap-2">
+                    <ChevronLeftIcon
+                        class="w-6 h-6 md:w-8 md:h-8 text-white cursor-pointer"
+                    />
+                    <p class="m-0 font-medium text-lg md:text-xl">Go back</p>
+                </Link>
+                <div class="flex items-center gap-2 flex-row">
+                    <PauseIcon
+                        class="size-7 cursor-pointer"
+                        :class="started ? '' : 'opacity-50'"
+                        @click="handlePause"
+                        v-if="!paused"
+                    />
+                    <PlayIcon
+                        class="size-7 cursor-pointer"
+                        :class="started ? '' : 'opacity-50'"
+                        @click="handlePause"
+                        v-else
+                    />
+                    <SpeakerWaveIcon
+                        @click="handleAudio"
+                        class="size-6 cursor-pointer"
+                        v-if="!storeRemixAudio.isMuted"
+                    />
+                    <SpeakerXMarkIcon
+                        @click="handleAudio"
+                        class="size-6 cursor-pointer"
+                        v-else
+                    />
+                </div>
+            </div>
+            <div
+                class="flex-grow flex justify-center items-center overflow-hidden"
+            >
+                <div
+                    class="w-full max-w-full md:max-w-none flex items-center justify-center"
+                >
+                    <div
+                        class="flex items-center justify-center gap-2 md:gap-6 w-full"
+                    >
+                        <button
+                            class="hidden sm:block flex-shrink-0"
+                            @click="goPrev"
+                        >
+                            <ChevronLeftIcon
+                                :class="
+                                    !started || currentStep === 0
+                                        ? 'text-zinc-500'
+                                        : 'text-white'
+                                "
+                                class="w-6 h-6 md:w-8 md:h-8 cursor-pointer"
+                            />
+                        </button>
 
-        <div class="sm:hidden flex justify-center gap-8 py-4">
-            <button class="flex-shrink-0" @click="goPrev">
-                <ChevronLeftIcon
-                    class="w-8 h-8"
-                    :class="
-                        !started || currentStep === 0
-                            ? 'text-zinc-500'
-                            : 'text-white'
-                    "
-                />
-            </button>
-            <button class="flex-shrink-0" @click="goNext">
-                <ChevronRightIcon
-                    class="w-8 h-8"
-                    :class="
-                        !started || currentStep === totalSteps - 1
-                            ? 'text-zinc-500'
-                            : 'text-white'
-                    "
-                />
-            </button>
+                        <div
+                            class="flex-grow flex justify-center items-center overflow-hidden"
+                        >
+                            <template v-if="started">
+                                <component
+                                    ref="stepComponentRef"
+                                    :is="steps[currentStep]"
+                                    :key="steps[currentStep]"
+                                />
+                            </template>
+                            <template v-else>
+                                <StartStep
+                                    @start-remix="
+                                        started = true;
+                                        startProgress();
+                                    "
+                                />
+                            </template>
+                        </div>
+
+                        <button
+                            class="hidden sm:block flex-shrink-0"
+                            @click="goNext"
+                        >
+                            <ChevronRightIcon
+                                class="w-6 h-6 md:w-8 md:h-8 cursor-pointer"
+                                :class="
+                                    !started || currentStep === totalSteps - 1
+                                        ? 'text-zinc-500'
+                                        : 'text-white'
+                                "
+                            />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sm:hidden flex justify-center gap-8 py-4">
+                <button class="flex-shrink-0" @click="goPrev">
+                    <ChevronLeftIcon
+                        class="w-8 h-8"
+                        :class="
+                            !started || currentStep === 0
+                                ? 'text-zinc-500'
+                                : 'text-white'
+                        "
+                    />
+                </button>
+                <button class="flex-shrink-0" @click="goNext">
+                    <ChevronRightIcon
+                        class="w-8 h-8"
+                        :class="
+                            !started || currentStep === totalSteps - 1
+                                ? 'text-zinc-500'
+                                : 'text-white'
+                        "
+                    />
+                </button>
+            </div>
         </div>
-    </div>
+    </Transition>
 </template>
 
 <script setup>
