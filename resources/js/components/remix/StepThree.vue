@@ -11,7 +11,7 @@
                 </h1>
                 <p
                     ref="smoothSubText"
-                    class="text-center opacity-0 text-md font-medium px-2"
+                    class="text-center opacity-0 text-md font-medium px-4"
                 >
                     R&B is your top genre.. so smooth, even the biggest stars
                     are jealous of you.
@@ -25,13 +25,25 @@
                     <h1 ref="killText" class="text-5xl font-medium">
                         You killed it!
                     </h1>
-                    <p ref="killSubText" class="text-md font-medium px-6">
+                    <p
+                        ref="killSubText"
+                        class="text-md font-medium px-6"
+                        v-if="amountOfSongsKilled > 0"
+                    >
                         Not literally, but you did kill
                         <NumberFlow
                             :value="amountOfSongsKilled"
                             :will-change="true"
                         />
-                        songs!
+                        {{ amountOfSongsKilled === 1 ? "song" : "songs" }}.
+                    </p>
+
+                    <p
+                        ref="killSubText"
+                        class="text-md font-medium px-6"
+                        v-else
+                    >
+                        Not literally, but no songs were harmed this year.
                     </p>
                     <img
                         class="size-24 object-cover rounded-lg mt-8"
@@ -47,6 +59,7 @@
 import { onMounted, ref, nextTick } from "vue";
 import gsap from "gsap";
 import NumberFlow from "@number-flow/vue";
+import { usePage } from "@inertiajs/vue3";
 
 const smoothText = ref(null);
 const smoothSubText = ref(null);
@@ -55,6 +68,9 @@ const killSubText = ref(null);
 const amountOfSongsKilled = ref(0);
 const showStats = ref(false);
 const killBox = ref(null);
+
+const page = usePage();
+const globalStats = ref(page.props.globalUserStat);
 
 onMounted(() => {
     const timeline = gsap.timeline();
@@ -91,7 +107,7 @@ onMounted(() => {
             showStats.value = "mostKilled";
             amountOfSongsKilled.value = 0;
             setTimeout(() => {
-                amountOfSongsKilled.value = 406;
+                amountOfSongsKilled.value = globalStats.value.kill_count;
             }, 50);
             await nextTick();
             gsap.fromTo(

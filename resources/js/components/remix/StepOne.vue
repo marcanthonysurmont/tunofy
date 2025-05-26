@@ -5,27 +5,69 @@
         <div class="flex flex-col items-center justify-center h-full w-full">
             <template v-if="!showStats">
                 <h1 ref="woahText" class="text-5xl text-center font-medium">
-                    Hi, Gilles
+                    Hi, {{ user.name.split(" ")[0] }}
                 </h1>
                 <p
                     ref="masterText"
-                    class="text-center opacity-0 text-md font-medium"
+                    class="text-center opacity-0 text-md font-medium px-4"
                 >
                     It's the end of the year, and your yearly remix is ready.
                     Are you too?
                 </p>
             </template>
             <template v-if="showStats === 'funFact'">
-                <div ref="funFact">
+                <div ref="funFact" v-if="globalStats.mixes_played > 20">
                     <h1 class="text-4xl text-center font-medium">
                         King of parties!
                     </h1>
                     <p class="text-center text-md font-medium">
                         You did so much partying even our servers couldn't keep
-                        up!
+                        up. You played {{ globalStats.mixes_played }} mixes!
+                    </p>
+                </div>
+                <div ref="funFact" v-else-if="globalStats.mixes_played > 10">
+                    <h1 class="text-4xl text-center font-medium">
+                        Your playlists are 🔥!
+                    </h1>
+                    <p class="text-center text-md font-medium">
+                        You kept the dance floor moving all year long with
+                        {{ globalStats.mixes_played }} mixes.
+                    </p>
+                </div>
+                <div ref="funFact" v-else-if="globalStats.mixes_played > 5">
+                    <h1 class="text-4xl text-center font-medium">
+                        Solid party streak
+                    </h1>
+                    <p class="text-center text-md font-medium">
+                        You kept the beats rolling and the vibes high. A total
+                        of {{ globalStats.mixes_played }} mixes played.
+                    </p>
+                </div>
+                <div ref="funFact" v-else-if="globalStats.mixes_played >= 1">
+                    <h1 class="text-4xl text-center font-medium">
+                        Less is more
+                    </h1>
+                    <p class="text-center text-md font-medium">
+                        You played
+                        {{
+                            globalStats.mixes_played === 1
+                                ? "1 mix, and it hit just right."
+                                : globalStats.mixes_played +
+                                  " mixes, and each one hit just right."
+                        }}
+                    </p>
+                </div>
+                <div ref="funFact" v-else>
+                    <h1 class="text-4xl text-center font-medium">
+                        No parties 😔
+                    </h1>
+                    <p class="text-center text-md font-medium">
+                        Don't worry! The future is bright just like the party
+                        room.
                     </p>
                 </div>
             </template>
+
             <template v-if="showStats === 'dancingGif'">
                 <div
                     ref="dancingGif"
@@ -45,6 +87,13 @@
 <script setup>
 import { onMounted, ref, nextTick } from "vue";
 import gsap from "gsap";
+import { usePage } from "@inertiajs/vue3";
+
+const page = usePage();
+const user = ref(page.props.user);
+const globalStats = ref(page.props.globalUserStat);
+console.log("globalStats", globalStats.value);
+console.log(globalStats.value.mixes_played);
 
 const woahText = ref(null);
 const masterText = ref(null);
@@ -98,7 +147,7 @@ onMounted(() => {
             scale: 0.8,
             rotation: -3,
             duration: 0.4,
-            delay: 3,
+            delay: 5,
             ease: "power1.in",
         })
         .add(async () => {

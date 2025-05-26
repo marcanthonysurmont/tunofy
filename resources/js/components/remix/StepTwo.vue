@@ -48,7 +48,7 @@
                             :key="i"
                             class="text-white text-3xl font-black text-center opacity-5 leading-[2.5rem] whitespace-nowrap"
                         >
-                            OFF THE WALL
+                            {{ highestAddedSong.song_name }}
                         </div>
                     </div>
                 </div>
@@ -72,32 +72,31 @@
                             <div
                                 class="font-medium truncate text-neutral-100 text-sm"
                             >
-                                OFF THE WALL!
+                                {{ highestAddedSong.song_name }}
                             </div>
                             <div
                                 class="text-neutral-200 text-xs sm:text-sm truncate"
                             >
-                                XXXTentacion & Ski Mask The Slump God
+                                {{ highestAddedSong.artist }}
                             </div>
                         </div>
                     </div>
-                    <audio
-                        ref="mostAddedSongAudioRef"
-                        src="https://p.scdn.co/mp3-preview/118602125dd3c62daed2bcee8c2c5563908e9242"
-                    ></audio>
                 </div>
             </template>
         </div>
     </div>
+    <audio
+        ref="mostAddedSongAudioRef"
+        :src="audioPreviewUrl"
+        preload="auto"
+    ></audio>
 </template>
 
 <script setup>
-import { onMounted, ref, nextTick } from "vue";
+import { onMounted, ref, nextTick, computed } from "vue";
 import gsap from "gsap";
 import NumberFlow from "@number-flow/vue";
-
-const totalSongs = ref(0);
-const totalMixes = ref(12);
+import { usePage } from "@inertiajs/vue3";
 
 const woahText = ref(null);
 const masterText = ref(null);
@@ -107,6 +106,34 @@ const mostBox = ref(null);
 const mostAddedSongAudioRef = ref(null);
 
 const showStats = ref(false);
+
+const page = usePage();
+const globalStats = ref(page.props.globalUserStat);
+const highestAddedSong = computed(() => page.props.highestAddedSong);
+
+const totalSongs = ref(0);
+const totalMixes = ref(0);
+
+const audioPreviewUrl = ref(null);
+
+async function getSongFile(trackId) {
+    try {
+        console.log(`Loading preview for track ${trackId}...`);
+        const response = await axios.post(route("api.spotify.track-preview"), {
+            track_id: trackId,
+        });
+
+        //store preview URL in cache
+        if (response.data && response.data.preview_url) {
+            audioPreviewUrl.value = response.data.preview_url;
+        }
+    } catch (error) {
+        console.error(`Error loading preview for track ${trackId}:`, error);
+    }
+}
+onMounted(async () => {
+    await getSongFile(highestAddedSong.value.spotify_id);
+});
 
 onMounted(() => {
     const timeline = gsap.timeline();
@@ -145,7 +172,7 @@ onMounted(() => {
             showStats.value = "totalSongs";
             totalSongs.value = 0;
             setTimeout(() => {
-                totalSongs.value = 406;
+                totalSongs.value = globalStats.value.songs_added;
             }, 50);
             await nextTick();
             gsap.fromTo(
@@ -175,7 +202,7 @@ onMounted(() => {
             await nextTick();
             totalMixes.value = 0;
             setTimeout(() => {
-                totalMixes.value = 25;
+                totalMixes.value = globalStats.value.mixes_created;
             }, 50);
             gsap.fromTo(
                 mixesBox.value,
