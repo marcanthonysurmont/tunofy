@@ -68,7 +68,7 @@
                                                     <span v-else
                                                         >No available premium
                                                         users found in
-                                                        playlist.</span
+                                                        mix.</span
                                                     >
                                                 </p>
                                             </div>
