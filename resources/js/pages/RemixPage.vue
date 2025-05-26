@@ -97,10 +97,24 @@
 
         <div class="sm:hidden flex justify-center gap-8 py-4">
             <button class="flex-shrink-0" @click="goPrev">
-                <ChevronLeftIcon class="w-8 h-8 text-white" />
+                <ChevronLeftIcon
+                    class="w-8 h-8"
+                    :class="
+                        !started || currentStep === 0
+                            ? 'text-zinc-500'
+                            : 'text-white'
+                    "
+                />
             </button>
             <button class="flex-shrink-0" @click="goNext">
-                <ChevronRightIcon class="w-8 h-8 text-white" />
+                <ChevronRightIcon
+                    class="w-8 h-8"
+                    :class="
+                        !started || currentStep === totalSteps - 1
+                            ? 'text-zinc-500'
+                            : 'text-white'
+                    "
+                />
             </button>
         </div>
     </div>
