@@ -85,7 +85,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, nextTick } from "vue";
+import { onMounted, ref, nextTick, onBeforeUnmount } from "vue";
 import gsap from "gsap";
 import { usePage } from "@inertiajs/vue3";
 
@@ -173,6 +173,13 @@ onMounted(() => {
                 { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
             );
         });
+});
+
+onBeforeUnmount(() => {
+    if (timeline) {
+        timeline.kill();
+        timeline = null;
+    }
 });
 </script>
 

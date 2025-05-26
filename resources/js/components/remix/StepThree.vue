@@ -56,7 +56,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, nextTick } from "vue";
+import { onMounted, ref, nextTick, onBeforeUnmount } from "vue";
 import gsap from "gsap";
 import NumberFlow from "@number-flow/vue";
 import { usePage } from "@inertiajs/vue3";
@@ -146,6 +146,13 @@ onMounted(() => {
             delay: 3,
             ease: "power1.in",
         });
+});
+
+onBeforeUnmount(() => {
+    if (timeline) {
+        timeline.kill();
+        timeline = null;
+    }
 });
 </script>
 

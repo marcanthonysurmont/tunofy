@@ -93,7 +93,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, nextTick, computed } from "vue";
+import { onMounted, ref, nextTick, computed, onBeforeUnmount } from "vue";
 import gsap from "gsap";
 import NumberFlow from "@number-flow/vue";
 import { usePage } from "@inertiajs/vue3";
@@ -292,6 +292,13 @@ onMounted(() => {
                 }
             );
         });
+});
+
+onBeforeUnmount(() => {
+    if (timeline) {
+        timeline.kill();
+        timeline = null;
+    }
 });
 </script>
 
