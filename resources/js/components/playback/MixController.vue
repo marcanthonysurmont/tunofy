@@ -74,7 +74,7 @@ const props = defineProps({
         required: true,
     },
 });
-// Current state variables
+//state variables
 const songs = computed(() => page.props.songs);
 const user = page.props.user;
 const isMixActive = ref(props.mix?.is_active || false);
@@ -93,21 +93,11 @@ const lastEventTime = ref(0);
 const lastToggleTime = ref(0);
 let syncTimeoutId = null;
 
-// Device selection variables
 const devices = ref(page.props.devices || []);
 const noDeviceSelectedError = ref(false);
 const isLoadingDevices = ref(false);
 
 const authorization = computed(() => page.props.mix.authorized);
-
-// watch(
-//     () => isPlaying.value,
-//     async (newValue) => {
-//         if (!newValue && authorization.value.canControlPlayback) {
-//             await refreshDevices();
-//         }
-//     }
-// );
 
 //check if queue is completed. if so, show the modal
 watch(
@@ -410,6 +400,13 @@ async function refreshMixState() {
 // Update toggleMixActive to use selected device
 async function toggleMixActive() {
     try {
+        if (queueActivationDisabled.value) {
+            toast.add({
+                message: `Only one personal mix queue can be active.`,
+                type: "danger",
+            });
+            return;
+        }
         if (!user.authorized.hasPremium) {
             toast.add({
                 message: `You must have premium to activate the queue.`,
