@@ -1,7 +1,7 @@
 <template>
     <Head title="Tunofy | Remix" />
     <div class="flex flex-col h-screen px-4 max-w-6xl mx-auto">
-        <div class="w-full flex gap-2 py-4">
+        <div class="w-full flex gap-2 py-4 mb-4 md:mb-8">
             <div
                 v-for="(step, index) in totalSteps"
                 :key="index"
@@ -23,7 +23,21 @@
                 />
             </div>
         </div>
+        <div class="flex justify-between flex-row mb-4 md:mb-0">
+            <Link :href="route('app')" class="flex items-center gap-2">
+                <ChevronLeftIcon
+                    class="w-6 h-6 md:w-8 md:h-8 text-white cursor-pointer"
+                />
+                <p class="m-0 font-medium text-lg md:text-xl">Go back</p>
+            </Link>
 
+            <SpeakerWaveIcon
+                @click="handleAudio"
+                class="size-6"
+                v-if="!storeRemixAudio.isMuted"
+            />
+            <SpeakerXMarkIcon @click="handleAudio" class="size-6" v-else />
+        </div>
         <div class="flex-grow flex justify-center items-center overflow-hidden">
             <div
                 class="w-full max-w-full md:max-w-none flex items-center justify-center"
@@ -93,14 +107,26 @@
 </template>
 
 <script setup>
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/solid";
+import {
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    SpeakerWaveIcon,
+    SpeakerXMarkIcon,
+} from "@heroicons/vue/24/solid";
 import StepOne from "@/components/remix/StepOne.vue";
 import StepTwo from "@/components/remix/StepTwo.vue";
 import StepThree from "@/components/remix/StepThree.vue";
 import StepFour from "@/components/remix/StepFour.vue";
-import { ref, onMounted, onBeforeUnmount } from "vue";
-import { Head } from "@inertiajs/vue3";
+import { ref, onBeforeUnmount } from "vue";
+import { Head, Link } from "@inertiajs/vue3";
 import StartStep from "@/components/remix/StartStep.vue";
+import { StoreRemixAudio } from "@/stores/StoreRemixAudio";
+
+const storeRemixAudio = StoreRemixAudio();
+
+function handleAudio() {
+    storeRemixAudio.toggleMute();
+}
 
 const steps = [StepOne, StepTwo, StepThree, StepFour];
 const totalSteps = steps.length;
