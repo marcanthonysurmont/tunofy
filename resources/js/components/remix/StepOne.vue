@@ -92,8 +92,6 @@ import { usePage } from "@inertiajs/vue3";
 const page = usePage();
 const user = ref(page.props.user);
 const globalStats = ref(page.props.globalUserStat);
-console.log("globalStats", globalStats.value);
-console.log(globalStats.value.mixes_played);
 
 const woahText = ref(null);
 const masterText = ref(null);
@@ -102,8 +100,24 @@ const dancingGif = ref(null);
 
 const showStats = ref(false);
 
+let timeline;
+
+function pause() {
+    if (timeline) {
+        timeline.pause();
+    }
+}
+
+function resume() {
+    if (timeline) {
+        timeline.resume();
+    }
+}
+
+defineExpose({ pause, resume });
+
 onMounted(() => {
-    const timeline = gsap.timeline();
+    timeline = gsap.timeline();
 
     timeline
         //intro text section

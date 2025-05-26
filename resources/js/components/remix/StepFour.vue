@@ -42,8 +42,24 @@ function goHome() {
     router.visit(route("app"));
 }
 
+let timeline;
+
+function pause() {
+    if (timeline) {
+        timeline.pause();
+    }
+}
+
+function resume() {
+    if (timeline) {
+        timeline.resume();
+    }
+}
+
+defineExpose({ pause, resume });
+
 onMounted(() => {
-    const timeline = gsap.timeline();
+    timeline = gsap.timeline();
 
     timeline
         //intro text section

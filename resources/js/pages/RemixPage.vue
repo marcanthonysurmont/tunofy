@@ -30,13 +30,30 @@
                 />
                 <p class="m-0 font-medium text-lg md:text-xl">Go back</p>
             </Link>
-
-            <SpeakerWaveIcon
-                @click="handleAudio"
-                class="size-6"
-                v-if="!storeRemixAudio.isMuted"
-            />
-            <SpeakerXMarkIcon @click="handleAudio" class="size-6" v-else />
+            <div class="flex items-center gap-2 flex-row">
+                <PauseIcon
+                    class="size-7 cursor-pointer"
+                    :class="started ? '' : 'opacity-50'"
+                    @click="handlePause"
+                    v-if="!paused"
+                />
+                <PlayIcon
+                    class="size-7 cursor-pointer"
+                    :class="started ? '' : 'opacity-50'"
+                    @click="handlePause"
+                    v-else
+                />
+                <SpeakerWaveIcon
+                    @click="handleAudio"
+                    class="size-6 cursor-pointer"
+                    v-if="!storeRemixAudio.isMuted"
+                />
+                <SpeakerXMarkIcon
+                    @click="handleAudio"
+                    class="size-6 cursor-pointer"
+                    v-else
+                />
+            </div>
         </div>
         <div class="flex-grow flex justify-center items-center overflow-hidden">
             <div
@@ -64,6 +81,7 @@
                     >
                         <template v-if="started">
                             <component
+                                ref="stepComponentRef"
                                 :is="steps[currentStep]"
                                 :key="steps[currentStep]"
                             />
@@ -124,6 +142,8 @@
 import {
     ChevronLeftIcon,
     ChevronRightIcon,
+    PauseIcon,
+    PlayIcon,
     SpeakerWaveIcon,
     SpeakerXMarkIcon,
 } from "@heroicons/vue/24/solid";
@@ -147,6 +167,35 @@ const totalSteps = steps.length;
 const currentStep = ref(0);
 const progress = ref(0);
 const started = ref(false);
+const paused = ref(false);
+
+const stepComponentRef = ref(null);
+
+function handlePause() {
+    if (!started.value) {
+        return;
+    }
+
+    paused.value = !paused.value;
+    if (paused.value) {
+        clearInterval(timer);
+        clearTimeout(fillCompleteTimeout);
+        //pause gsap in child
+        pauseChildGsap();
+    } else {
+        startProgress(false);
+        //resume GSAP in child
+        resumeChildGsap();
+    }
+}
+
+function pauseChildGsap() {
+    stepComponentRef.value.pause();
+}
+
+function resumeChildGsap() {
+    stepComponentRef.value.resume();
+}
 
 //reactive flag to toggle CSS transition
 const transitionEnabled = ref(false);
@@ -157,10 +206,13 @@ const stepDurations = [15000, 15000, 15000, 10000];
 let timer = null;
 let fillCompleteTimeout = null;
 
-function startProgress() {
+function startProgress(reset = true) {
     clearInterval(timer);
     clearTimeout(fillCompleteTimeout);
-    progress.value = 0;
+    if (reset) {
+        progress.value = 0;
+    }
+
     transitionEnabled.value = false;
 
     const duration = stepDurations[currentStep.value] || 5000;
@@ -172,13 +224,11 @@ function startProgress() {
         //disable transition while incrementing
         transitionEnabled.value = false;
         progress.value += incrementValue;
-
         if (progress.value >= 100) {
             progress.value = 100;
             clearInterval(timer);
             //enable transition for final fill animation
             transitionEnabled.value = true;
-
             fillCompleteTimeout = setTimeout(() => {
                 goNext();
             }, 700);
@@ -193,6 +243,8 @@ function goNext() {
     clearTimeout(fillCompleteTimeout);
     if (currentStep.value < totalSteps - 1) {
         currentStep.value++;
+        resumeChildGsap();
+        paused.value = false;
         startProgress();
     } else {
         clearInterval(timer);
@@ -206,6 +258,8 @@ function goPrev() {
     clearTimeout(fillCompleteTimeout);
     if (currentStep.value > 0) {
         currentStep.value--;
+        resumeChildGsap();
+        paused.value = false;
         startProgress();
     }
 }
