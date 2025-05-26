@@ -43,7 +43,7 @@
 
                         <!-- back side -->
                         <div
-                            class="absolute inset-0 bg-zinc-800 border-2 border-card-stroke shadow-md rounded-lg p-4 flex flex-col items-center justify-center gap-1 text-center text-zinc-100 backface-hidden"
+                            class="absolute inset-0 bg-zinc-800 border-2 border-card-stroke shadow-md rounded-lg py-4 flex flex-col gap-1 items-center justify-center text-center text-zinc-100 backface-hidden"
                             style="transform: rotateY(180deg)"
                             :style="{
                                 background: `linear-gradient(135deg, ${
@@ -74,16 +74,22 @@
                                 "
                                 class="size-32 rounded-full mb-2 object-cover"
                             />
-                            <h3 class="text-zinc-100 text-2xl font-medium">
-                                {{ card.user.name }}
-                            </h3>
-                            <h4 class="text-zinc-200 text-lg">
-                                {{ card.backValue }}
-                                {{ card.backTitle.toLowerCase() }}
-                            </h4>
-                            <p class="text-muted text-base mt-1">
-                                {{ card.backDescription }}
-                            </p>
+                            <div>
+                                <h3
+                                    class="text-zinc-100 text-2xl font-semibold pb-0 mb-0.5"
+                                >
+                                    {{ card.user.name }}
+                                </h3>
+                                <p
+                                    class="text-zinc-200 text-lg pt-0 pb-0 font-normal"
+                                >
+                                    {{ card.frontTitle }}
+                                </p>
+                                <p class="text-muted text-sm mt-3">
+                                    {{ card.backValue }}
+                                    {{ card.backTitle.toLowerCase() }}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
