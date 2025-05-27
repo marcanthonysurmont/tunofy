@@ -326,13 +326,17 @@ function scrollRight() {
 
 function updateScrollState() {
     const el = scrollContainer.value;
-    isAtStart.value = el.scrollLeft === 0;
-    isAtEnd.value = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+    if (el) {
+        isAtStart.value = el.scrollLeft === 0;
+        isAtEnd.value = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+    }
 }
 
 onMounted(() => {
     updateScrollState();
-    scrollContainer.value.addEventListener("scroll", updateScrollState);
+    if (scrollContainer.value) {
+        scrollContainer.value.addEventListener("scroll", updateScrollState);
+    }
 });
 </script>
 
