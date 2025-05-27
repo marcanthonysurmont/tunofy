@@ -15,7 +15,7 @@
                         class="text-4xl font-semibold tracking-tight text-white"
                     >
                         <NumberFlow
-                            :value="mixStats.songs_played"
+                            :value="mixStats?.songs_played || 0"
                             :will-change="true"
                         />
                     </span>
@@ -61,12 +61,12 @@
                         class="text-4xl font-semibold tracking-tight text-white"
                     >
                         <NumberFlow
-                            :value="mixStats.songs_killed"
+                            :value="mixStats?.songs_killed || 0"
                             :will-change="true"
                         />
                     </span>
                     <span class="text-sm text-zinc-400">
-                        {{ mixStats.songs_killed === 1 ? "kill" : "kills" }}
+                        {{ mixStats?.songs_killed === 1 ? "kill" : "kills" }}
                     </span>
                 </p>
                 <div
@@ -96,7 +96,7 @@
                         class="text-4xl font-semibold tracking-tight text-white"
                     >
                         <NumberFlow
-                            :value="mixStats.total_votes"
+                            :value="mixStats?.total_votes || 0"
                             :will-change="true"
                         />
                     </span>
@@ -130,7 +130,7 @@
                         class="text-4xl font-semibold tracking-tight text-white"
                     >
                         <NumberFlow
-                            :value="Math.round(mixStats.minutes_played)"
+                            :value="Math.round(mixStats?.minutes_played || 0)"
                             :will-change="true"
                         />
                     </span>
@@ -149,7 +149,7 @@
 import { ClockIcon } from "@heroicons/vue/24/outline";
 import { usePage } from "@inertiajs/vue3";
 import NumberFlow from "@number-flow/vue";
-import { computed, onMounted, ref } from "vue";
+import { computed } from "vue";
 
 const page = usePage();
 const props = computed(() => page.props);

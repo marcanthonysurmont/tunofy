@@ -6,11 +6,15 @@
                 >Refresh cards</RegularButton
             >
         </div>
-        <p class="mb-8 text-muted">
+        <p class="mb-8 text-muted" v-if="displayCards.length > 0">
             Here are some fun facts about the users in your mix.
         </p>
+        <p class="mb-8 text-muted" v-else>
+            No user stats available yet. Encourage your users to interact with
+            the mix!
+        </p>
 
-        <div class="relative">
+        <div class="relative" v-if="displayCards.length > 0">
             <div
                 ref="scrollContainer"
                 class="flex overflow-x-auto gap-4 pb-12 hide-scrollbar relative"
