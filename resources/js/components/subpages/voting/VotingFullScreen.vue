@@ -40,7 +40,7 @@
 
 <script setup>
 import { XMarkIcon } from "@heroicons/vue/24/outline";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import IntroductionScreen from "./IntroductionScreen.vue";
 import VotingScreen from "./VotingScreen.vue";
 import FinishedScreen from "./FinishedScreen.vue";

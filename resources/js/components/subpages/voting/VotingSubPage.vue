@@ -181,10 +181,10 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 import RegularButton from "@/components/buttons/RegularButton.vue";
 import VotingFullScreen from "@/components/subpages/voting/VotingFullScreen.vue";
-import { router, usePage } from "@inertiajs/vue3";
+import { usePage } from "@inertiajs/vue3";
 import NumberFlow from "@number-flow/vue";
 
 const page = usePage();
