@@ -28,11 +28,7 @@
             <div class="flex flex-col gap-2 relative z-0 p-0.5">
                 <Marquee :speed="27" :autoFill="true">
                     <img
-                        v-lazy="{
-                            src: image,
-                            error: '/images/default-song.png',
-                            loading: '/images/default-song.png',
-                        }"
+                        :src="image"
                         class="h-20 sm:h-32 w-auto rounded-sm mr-3"
                         v-for="(image, i) in songsTop"
                         :key="'top-' + i"
@@ -41,11 +37,7 @@
                 </Marquee>
                 <Marquee :speed="20" :autoFill="true">
                     <img
-                        v-lazy="{
-                            src: image,
-                            error: '/images/default-song.png',
-                            loading: '/images/default-song.png',
-                        }"
+                        :src="image"
                         class="h-20 sm:h-32 w-auto rounded-sm mr-3"
                         v-for="(image, i) in songsMid"
                         :key="'mid-' + i"
@@ -54,11 +46,7 @@
                 </Marquee>
                 <Marquee :speed="31" :autoFill="true">
                     <img
-                        v-lazy="{
-                            src: image,
-                            error: '/images/default-song.png',
-                            loading: '/images/default-song.png',
-                        }"
+                        :src="image"
                         class="h-20 sm:h-32 w-auto rounded-sm mr-3"
                         v-for="(image, i) in songsBottom"
                         :key="'bot-' + i"
