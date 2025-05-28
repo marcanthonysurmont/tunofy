@@ -19,10 +19,10 @@
             </button>
         </div>
         <div
-            class="absolute -bottom-8 -right-8 sm:-bottom-20 sm:-right-20 w-72 overflow-hidden rotate-45 z-0"
+            class="absolute -bottom-8 -right-8 sm:-bottom-20 sm:-right-20 w-72 sm:w-96 overflow-hidden rotate-45 z-0"
         >
             <div
-                class="absolute inset-0 pointer-events-none z-10 bg-[linear-gradient(to_right,_#0891b2_55%,_transparent_100%)] sm:bg-gradient-to-r sm:from-cyan-600 sm:via-transparent sm:to-transparent"
+                class="absolute inset-0 pointer-events-none z-10 custom-gradient"
             ></div>
 
             <div class="flex flex-col gap-2 relative z-0">
@@ -105,4 +105,43 @@ const songsBottom = [
 ];
 </script>
 
-<style scoped></style>
+<style scoped>
+.custom-gradient {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+
+    /* tailwind cyan-600 exact match*/
+    --gradient-from: oklch(60.9% 0.126 221.723);
+    --gradient-to: transparent;
+    --gradient-stop: 55%;
+
+    background: linear-gradient(
+        to right,
+        var(--gradient-from) var(--gradient-stop),
+        var(--gradient-to) 100%
+    );
+}
+
+/* sm breakpoint at 640px */
+@media (min-width: 640px) {
+    .custom-gradient {
+        position: absolute;
+        top: 0;
+        display: block;
+        width: 80%;
+        height: 100%;
+
+        background-image: repeating-linear-gradient(
+            90deg,
+            var(--gradient-from),
+            var(--gradient-from) 26%,
+            transparent 100%
+        );
+
+        background-clip: border-box;
+        -webkit-text-fill-color: inherit;
+    }
+}
+</style>
