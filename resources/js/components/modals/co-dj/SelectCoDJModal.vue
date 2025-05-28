@@ -73,7 +73,7 @@
                                 >
                                     <div class="flex items-center gap-3">
                                         <img
-                                            class="w-8 h-8 sm:w-10 sm:h-10 rounded-full"
+                                            class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
                                             :src="user.avatar_url"
                                             alt="User"
                                         />
