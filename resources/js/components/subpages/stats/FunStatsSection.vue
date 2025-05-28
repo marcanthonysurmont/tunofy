@@ -1,9 +1,7 @@
 <template>
     <section class="mb-16">
         <h1 class="text-3xl sm:text-4xl font-medium mb-6">Fun stats</h1>
-        <!-- <p class="mb-8">Blablabla</p> -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-            <!-- Amount of songs -->
             <div
                 class="relative bg-card-background px-4 py-6 sm:px-6 lg:px-8 border-card-stroke border-2 rounded-sm overflow-hidden"
             >
@@ -15,7 +13,7 @@
                         class="text-4xl font-semibold tracking-tight text-white"
                     >
                         <NumberFlow
-                            :value="mixStats?.songs_played || 0"
+                            :value="displayStats.songs_played"
                             :will-change="true"
                         />
                     </span>
@@ -49,7 +47,6 @@
                 </div>
             </div>
 
-            <!-- Average song kills -->
             <div
                 class="relative bg-card-background px-4 py-6 sm:px-6 lg:px-8 border-card-stroke border-2 rounded-sm overflow-hidden"
             >
@@ -61,12 +58,12 @@
                         class="text-4xl font-semibold tracking-tight text-white"
                     >
                         <NumberFlow
-                            :value="mixStats?.songs_killed || 0"
+                            :value="displayStats.songs_killed"
                             :will-change="true"
                         />
                     </span>
                     <span class="text-sm text-zinc-400">
-                        {{ mixStats?.songs_killed === 1 ? "kill" : "kills" }}
+                        {{ displayStats.songs_killed === 1 ? "kill" : "kills" }}
                     </span>
                 </p>
                 <div
@@ -86,7 +83,6 @@
                 </div>
             </div>
 
-            <!-- Most votes for a song -->
             <div
                 class="relative bg-card-background px-4 py-6 sm:px-6 lg:px-8 border-card-stroke border-2 rounded-sm overflow-hidden"
             >
@@ -96,7 +92,7 @@
                         class="text-4xl font-semibold tracking-tight text-white"
                     >
                         <NumberFlow
-                            :value="mixStats?.total_votes || 0"
+                            :value="displayStats.total_votes"
                             :will-change="true"
                         />
                     </span>
@@ -118,7 +114,6 @@
                 </div>
             </div>
 
-            <!-- Minutes listened -->
             <div
                 class="relative bg-card-background px-4 py-6 sm:px-6 lg:px-8 border-card-stroke border-2 rounded-sm overflow-hidden"
             >
@@ -130,7 +125,7 @@
                         class="text-4xl font-semibold tracking-tight text-white"
                     >
                         <NumberFlow
-                            :value="Math.round(mixStats?.minutes_played || 0)"
+                            :value="displayStats.minutes_played"
                             :will-change="true"
                         />
                     </span>
@@ -149,9 +144,33 @@
 import { ClockIcon } from "@heroicons/vue/24/outline";
 import { usePage } from "@inertiajs/vue3";
 import NumberFlow from "@number-flow/vue";
-import { computed } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 
 const page = usePage();
 const props = computed(() => page.props);
 const mixStats = computed(() => props.value.mixStats);
+
+const displayStats = ref({
+    songs_played: 0,
+    songs_killed: 0,
+    total_votes: 0,
+    minutes_played: 0,
+});
+
+function updateDisplayStats(newStats) {
+    displayStats.value = {
+        songs_played: newStats?.songs_played || 0,
+        songs_killed: newStats?.songs_killed || 0,
+        total_votes: newStats?.total_votes || 0,
+        minutes_played: Math.round(newStats?.minutes_played || 0),
+    };
+}
+
+onMounted(() => {
+    updateDisplayStats(mixStats.value);
+});
+
+watch(mixStats, (newVal) => {
+    updateDisplayStats(newVal);
+});
 </script>
