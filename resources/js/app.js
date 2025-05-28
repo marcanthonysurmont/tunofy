@@ -14,6 +14,7 @@ import VueTippy from "vue-tippy";
 import "tippy.js/dist/tippy.css"; // optional for styling
 import toast from "@/stores/StoreToast.js";
 import VueLazyLoad from "vue3-lazyload";
+import "vue-fast-marquee/style.css";
 const pinia = createPinia();
 
 createInertiaApp({

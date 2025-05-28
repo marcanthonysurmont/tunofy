@@ -1,19 +1,14 @@
 <template>
     <div
-        class="flex flex-col md:flex-row bg-gradient-to-r from-blue-950 via-blue-800 to-cyan-600 rounded-2xl shadow-lg overflow-hidden"
+        class="flex flex-col md:flex-row bg-cyan-600 rounded-2xl shadow-lg overflow-hidden relative"
     >
-        <!-- <img
-            :src="imgUrl"
-            alt="Wrapped image"
-            class="w-full md:w-1/5 object-cover aspect-square"
-        /> -->
         <div
-            class="p-6 flex flex-col justify-center text-center md:text-left gap-4"
+            class="p-8 sm:p-12 flex flex-col justify-center text-center md:text-left gap-4 z-50"
         >
-            <h2 class="text-3xl md:text-4xl font-bold text-zinc-100">
+            <h2 class="text-3xl md:text-4xl font-bold text-dark-white">
                 {{ title }}
             </h2>
-            <p class="text-zinc-200 text-base md:text-lg max-w-xl">
+            <p class="text-zinc-200 text-base md:text-lg max-w-xl font-medium">
                 {{ description }}
             </p>
             <button
@@ -23,11 +18,50 @@
                 {{ ctaText }}
             </button>
         </div>
+        <div
+            class="absolute -bottom-8 -right-8 sm:-bottom-20 sm:-right-20 w-72 overflow-hidden rotate-45 z-0"
+        >
+            <div
+                class="absolute inset-0 pointer-events-none z-10 bg-[linear-gradient(to_right,_#0891b2_55%,_transparent_100%)] sm:bg-gradient-to-r sm:from-cyan-600 sm:via-transparent sm:to-transparent"
+            ></div>
+
+            <div class="flex flex-col gap-2 relative z-0">
+                <Marquee :speed="27" :autoFill="true">
+                    <img
+                        :src="image"
+                        class="h-20 sm:h-32 w-auto rounded-sm mr-3"
+                        v-for="(image, i) in songsTop"
+                        :key="'top-' + i"
+                        draggable="false"
+                    />
+                </Marquee>
+                <Marquee :speed="20" :autoFill="true">
+                    <img
+                        :src="image"
+                        class="h-20 sm:h-32 w-auto rounded-sm mr-3"
+                        v-for="(image, i) in songsMid"
+                        :key="'mid-' + i"
+                        draggable="false"
+                    />
+                </Marquee>
+                <Marquee :speed="31" :autoFill="true">
+                    <img
+                        :src="image"
+                        class="h-20 sm:h-32 w-auto rounded-sm mr-3"
+                        v-for="(image, i) in songsBottom"
+                        :key="'bot-' + i"
+                        draggable="false"
+                    />
+                </Marquee>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
+import { Marquee } from "vue-fast-marquee";
 import { router } from "@inertiajs/vue3";
+
 defineProps({
     imgUrl: String,
     title: String,
@@ -39,4 +73,36 @@ defineProps({
 function visitMix() {
     router.visit(route("remix"));
 }
+
+const songsTop = [
+    "https://i.scdn.co/image/ab67616d0000b273dcd4d70294f17175991ba1bb",
+    "https://i.scdn.co/image/ab67616d0000b27332c5d1e207364562fe2160b7",
+    "https://i.scdn.co/image/ab67616d0000b273c03c17681e99230377f5dbef",
+    "https://i.scdn.co/image/ab67616d0000b273b4eabaa89caca03de8c3fa8d",
+    "https://i.scdn.co/image/ab67616d0000b273f569b809ca999649fa704277",
+    "https://i.scdn.co/image/ab67616d0000b273e2565f077fcf8d8bc6f401fc",
+    "https://i.scdn.co/image/ab67616d0000b2732729a5c5fb3756653da57b0c",
+];
+
+const songsMid = [
+    "https://i.scdn.co/image/ab67616d0000b273f54b99bf27cda88f4a7403ce",
+    "https://i.scdn.co/image/ab67616d0000b27302928b251e41844f5186920e",
+    "https://i.scdn.co/image/ab67616d0000b273c4fee55d7b51479627c31f89",
+    "https://i.scdn.co/image/ab67616d0000b273da9e59639a9759d8952890c6",
+    "https://i.scdn.co/image/ab67616d0000b273806c160566580d6335d1f16c",
+    "https://i.scdn.co/image/ab67616d0000b2738b52c6b9bc4e43d873869699",
+    "https://i.scdn.co/image/ab67616d0000b273f52f6a4706fea3bde44467c3",
+];
+
+const songsBottom = [
+    "https://i.scdn.co/image/ab67616d0000b273b4eabaa89caca03de8c3fa8d",
+    "https://i.scdn.co/image/ab67616d0000b273dcd4d70294f17175991ba1bb",
+    "https://i.scdn.co/image/ab67616d0000b2732729a5c5fb3756653da57b0c",
+    "https://i.scdn.co/image/ab67616d0000b273c03c17681e99230377f5dbef",
+    "https://i.scdn.co/image/ab67616d0000b273e2565f077fcf8d8bc6f401fc",
+    "https://i.scdn.co/image/ab67616d0000b273f569b809ca999649fa704277",
+    "https://i.scdn.co/image/ab67616d0000b27332c5d1e207364562fe2160b7",
+];
 </script>
+
+<style scoped></style>
