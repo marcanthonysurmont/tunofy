@@ -25,7 +25,7 @@
                 class="absolute inset-0 pointer-events-none z-10 custom-gradient"
             ></div>
 
-            <div class="flex flex-col gap-2 relative z-0">
+            <div class="flex flex-col gap-2 relative z-0 p-0.5">
                 <Marquee :speed="27" :autoFill="true">
                     <img
                         :src="image"
@@ -127,9 +127,6 @@ const songsBottom = [
 /* sm breakpoint at 640px */
 @media (min-width: 640px) {
     .custom-gradient {
-        position: absolute;
-        top: 0;
-        display: block;
         width: 80%;
         height: 100%;
 
