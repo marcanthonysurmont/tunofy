@@ -95,13 +95,13 @@ const songsMid = [
 ];
 
 const songsBottom = [
-    "https://i.scdn.co/image/ab67616d0000b273b4eabaa89caca03de8c3fa8d",
-    "https://i.scdn.co/image/ab67616d0000b273dcd4d70294f17175991ba1bb",
-    "https://i.scdn.co/image/ab67616d0000b2732729a5c5fb3756653da57b0c",
-    "https://i.scdn.co/image/ab67616d0000b273c03c17681e99230377f5dbef",
-    "https://i.scdn.co/image/ab67616d0000b273e2565f077fcf8d8bc6f401fc",
-    "https://i.scdn.co/image/ab67616d0000b273f569b809ca999649fa704277",
-    "https://i.scdn.co/image/ab67616d0000b27332c5d1e207364562fe2160b7",
+    "https://i.scdn.co/image/ab67616d0000b273fbc71c99f9c1296c56dd51b6",
+    "https://i.scdn.co/image/ab67616d0000b273338fabbb1729a74d655a6a85",
+    "https://i.scdn.co/image/ab67616d0000b27378de8b28de36a74afc0348b5",
+    "https://i.scdn.co/image/ab67616d0000b2732cd55246d935a8a77cb4859e",
+    "https://i.scdn.co/image/ab67616d0000b273e71ccb392305961631deb63b",
+    "https://i.scdn.co/image/ab67616d0000b273aca059cebc1841277db22d1c",
+    "https://i.scdn.co/image/ab67616d0000b273881d8d8378cd01099babcd44",
 ];
 </script>
 
