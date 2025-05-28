@@ -42,7 +42,7 @@
                 </Transition>
             </template>
         </Suspense>
-        <MixController :mix="mix" :songs="songs" />
+        <MixController :mix="mix" />
         <CustomThemeContainer />
     </AppLayout>
 </template>

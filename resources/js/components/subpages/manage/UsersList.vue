@@ -8,7 +8,7 @@
         >
             <div class="flex min-w-0 gap-x-4 items-center">
                 <img
-                    class="size-10 md:size-12 flex-none rounded-full bg-zinc-50"
+                    class="size-10 md:size-12 flex-none rounded-full bg-zinc-50 object-cover"
                     v-lazy="{
                         src: user.avatar_url,
                         error: '/images/default-avatar.jpg',
@@ -126,7 +126,7 @@
         >
             <div class="flex min-w-0 gap-x-4 items-center">
                 <img
-                    class="size-12 flex-none rounded-full bg-zinc-50"
+                    class="size-12 flex-none rounded-full bg-zinc-50 object-cover"
                     v-lazy="{
                         src: user.avatar_url,
                         error: '/images/default-avatar.jpg',

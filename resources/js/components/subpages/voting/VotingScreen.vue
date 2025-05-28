@@ -1,199 +1,74 @@
 <template>
-    <!-- card -->
     <div class="flex flex-col items-center">
-        <div
+        <SongCard
             v-for="(song, index) in songs"
             :key="song.id"
-            :class="[
-                'w-[300px] h-[400px] rounded-2xl shadow-lg flex flex-col justify-end mb-4 bg-cover bg-center relative border-2 border-card-stroke overflow-hidden',
-                resetSwipe || transitionToNext
-                    ? 'transition-transform duration-200 ease-in-out'
-                    : '',
+            :song="song"
+            :is-active="index === currentIndex"
+            :swipe-length-x="swipeLengthX"
+            :like-opacity="likeOpacity"
+            :dislike-opacity="dislikeOpacity"
+            :skull-animation="skullAnimation"
+            :skull-animation-fading="skullAnimationFading"
+            :is-new-card-animating="
                 isNewCardAnimating && index === currentIndex
-                    ? 'card-enter'
-                    : '',
-            ]"
-            :style="{
-                backgroundImage: `url(${song.image_url})`,
-                transform: cardTransform(index),
-                opacity: cardOpacity(index),
-                cursor:
-                    isFakeSwipeAnimating ||
-                    transitionToNext ||
-                    skullAnimation ||
-                    isNewCardAnimating
-                        ? 'not-allowed'
-                        : isDragging
-                        ? 'grabbing'
-                        : 'grab',
-            }"
-            v-show="index === currentIndex"
-            @mousedown="startDrag"
-            @mousemove="onDrag"
-            @mouseup="endDrag"
-            @mouseleave="endDrag"
-            @touchstart.passive="startDrag"
-            @touchmove.passive="onDrag"
-            @touchend.passive="endDrag"
-        >
-            <!-- Audio play button overlay -->
-            <transition name="fade">
-                <div
-                    class="absolute top-4 right-4 z-20"
-                    v-if="swipeLengthX >= -15 && swipeLengthX <= 15"
-                >
-                    <button
-                        @click.stop="toggleAudio(song.spotify_id)"
-                        class="w-12 h-12 bg-primary bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all cursor-pointer"
-                    >
-                        <PlayIcon
-                            v-if="
-                                currentPlayingId !== song.spotify_id ||
-                                !isPlaying
-                            "
-                            class="w-6 h-6 text-white"
-                        />
-                        <PauseIcon v-else class="w-6 h-6 text-white" />
-                    </button>
-                </div>
-            </transition>
+            "
+            :reset-swipe="resetSwipe"
+            :transition-to-next="transitionToNext"
+            :is-dragging="isDragging"
+            :is-disabled="
+                isFakeSwipeAnimating ||
+                transitionToNext ||
+                skullAnimation ||
+                isNewCardAnimating
+            "
+            :current-playing-id="currentPlayingId"
+            :is-playing="isPlaying"
+            :card-transform="cardTransform(index)"
+            :card-opacity="cardOpacity(index)"
+            @toggle-audio="toggleAudio"
+            @start-drag="startDrag"
+            @on-drag="onDrag"
+            @end-drag="endDrag"
+        />
 
-            <div class="gradient-bg"></div>
-            <div
-                v-if="skullAnimation"
-                class="absolute inset-0 z-20 bg-black bg-opacity-70 flex items-center justify-center"
-                :class="{ 'fade-out': skullAnimationFading }"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 512 512"
-                    class="w-32 h-32 text-white animate-pulse"
-                    :class="{ 'scale-up': skullAnimation }"
-                >
-                    <path
-                        fill="currentColor"
-                        d="M416 398.9c58.5-41.1 96-104.1 96-174.9C512 100.3 397.4 0 256 0S0 100.3 0 224c0 70.7 37.5 133.8 96 174.9c0 .4 0 .7 0 1.1l0 64c0 26.5 21.5 48 48 48l48 0 0-48c0-8.8 7.2-16 16-16s16 7.2 16 16l0 48 64 0 0-48c0-8.8 7.2-16 16-16s16 7.2 16 16l0 48 48 0c26.5 0 48-21.5 48-48l0-64c0-.4 0-.7 0-1.1zM96 256a64 64 0 1 1 128 0A64 64 0 1 1 96 256zm256-64a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"
-                    />
-                </svg>
-            </div>
-            <div class="relative z-10 text-white text-left px-4 pt-2 pb-5">
-                <h2 class="text-2xl font-semibold">{{ song.name }}</h2>
-                <p class="text-zinc-300 mb-6">{{ song.artist }}</p>
-                <div class="flex items-center gap-2 text-xs text-zinc-300">
-                    <img
-                        :src="song.user.avatar_url"
-                        alt="Avatar"
-                        class="w-5 h-5 rounded-full object-cover"
-                    />
-                    <span class="font-medium text-zinc-400">{{
-                        song.user.name
-                    }}</span>
-                </div>
-            </div>
+        <VotingActions
+            :bounce-state="bounceState"
+            :is-disabled="
+                isFakeSwipeAnimating || isNewCardAnimating || skullAnimation
+            "
+            @click-left="clickLeft"
+            @click-right="clickRight"
+            @kill="kill"
+        />
 
-            <div
-                :style="{ opacity: likeOpacity }"
-                class="absolute z-10 text-[#74e3b8] text-left px-4 pt-2 pb-5 top-0 right-0"
-            >
-                <h1 class="font-semibold text-2xl">LIKE</h1>
-            </div>
-            <div
-                :style="{ opacity: dislikeOpacity }"
-                class="absolute z-10 text-[#e95a6c] text-left px-4 pt-2 pb-5 top-0 left-0"
-            >
-                <h1 class="font-semibold text-2xl">DISLIKE</h1>
-            </div>
-        </div>
-
-        <!-- action buttons -->
-        <div class="mt-5 flex gap-6">
-            <div
-                @click="clickLeft"
-                class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700 cursor-pointer"
-            >
-                <button
-                    :class="{ bounce: bounceState.left }"
-                    class="cursor-pointer disabled:opacity-40"
-                    :disabled="
-                        isFakeSwipeAnimating ||
-                        isNewCardAnimating ||
-                        skullAnimation
-                    "
-                >
-                    <XMarkIcon
-                        class="size-8 text-[#e95a6c] stroke-2 stroke-[#e95a6c]"
-                    />
-                </button>
-            </div>
-            <div
-                @click="kill"
-                class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border-1 border-zinc-700 cursor-pointer"
-            >
-                <button
-                    :class="{ bounce: bounceState.kill }"
-                    :disabled="
-                        isFakeSwipeAnimating ||
-                        isNewCardAnimating ||
-                        skullAnimation
-                    "
-                    class="text-white font-bold cursor-pointer disabled:opacity-40"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 512 512"
-                        fill="currentColor"
-                        class="w-8 h-8 text-white"
-                    >
-                        <path
-                            d="M416 398.9c58.5-41.1 96-104.1 96-174.9C512 100.3 397.4 0 256 0S0 100.3 0 224c0 70.7 37.5 133.8 96 174.9c0 .4 0 .7 0 1.1l0 64c0 26.5 21.5 48 48 48l48 0 0-48c0-8.8 7.2-16 16-16s16 7.2 16 16l0 48 64 0 0-48c0-8.8 7.2-16 16-16s16 7.2 16 16l0 48 48 0c26.5 0 48-21.5 48-48l0-64c0-.4 0-.7 0-1.1zM96 256a64 64 0 1 1 128 0A64 64 0 1 1 96 256zm256-64a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"
-                        />
-                    </svg>
-                </button>
-            </div>
-            <div
-                class="w-16 h-16 rounded-full bg-zinc-800 border-1 border-zinc-700 flex items-center justify-center cursor-pointer"
-                @click="clickRight"
-            >
-                <button
-                    :class="{ bounce: bounceState.right }"
-                    class="cursor-pointer disabled:opacity-40"
-                    :disabled="
-                        isFakeSwipeAnimating ||
-                        isNewCardAnimating ||
-                        skullAnimation
-                    "
-                >
-                    <HeartIcon class="size-8 text-[#74e3b8]" />
-                </button>
-            </div>
-        </div>
-
-        <!-- Hidden audio elements container -->
-        <div class="hidden">
-            <audio
-                v-for="(preview, trackId) in audioPreviewCache"
-                :key="trackId"
-                :ref="
-                    (el) => {
-                        if (el) audioElements[trackId] = el;
-                    }
-                "
-                :src="preview"
-                preload="auto"
-                @play="handlePlay(trackId)"
-                @pause="isPlaying = false"
-                @ended="isPlaying = false"
-            ></audio>
-        </div>
+        <AudioElements
+            :audio-preview-cache="audioPreviewCache"
+            :audio-elements="audioElements"
+            @handle-play="handlePlay"
+            @pause="
+                () => {
+                    isPlaying = false;
+                }
+            "
+            @ended="
+                () => {
+                    isPlaying = false;
+                }
+            "
+        />
     </div>
 </template>
 
 <script setup>
-import { PauseIcon } from "@heroicons/vue/24/solid";
-import { HeartIcon, PlayIcon, XMarkIcon } from "@heroicons/vue/24/solid";
+import SongCard from "./SongCard.vue";
+import VotingActions from "./VotingActions.vue";
+import AudioElements from "./AudioElements.vue";
 import { usePage, router } from "@inertiajs/vue3";
 import axios from "axios";
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { usePointerX } from "@/composables/usePointerX.js";
+const { calculateClientX } = usePointerX();
 
 const likeOpacity = computed(() => {
     return swipeLengthX.value > 0 ? Math.min(swipeLengthX.value / 100, 1) : 0;
@@ -235,7 +110,7 @@ const songs = ref(
 );
 const votableSongs = ref(Object.values(props.value.votableSongs));
 
-// Audio related state
+//audio related state
 const audioPreviewCache = ref({});
 const audioElements = ref({});
 const isPlaying = ref(false);
@@ -275,7 +150,7 @@ function onDrag(event) {
     const currentX = getClientX(event);
     const deltaX = currentX - startX.value;
 
-    // Determine drag direction
+    //determine drag direction
     if (deltaX < 0) {
         dragDirection.value = "left";
     } else if (deltaX > 0) {
@@ -323,13 +198,7 @@ function endDrag() {
 
 //helper function to get clientX from both mouse and touch events
 function getClientX(event) {
-    if (event.touches && event.touches.length > 0) {
-        return event.touches[0].clientX;
-    } else if (event.changedTouches && event.changedTouches.length > 0) {
-        return event.changedTouches[0].clientX;
-    } else {
-        return event.clientX;
-    }
+    return calculateClientX(event);
 }
 
 function fakeSwipe(direction) {

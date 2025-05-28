@@ -69,10 +69,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
-    songs: {
-        type: Object,
-        required: true,
-    },
+    // songs: {
+    //     type: Object,
+    //     required: true,
+    // },
 });
 //state variables
 const songs = computed(() => page.props.songs);
