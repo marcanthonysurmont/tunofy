@@ -64,4 +64,22 @@ const emits = defineEmits(["click-left", "click-right", "kill"]);
 .bounce {
     animation: bounceEffect 0.3s ease;
 }
+
+@keyframes bounceEffect {
+    0% {
+        transform: scale(1);
+    }
+    30% {
+        transform: scale(0.9);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    70% {
+        transform: scale(0.95);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
 </style>

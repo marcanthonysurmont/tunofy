@@ -142,17 +142,48 @@ function endDrag(e) {
     opacity: 1;
     z-index: 0;
 }
-.bounce {
-    animation: bounceEffect 0.3s ease;
-}
+
 .card-enter {
     animation: cardEnterAnimation 0.3s ease-out forwards;
     transform-origin: center;
 }
+
+@keyframes cardEnterAnimation {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 .scale-up {
     animation: scaleUp 0.5s ease-in-out;
 }
+
+@keyframes scaleUp {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 .fade-out {
     animation: fadeOut 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
 }
 </style>

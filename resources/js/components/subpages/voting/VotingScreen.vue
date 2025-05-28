@@ -61,9 +61,9 @@
 </template>
 
 <script setup>
-import SongCard from "./SongCard.vue";
-import VotingActions from "./VotingActions.vue";
-import AudioElements from "./AudioElements.vue";
+import SongCard from "@/components/subpages/voting/SongCard.vue";
+import VotingActions from "@/components/subpages/voting/VotingActions.vue";
+import AudioElements from "@/components/subpages/voting/AudioElements.vue";
 import { usePage, router } from "@inertiajs/vue3";
 import axios from "axios";
 import { ref, computed, onMounted } from "vue";
@@ -508,79 +508,3 @@ onMounted(() => {
     }
 });
 </script>
-
-<style scoped>
-.gradient-bg {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgb(0, 0, 0) 25%, transparent 100%);
-    opacity: 1;
-    z-index: 0;
-}
-
-.bounce {
-    animation: bounceEffect 0.3s ease;
-}
-
-@keyframes bounceEffect {
-    0% {
-        transform: scale(1);
-    }
-    30% {
-        transform: scale(0.9);
-    }
-    50% {
-        transform: scale(1.1);
-    }
-    70% {
-        transform: scale(0.95);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-.card-enter {
-    animation: cardEnterAnimation 0.3s ease-out forwards;
-    transform-origin: center;
-}
-
-@keyframes cardEnterAnimation {
-    0% {
-        transform: scale(0.8);
-        opacity: 0.5;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.scale-up {
-    animation: scaleUp 0.5s ease-in-out;
-}
-
-@keyframes scaleUp {
-    0% {
-        transform: scale(0.5);
-        opacity: 0;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.fade-out {
-    animation: fadeOut 0.3s ease-in-out forwards;
-}
-
-@keyframes fadeOut {
-    0% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0;
-    }
-}
-</style>
