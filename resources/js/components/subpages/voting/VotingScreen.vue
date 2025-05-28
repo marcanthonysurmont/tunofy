@@ -46,16 +46,8 @@
             :audio-preview-cache="audioPreviewCache"
             :audio-elements="audioElements"
             @handle-play="handlePlay"
-            @pause="
-                () => {
-                    isPlaying = false;
-                }
-            "
-            @ended="
-                () => {
-                    isPlaying = false;
-                }
-            "
+            @pause="isPlaying = false"
+            @ended="isPlaying = false"
         />
     </div>
 </template>
