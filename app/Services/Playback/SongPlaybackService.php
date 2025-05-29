@@ -15,16 +15,15 @@ use App\Events\MixStatusChangedEvent;
 use App\Events\DeviceUpdatedEvent;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Queue\QueueManagementService;
-use App\Services\Playback\PlaybackStateManager;
 use App\Models\MixStat;
 
 class SongPlaybackService
 {
     public function __construct(
-        protected SpotifyService $spotifyService, 
+        protected SpotifyService $spotifyService,
         protected PlaybackStateManager $playbackStateManager,
-    )
-    {}
+    ) {
+    }
 
     /**
      * Get the next song to play from the queue
@@ -159,6 +158,10 @@ class SongPlaybackService
                 'message' => 'Failed to start playback'
             ];
         }
+
+        // Mark when we started playing this song to prevent false track ended detection
+        $this->playbackStateManager->set($mix, 'last_song_start_time', time());
+        $this->playbackStateManager->set($mix, 'last_song_started', $nextSong->song->spotify_id);
 
         // Clear device failure flag on success
         $this->playbackStateManager->forget($mix, 'device_failure');
@@ -539,49 +542,6 @@ class SongPlaybackService
                 $this->playbackStateManager->setRecentOwnerTakeback($mix, true);
                 Log::info("Set recent owner takeback flag for mix {$mix->id}");
             }
-        }
-    }
-
-    /**
-     * Checks if queue needs extension and extends it if necessary
-     */
-    public function checkAndExtendQueue(int $mixId): void
-    {
-        // Get the mix
-        $mix = Mix::find($mixId);
-        if (!$mix) {
-            Log::warning("Cannot extend queue: Mix {$mixId} not found");
-            return;
-        }
-
-        $pendingSongs = $this->playbackStateManager->getPendingSongCount($mix);
-
-        // If not cached, get the count from the database
-        if ($pendingSongs === null) {
-            $pendingSongs = QueueSong::where('mix_id', $mixId)
-                ->where('status', 'pending')
-                ->count();
-
-            // Cache the result via PlaybackStateManager
-            $this->playbackStateManager->setPendingSongCount($mix, $pendingSongs);
-        }
-
-        // Get batch size to determine threshold
-        $batchSize = $mix->preset->batch_size;
-
-        // If fewer than 1.5 batch sizes of songs remaining, add more rounds
-        if ($pendingSongs <= ($batchSize * 1.5)) {
-            Log::info("Queue for mix {$mixId} is running low ({$pendingSongs} songs left). Adding more rounds.");
-
-            // Add 2 more rounds instead of just 1
-            app(QueueManagementService::class)->appendRoundsToQueue($mix, 2);
-
-            // Immediately recalculate and update the pending count after adding rounds
-            $newPendingCount = QueueSong::where('mix_id', $mixId)
-                ->where('status', 'pending')
-                ->count();
-
-            $this->playbackStateManager->setPendingSongCount($mix, $newPendingCount);
         }
     }
 
