@@ -15,16 +15,15 @@ use App\Events\MixStatusChangedEvent;
 use App\Events\DeviceUpdatedEvent;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Queue\QueueManagementService;
-use App\Services\Playback\PlaybackStateManager;
 use App\Models\MixStat;
 
 class SongPlaybackService
 {
     public function __construct(
-        protected SpotifyService $spotifyService, 
+        protected SpotifyService $spotifyService,
         protected PlaybackStateManager $playbackStateManager,
-    )
-    {}
+    ) {
+    }
 
     /**
      * Get the next song to play from the queue
@@ -159,6 +158,10 @@ class SongPlaybackService
                 'message' => 'Failed to start playback'
             ];
         }
+
+        // Mark when we started playing this song to prevent false track ended detection
+        $this->playbackStateManager->set($mix, 'last_song_start_time', time());
+        $this->playbackStateManager->set($mix, 'last_song_started', $nextSong->song->spotify_id);
 
         // Clear device failure flag on success
         $this->playbackStateManager->forget($mix, 'device_failure');

@@ -10,9 +10,6 @@ use App\Events\PlaybackDataUpdatedEvent;
 use App\Events\CoDJUpdatedEvent;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Queue\QueueManagementService;
-use App\Services\Playback\PlaybackStateManager;
-use App\Services\Playback\SongPlaybackService;
-
 
 class SpotifyPollingService
 {
@@ -433,7 +430,7 @@ class SpotifyPollingService
                 } catch (\Exception $e) {
                     Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
                 }
-                
+
                 // Set cache flag
                 $this->playbackState->setQueueCompleted($mix, true);
 
@@ -441,7 +438,33 @@ class SpotifyPollingService
                 return PlaybackStateManager::QUEUE_COMPLETED;
 
             case PlaybackStateManager::PLAYER_STATE_TRACK_ENDED:
+                // Get the time when we last started a song
+                $lastSongStartTime = $this->playbackState->get($mix, 'last_song_start_time');
+                $lastSongStarted = $this->playbackState->get($mix, 'last_song_started');
+                $currentTime = time();
+
+                // If we just started this song less than 3 seconds ago, this is likely a false track_ended event
+                if ($lastSongStartTime &&
+                    ($currentTime - $lastSongStartTime) < 3 &&
+                    $lastSongStarted == $currentQueueSong->song->spotify_id) {
+
+                    Log::info("Ignoring false track_ended event - song {$lastSongStarted} was just started " .
+                             ($currentTime - $lastSongStartTime) . " seconds ago");
+                    return;
+                }
+
                 Log::info("Detected track ended for mix {$mix->id}, advancing to next song");
+
+                // NEW: Check if this is a false "track ended" during a round transition
+                $lastPlayStartTime = $this->playbackState->get($mix, 'last_play_start_time');
+                $currentTime = time();
+
+                if ($lastPlayStartTime && ($currentTime - $lastPlayStartTime) < 3) {
+                    Log::info("Ignoring potential false track_ended detection - song was just started " .
+                             ($currentTime - $lastPlayStartTime) . " seconds ago");
+                    $this->changeReason = 'ignored_false_track_end';
+                    break;
+                }
 
                 // Clear notification flags
                 if (isset($currentQueueSong)) {
@@ -472,8 +495,37 @@ class SpotifyPollingService
                 break;
 
             case PlaybackStateManager::PLAYER_STATE_STUCK:
-                Log::info("Detected stuck playback for mix {$mix->id}, resuming playback");
-                $this->songPlaybackService->resumeIntendedTrack($mix);
+                // Get when we last attempted to resume stuck playback
+                $lastResumeAttempt = $this->playbackState->get($mix, 'last_stuck_resume_attempt');
+                $currentTime = time();
+
+                // Only attempt to resume if we haven't tried in the last 5 seconds
+                if (!$lastResumeAttempt || ($currentTime - $lastResumeAttempt) > 5) {
+                    Log::info("Detected stuck playback for mix {$mix->id}, resuming playback");
+
+                    // Mark that we're attempting to resume
+                    $this->playbackState->set($mix, 'last_stuck_resume_attempt', $currentTime);
+
+                    // Try to resume playback
+                    if (isset($currentQueueSong)) {
+                        // Resume intended track
+                        $result = $this->songPlaybackService->resumeIntendedTrack($mix);
+
+                        // Increment stuck count to detect persistent issues
+                        $stuckCount = $this->playbackState->get($mix, 'stuck_count', 0);
+                        $this->playbackState->set($mix, 'stuck_count', $stuckCount + 1);
+
+                        // If we've been stuck too many times on the same song, force advance
+                        if ($stuckCount > 3) {
+                            Log::info("Song appears permanently stuck after {$stuckCount} attempts, advancing to next song");
+                            $this->songPlaybackService->advanceToNextSong($mix);
+                            $this->playbackState->forget($mix, 'stuck_count');
+                        }
+                    }
+                } else {
+                    Log::info("Skipping stuck playback handling - last attempt was " .
+                            ($currentTime - $lastResumeAttempt) . " seconds ago");
+                }
                 break;
 
             case PlaybackStateManager::PLAYER_STATE_MANUAL_SEEK_END:

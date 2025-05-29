@@ -56,7 +56,7 @@ class QueueBuilderService
     protected function randomizeSongsWithBias($songs)
     {
         // Re-seed random number generator for better entropy
-        mt_srand((int)(microtime(true) * 1000));
+        mt_srand((int)(microtime(true) * 10000));
 
         // First shuffle to break any initial ordering
         $songsArray = $songs->shuffle()->all();
@@ -68,16 +68,15 @@ class QueueBuilderService
                 $daysOld = now()->diffInDays($song->created_at ?? now());
 
                 // Convert to a score where newer songs get HIGHER values
-                // 1 day old = 0.9, 10 days old = 0.5, 90 days old = 0.1, etc.
                 $newness = 1 / (1 + (0.1 * $daysOld));
 
-                // Add randomness (30% random, 70% newness-based)
-                $randomFactor = mt_rand() / mt_getrandmax() * 0.3;
+                // Add more randomness (50% random, 50% newness-based) for better distribution
+                $randomFactor = mt_rand() / mt_getrandmax() * 0.5;
 
                 return [
                     'song' => $song,
-                    'score' => ($newness * 0.7) + $randomFactor,
-                    'days_old' => $daysOld // For debugging
+                    'score' => ($newness * 0.5) + $randomFactor,
+                    'days_old' => $daysOld
                 ];
             })
             ->sortByDesc('score')  // Higher scores (newer songs) come first
@@ -87,10 +86,19 @@ class QueueBuilderService
 
     protected function randomizeSongsFlat($songs)
     {
-        return $songs
+        // First, re-seed the random number generator with a high-precision timestamp
+        mt_srand((int)(microtime(true) * 10000));
+
+        // First do a native shuffle to break any initial ordering
+        $shuffledArray = $songs->shuffle()->all();
+        $shuffled = collect($shuffledArray);
+
+        // Then apply scoring for a second layer of randomization
+        return $shuffled
             ->map(function ($song) {
+                // Use a higher noise factor (0.5 instead of 0.01) for more randomness
                 $score = mt_rand() / mt_getrandmax();
-                $noise = mt_rand() / mt_getrandmax() * 0.01;
+                $noise = mt_rand() / mt_getrandmax() * 0.5;
 
                 return [
                     'song' => $song,
@@ -126,7 +134,7 @@ class QueueBuilderService
     public function getShuffledSongIds(Mix $mix): array
     {
         // Get all songs for the mix
-        $songs = $mix->songs;
+        $songs = $mix->songs()->inRandomOrder()->get();  // Add inRandomOrder() for extra randomness
 
         if (count($songs) === 0) {
             Log::warning("Mix {$mix->id} has no songs to shuffle");
@@ -145,6 +153,15 @@ class QueueBuilderService
 
         // Get the IDs from the shuffled songs
         $ids = $shuffled->pluck('id')->toArray();
+
+        // Add a final shuffle for extra randomness
+        shuffle($ids);
+
+        // **** THIS IS THE CRITICAL LINE YOU'RE MISSING ****
+        Cache::put("mix_{$mix->id}_shuffled_ids", $ids, now()->addHours(6));
+
+        // Log first 5 for verification
+        Log::info("Mix {$mix->id} shuffled IDs (first 5): " . implode(', ', array_slice($ids, 0, 5)));
 
         return $ids;
     }
