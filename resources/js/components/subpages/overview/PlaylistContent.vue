@@ -233,7 +233,7 @@ function scrollToTop() {
 }
 
 function checkScroll() {
-    showButton.value = window.scrollY > 600;
+    showButton.value = window.scrollY > 1900;
 
     const scrollPosition = window.scrollY + window.innerHeight;
 
