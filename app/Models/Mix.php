@@ -112,6 +112,11 @@ class Mix extends Model
         return $this->hasMany(MixUserStat::class)->with('user');
     }
 
+    public function playBackSession()
+    {
+        return $this->hasOne(PlaybackSession::class);
+    }
+
     /**************************************/
     /*       Accessors / Mutators         */
     /**************************************/
@@ -298,19 +303,37 @@ class Mix extends Model
             return collect();
         }
 
-        // Check if we should show the next round's songs for voting
-        // This happens when:
-        // 1. There's a song currently playing AND
-        // 2. That song is from the current round AND
-        // 3. There are very few (0 or 1) pending songs left in current round
+        // If there are pending songs in the lowest round, check if we should look ahead
         $pendingCountInLowestRound = $this->queueSongs()
             ->where('status', 'pending')
             ->where('round_number', $lowestRound)
             ->count();
 
-        // Modified condition: look ahead when 1 or 0 songs are left in current round
-        if ($pendingCountInLowestRound <= 1 && $currentlyPlayingSong && $currentlyPlayingSong->round_number == $lowestRound) {
-            // Find the next round's songs
+        // Get all playing + pending songs in the current round for context
+        $totalRoundSongsCount = $this->queueSongs()
+            ->whereIn('status', ['playing', 'pending'])
+            ->where('round_number', $lowestRound)
+            ->count();
+
+        // Get the batch size for the current round
+        $batchSize = $this->preset ? $this->preset->batch_size : 5;
+
+        $isLastSongOfRound = false;
+        // IMPORTANT: Only consider it the last song of the round if ALL other songs have been played
+        if ($currentlyPlayingSong && $currentlyPlayingSong->round_number == $lowestRound) {
+            // If the playing song is from this round AND there are NO pending songs left,
+            // then we're at the end of the round
+            $isLastSongOfRound = ($pendingCountInLowestRound === 0);
+        }
+
+        Log::debug("Round voting info - Round: {$lowestRound}, Playing: " .
+                   ($currentlyPlayingSong ? "Yes (round {$currentlyPlayingSong->round_number})" : 'No') .
+                   ", Pending in lowest round: {$pendingCountInLowestRound}, Total: {$totalRoundSongsCount}, Batch: {$batchSize}, isLastSong: " .
+                   ($isLastSongOfRound ? 'Yes' : 'No'));
+
+        // Look ahead to next round ONLY when it's truly the last song of the current round
+        if ($isLastSongOfRound) {
+            // Look for songs in the next round
             $nextRound = $lowestRound + 1;
             $nextRoundSongs = $this->queueSongs()
                 ->where('status', 'pending')
@@ -319,16 +342,20 @@ class Mix extends Model
                 ->get();
 
             if ($nextRoundSongs->isNotEmpty()) {
-                Log::info("Showing next round {$nextRound} for voting as round {$lowestRound} is ending");
+                Log::info("Showing next round {$nextRound} for voting as round {$lowestRound} has no pending songs left");
                 return $nextRoundSongs;
             }
         }
 
-        // Otherwise return current round's pending songs as usual
-        return $this->queueSongs()
+        // Otherwise, return current round's songs
+        $pendingSongs = $this->queueSongs()
             ->where('status', 'pending')
             ->where('round_number', $lowestRound)
             ->with(['song.user'])
             ->get();
+
+        Log::debug("Returning {$pendingSongs->count()} pending songs from round {$lowestRound}");
+
+        return $pendingSongs;
     }
 }

@@ -149,4 +149,36 @@ class QueueBuilderService
         return $ids;
     }
 
+    /**
+     * Build a queue using a specific set of song IDs
+     * This allows us to include newly added songs in queue extensions
+     */
+    public function buildQueueFromIds(Mix $mix, array $songIds, int $rounds): array
+    {
+        $batchSize = $mix->preset->batch_size;
+
+        if (empty($songIds)) {
+            Log::warning("No song IDs provided to build queue for mix {$mix->id}");
+            return [];
+        }
+
+        $songs = $mix->songs()->whereIn('id', $songIds)->get()->keyBy('id');
+
+        $ordered = [];
+        foreach ($songIds as $id) {
+            if (isset($songs[$id])) {
+                $ordered[] = $songs[$id];
+            }
+        }
+
+        if (empty($ordered)) {
+            Log::warning("No songs found for mix {$mix->id} with the provided IDs");
+            return [];
+        }
+
+        Log::debug("Building queue from specific IDs for mix {$mix->id}: Found " . count($ordered) . " songs");
+
+        // Assign rounds just like in the original method
+        return $this->assignRounds($ordered, $batchSize);
+    }
 }

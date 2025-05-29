@@ -7,10 +7,10 @@ use App\Http\Resources\SongResource;
 use App\Models\Mix;
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
-use Inertia\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\MixResource;
 use App\Services\Spotify\SpotifyService;
+use Illuminate\Support\Facades\Log;
 
 class ShowMixController extends Controller
 {
@@ -21,12 +21,12 @@ class ShowMixController extends Controller
         $songs = (clone $songsQuery)->paginate(20);
         $totalDuration = (clone $songsQuery)->sum('duration_ms');
 
-        $mixDuration = function() use ($totalDuration) {
+        $mixDuration = function () use ($totalDuration) {
             $hours = floor($totalDuration / 3600000);
             $minutes = floor(($totalDuration % 3600000) / 60000);
             return ($hours > 0 ? $hours . 'h ' : '') . $minutes . 'min';
         };
-        
+
         if (request()->wantsJson()) {
             return SongResource::collection($songs);
         }
@@ -45,9 +45,12 @@ class ShowMixController extends Controller
 
         $allPendingSongs = $mix->getAllPendingSongs();
 
+        Log::debug("ShowMixController: Got " . $allPendingSongs->count() . " pending songs from getAllPendingSongs(): " .
+           $allPendingSongs->pluck('song_id')->implode(', '));
+
         // Get votable songs after sorting
         $votableSongs = $mix->filterVotableSongs($allPendingSongs);
-        
+
         // Sort pending songs by rank (likes minus dislikes) in descending order
         $allPendingSongs = $allPendingSongs->sortByDesc(function ($song) {
             return ($song->like_count ?? 0) - ($song->dislike_count ?? 0);

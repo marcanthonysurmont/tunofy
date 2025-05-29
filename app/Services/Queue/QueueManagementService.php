@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Cache;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Playback\PlaybackStateManager;
 use App\Services\Playback\SongPlaybackService;
-use App\Services\Queue\QueueBuilderService;
 use App\Events\QueueStateUpdatedEvent;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Central service for all queue operations
@@ -242,45 +242,161 @@ class QueueManagementService
         }
     }
 
-    public function appendRoundsToQueue(Mix $mix, int $rounds = 1): array
+    public function appendRoundsToQueue(Mix $mix, int $numRounds = 1): array
     {
-        // Get current max round number
-        $lastRound = QueueSong::where('mix_id', $mix->id)->max('round_number') ?? 0;
-
-        // Get offset so we don't re-add already-queued songs
-        $totalQueued = QueueSong::where('mix_id', $mix->id)->count();
-
-        if (!Cache::has("mix_{$mix->id}_shuffled_ids")) {
-            $shuffledIds = $this->queueBuilderService->getShuffledSongIds($mix);
-            Cache::put("mix_{$mix->id}_shuffled_ids", $shuffledIds, now()->addHours(6));
+        // Get songs that are in the shuffle cache but not yet queued
+        $shuffledIds = Cache::get("mix_{$mix->id}_shuffled_ids", []);
+        if (empty($shuffledIds)) {
+            Log::info("Queue extension for mix {$mix->id}: Found 0 songs in shuffled IDs cache");
+            return ['success' => false, 'message' => 'No shuffled IDs found'];
         }
 
-        // Build next N rounds from that point
-        $queueBatches = $this->queueBuilderService->buildQueue($mix, $rounds, $offset = $totalQueued);
+        // Get IDs of songs already in the queue
+        $queuedSongIds = QueueSong::where('mix_id', $mix->id)->pluck('song_id')->toArray();
 
-        // IMPORTANT: For each round, reset the order counter to 1
-        $sessionId = $this->getActiveSessionId($mix);
+        // Filter out songs already in the queue
+        $nonQueuedSongIds = array_diff($shuffledIds, $queuedSongIds);
 
-        foreach ($queueBatches as $round => $songs) {
-            // Start order from 1 for each round
-            $orderInRound = 1;
+        // Only get enough songs to fill the requested number of rounds
+        $batchSize = $mix->preset->batch_size ?? 5;
+        $songsNeeded = $numRounds * $batchSize;
+        $availableIds = $nonQueuedSongIds;
+        shuffle($availableIds); // Randomly shuffle the available song IDs
+        $songIdsToQueue = array_slice($availableIds, 0, $songsNeeded);
 
-            foreach ($songs as $song) {
-                QueueSong::create([
-                    'mix_id' => $mix->id,
-                    'song_id' => $song->id,
-                    'playback_session_id' => $sessionId,
-                    'round_number' => $lastRound + $round,
-                    'order' => $orderInRound++, // Use order within round, then increment
-                    'status' => 'pending',
-                    'is_killed' => false,
-                ]);
+        if (empty($songIdsToQueue)) {
+            Log::info("Queue extension for mix {$mix->id}: Found 0 songs not yet queued out of " . count($shuffledIds) . " total shuffled songs");
+            return ['success' => false, 'message' => 'No additional songs to queue'];
+        }
+
+        Log::info("Queue extension for mix {$mix->id}: Found " . count($songIdsToQueue) . " songs not yet queued out of " . count($shuffledIds) . " total shuffled songs");
+
+        // Get current playing round with a direct query that guarantees accuracy
+        $playingRound = QueueSong::where('mix_id', $mix->id)
+            ->where('status', 'playing')
+            ->value('round_number');
+
+        // If no song is currently playing, check recently played songs to determine the active round
+        if (!$playingRound) {
+            // Try to determine the current round from recently played songs
+            $lastPlayedSong = QueueSong::where('mix_id', $mix->id)
+                ->where('status', 'played')
+                ->orderBy('updated_at', 'desc')
+                ->first();
+
+            if ($lastPlayedSong) {
+                $playingRound = $lastPlayedSong->round_number;
+                Log::info("Queue extension: No currently playing song found, using last played round: {$playingRound}");
+            } else {
+                // If no played songs either, check pending songs
+                $lowestPendingRound = QueueSong::where('mix_id', $mix->id)
+                    ->where('status', 'pending')
+                    ->min('round_number');
+
+                if ($lowestPendingRound) {
+                    // Assume the round before the lowest pending is either playing or just finished
+                    $playingRound = $lowestPendingRound;
+                    Log::info("Queue extension: No playing or played songs found, using lowest pending round as active: {$playingRound}");
+                } else {
+                    // Truly empty queue
+                    $playingRound = 0;
+                    Log::info("Queue extension: Completely empty queue for mix {$mix->id}, starting with round 1");
+                }
             }
+        }
+
+        // Log the playing round for debugging
+        Log::info("Queue extension: Final determined playing round for mix {$mix->id} is {$playingRound}");
+
+        // Get all pending rounds with their song counts
+        $pendingRounds = DB::table('queue_songs')
+            ->select('round_number', DB::raw('COUNT(*) as song_count'))
+            ->where('mix_id', $mix->id)
+            ->where('status', 'pending')
+            ->groupBy('round_number')
+            ->orderBy('round_number')
+            ->get();
+
+        $targetRound = null;
+        $songsInRound = 0;
+        $nextRoundAfterPlaying = $playingRound + 1;
+
+        // First check if there is a non-full round AFTER the playing round
+        foreach ($pendingRounds as $round) {
+            // Skip rounds that are currently playing or have already been played
+            if ($round->round_number <= $playingRound) {
+                Log::info("Queue extension: Skipping round {$round->round_number} because it's playing or already played");
+                continue;
+            }
+
+            // Use this round if it's not full and it's AFTER the playing round
+            if ($round->song_count < $batchSize) {
+                $targetRound = $round->round_number;
+                $songsInRound = $round->song_count;
+                Log::info("Queue extension: Using existing pending round {$targetRound} for mix {$mix->id} ({$songsInRound}/{$batchSize} songs)");
+                break;
+            }
+        }
+
+        // If we couldn't find a suitable round, create a new one
+        if ($targetRound === null) {
+            // Find the highest round number (even if it's not pending)
+            $highestRound = DB::table('queue_songs')
+                ->where('mix_id', $mix->id)
+                ->max('round_number') ?? 0;
+
+            $targetRound = max($highestRound + 1, $nextRoundAfterPlaying);
+            $songsInRound = 0;
+            Log::info("Queue extension: Creating NEW round {$targetRound} for mix {$mix->id}");
+        }
+
+        $session = $mix->playbackSession;
+        Log::info("Queue extension: Using session ID {$session->id} for mix {$mix->id}");
+        if (!$session) {
+            Log::error("Queue extension failed: No active session for mix {$mix->id}");
+            return ['success' => false, 'message' => 'No active session'];
+        }
+
+        $added = 0;
+
+        // Process each song ID directly without loading full song objects
+        foreach ($songIdsToQueue as $songId) {
+            // Check if this round is full, if so, move to next round
+            if ($songsInRound >= $batchSize) {
+                $targetRound++;
+                $songsInRound = 0;
+                $previousRound = $targetRound - 1;
+                Log::info("Queue extension: Round {$previousRound} full, moving to round {$targetRound}");
+            }
+
+            // Calculate position in the round
+            $position = $songsInRound + 1;
+
+            // Add to queue using just the ID
+            QueueSong::create([
+                'mix_id' => $mix->id,
+                'song_id' => $songId,
+                'playback_session_id' => $session->id,
+                'round_number' => $targetRound,
+                'order' => $position,
+                'status' => 'pending',
+                'is_killed' => false,
+            ]);
+
+            Log::info("Queue extension: Added song {$songId} to queue for mix {$mix->id} in round {$targetRound} (position {$position}/{$batchSize})");
+
+            $songsInRound++;
+            $added++;
+        }
+
+        if ($added > 0) {
+            event(new QueueStateUpdatedEvent($mix));
         }
 
         return [
             'success' => true,
-            'message' => "Appended {$rounds} more rounds to the queue"
+            'added' => $added,
+            'message' => "Added {$added} songs to queue"
         ];
     }
 

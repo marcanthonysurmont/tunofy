@@ -543,49 +543,6 @@ class SongPlaybackService
     }
 
     /**
-     * Checks if queue needs extension and extends it if necessary
-     */
-    public function checkAndExtendQueue(int $mixId): void
-    {
-        // Get the mix
-        $mix = Mix::find($mixId);
-        if (!$mix) {
-            Log::warning("Cannot extend queue: Mix {$mixId} not found");
-            return;
-        }
-
-        $pendingSongs = $this->playbackStateManager->getPendingSongCount($mix);
-
-        // If not cached, get the count from the database
-        if ($pendingSongs === null) {
-            $pendingSongs = QueueSong::where('mix_id', $mixId)
-                ->where('status', 'pending')
-                ->count();
-
-            // Cache the result via PlaybackStateManager
-            $this->playbackStateManager->setPendingSongCount($mix, $pendingSongs);
-        }
-
-        // Get batch size to determine threshold
-        $batchSize = $mix->preset->batch_size;
-
-        // If fewer than 1.5 batch sizes of songs remaining, add more rounds
-        if ($pendingSongs <= ($batchSize * 1.5)) {
-            Log::info("Queue for mix {$mixId} is running low ({$pendingSongs} songs left). Adding more rounds.");
-
-            // Add 2 more rounds instead of just 1
-            app(QueueManagementService::class)->appendRoundsToQueue($mix, 2);
-
-            // Immediately recalculate and update the pending count after adding rounds
-            $newPendingCount = QueueSong::where('mix_id', $mixId)
-                ->where('status', 'pending')
-                ->count();
-
-            $this->playbackStateManager->setPendingSongCount($mix, $newPendingCount);
-        }
-    }
-
-    /**
      * Public wrapper to check and extend queue
      */
     public function extendQueueIfNeeded(Mix $mix): bool
