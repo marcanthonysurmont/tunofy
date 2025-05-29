@@ -244,9 +244,7 @@ function addToPlaylist(song) {
         route("mix.add-song", mix.id),
         {
             preserveScroll: true,
-            only: ["songs", "success", "danger"],
-        },
-        {
+            only: ["songs", "mix", "mixDuration", "success", "error"],
             onSuccess: () => {
                 //add the song ID to the addedSongs set
                 //we do this because we want to track whichs songs have been added to avoid duplicate
