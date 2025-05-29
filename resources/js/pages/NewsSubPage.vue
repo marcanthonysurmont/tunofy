@@ -36,20 +36,21 @@
                         </p>
                     </div>
                 </div>
-                <div class="flex flex-row gap-2">
-                    <p>I</p>
-                    <p>X</p>
-                    <p>L</p>
+                <div class="flex flex-row gap-2.5">
+                    <Instagram class="size-6" />
+                    <Linkedin class="size-6" />
                 </div>
             </div>
         </div>
-        <h1 class="text-5xl font-semibold">Tunofy 1.0 just launched!</h1>
+        <h1 class="text-4xl sm:text-5xl font-semibold">
+            Tunofy 1.0 just launched!
+        </h1>
 
         <div class="mt-8">
-            <h2 class="text-2xl font-medium mb-2">
+            <h2 class="text-xl sm:text-2xl font-medium mb-2">
                 Revolutionizing Music Creation
             </h2>
-            <p class="text-lg mb-6 text-dark-white">
+            <p class="sm:text-lg mb-6 text-dark-white">
                 The music industry is experiencing a seismic shift as artificial
                 intelligence technology reaches unprecedented levels of
                 sophistication. Musicians and producers alike are discovering
@@ -59,10 +60,10 @@
                 impact of these innovations is spreading rapidly.
             </p>
 
-            <h2 class="text-2xl font-medium mb-2">
+            <h2 class="text-xl sm:text-2xl font-medium mb-2">
                 AI-Powered Music Generators
             </h2>
-            <p class="text-lg mb-6 text-dark-white">
+            <p class="sm:text-lg mb-6 text-dark-white">
                 A new wave of AI-powered music generators is not just creating
                 melodies but composing entire symphonies that rival human
                 creativity. Leading tech companies have unveiled platforms
@@ -72,8 +73,8 @@
                 opportunities across the industry.
             </p>
 
-            <h2 class="text-2xl font-medium mb-2">How It Works</h2>
-            <p class="text-lg mb-6 text-dark-white">
+            <h2 class="text-xl sm:text-2xl font-medium mb-2">How It Works</h2>
+            <p class="sm:text-lg mb-6 text-dark-white">
                 These sophisticated systems analyze millions of musical
                 patterns, harmonies, and structures from diverse datasets to
                 create uniquely compelling pieces that resonate with listeners
@@ -83,8 +84,8 @@
                 music that feels authentic and fresh.
             </p>
 
-            <h2 class="text-2xl font-medium mb-2">User Feedback</h2>
-            <p class="text-lg text-dark-white">
+            <h2 class="text-xl sm:text-2xl font-medium mb-2">User Feedback</h2>
+            <p class="sm:text-lg text-dark-white">
                 These sophisticated systems analyze millions of musical
                 patterns, harmonies, and structures from diverse datasets to
                 create uniquely compelling pieces that resonate with listeners
@@ -101,4 +102,5 @@
 import AppLayout from "@/layouts/AppLayout.vue";
 import { ChevronLeftIcon } from "@heroicons/vue/24/solid";
 import { Head, Link } from "@inertiajs/vue3";
+import { Instagram, Linkedin } from "lucide-vue-next";
 </script>
