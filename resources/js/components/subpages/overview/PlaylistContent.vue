@@ -3,7 +3,7 @@
         <button
             v-if="showButton"
             @click="scrollToTop"
-            class="fixed top-3 right-3 py-2 px-4 bg-primary text-white rounded flex items-center gap-x-1 cursor-pointer z-[99998]"
+            class="fixed top-3 right-3 py-2 px-4 bg-primary text-white rounded flex items-center gap-x-1 cursor-pointer z-[9998]"
         >
             <ArrowUpCircleIcon class="size-5 text-white" />
             <span class="text-sm font-medium">Scroll to top</span>

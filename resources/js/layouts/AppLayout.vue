@@ -81,11 +81,11 @@
 
         <!-- top part of navigation mobile-->
         <div
-            class="sticky top-0 z-40 flex items-center gap-x-6 bg-navbar-background/75 backdrop-blur-md px-2 py-2 shadow-xs sm:px-4 lg:hidden border-b-2 border-regular-stroke"
+            class="sticky top-0 z-50 flex items-center gap-x-6 bg-navbar-background/75 backdrop-blur-md px-2 py-2 shadow-xs sm:px-4 lg:hidden border-b-2 border-regular-stroke"
         >
             <button
                 type="button"
-                class="inline-flex items-center justify-center p-2.5 text-gray-400 lg:hidden"
+                class="inline-flex items-center justify-center p-2.5 text-white lg:hidden"
                 @click="sidebarOpen = true"
             >
                 <span class="sr-only">Open sidebar</span>

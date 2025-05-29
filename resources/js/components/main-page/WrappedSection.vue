@@ -3,7 +3,7 @@
         class="flex flex-col md:flex-row bg-cyan-600 rounded-2xl shadow-lg overflow-hidden relative"
     >
         <div
-            class="p-8 sm:p-12 flex flex-col justify-center text-center md:text-left gap-4 z-50"
+            class="p-8 sm:p-12 flex flex-col justify-center text-center md:text-left gap-4 z-40"
         >
             <h2 class="text-3xl md:text-4xl font-bold text-dark-white">
                 {{ title }}

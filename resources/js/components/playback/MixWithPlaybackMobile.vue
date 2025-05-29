@@ -208,7 +208,7 @@ const props = defineProps({
     queueActivationDisabled: {
         type: Boolean,
         required: true,
-    }
+    },
 });
 
 const emit = defineEmits([
