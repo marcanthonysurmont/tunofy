@@ -30,12 +30,13 @@
                         {{ news.teaser }}
                     </p>
                     <small class="text-zinc-400 mb-4">{{ news.date }}</small>
-                    <button
+                    <Link
+                        :href="route('news')"
                         class="self-start text-primary hover:text-blue-600 font-semibold cursor-pointer"
                         @click="handleReadMore(news.id)"
                     >
                         Read more &rarr;
-                    </button>
+                    </Link>
                 </div>
             </div>
 
@@ -65,6 +66,7 @@
 <script setup>
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/solid";
 import { ref, onMounted } from "vue";
+import { Link } from "@inertiajs/vue3";
 
 //container for the scrollable items
 const scrollContainer = ref(null);

@@ -52,6 +52,7 @@ use App\Http\Controllers\Application\Mixes\GetMixSongsController;
 use App\Http\Controllers\Auth\DeleteAccountController;
 
 use App\Http\Controllers\Application\Mixes\Voting\VoteSongController;
+use App\Http\Controllers\Application\ShowNewsPageController;
 
 Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function () {
     Route::middleware('auth')->group(function () {
@@ -100,6 +101,7 @@ Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function 
             Route::post('/transfer-playback/{mix}', TransferPlaybackController::class)->name('transfer-playback');
         });
 
+        Route::get('/news', ShowNewsPageController::class)->name('news');
         Route::get('/settings', ShowSettingsPageController::class)->name('settings');
         Route::get('/', ShowAppPageController::class)->name('app');
         Route::get('/remix', ShowRemixPageController::class)->name('remix');
