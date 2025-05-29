@@ -37,8 +37,8 @@
                     </div>
                 </div>
                 <div class="flex flex-row gap-2.5">
-                    <Instagram class="size-6" />
-                    <Linkedin class="size-6" />
+                    <Instagram class="size-5 sm:size-6" />
+                    <Linkedin class="size-5 sm:size-6" />
                 </div>
             </div>
         </div>
