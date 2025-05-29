@@ -14,12 +14,12 @@
                     class=""
                 >
                     <MagnifyingGlassIcon
-                        class="size-6 ml-4 transition-all duration-300"
+                        class="size-6 ml-3 transition-all duration-300"
                         :class="isFocused ? 'text-dark-white' : 'text-zinc-400'"
                         aria-hidden="true"
                     />
                     <ComboboxInput
-                        class="w-full bg-transparent text-dark-white placeholder-zinc-400 pl-4 pr-12 py-2 focus:outline-none"
+                        class="w-full bg-transparent text-dark-white placeholder-zinc-400 pl-3 pr-12 py-2 focus:outline-none"
                         @input="handleSearch"
                         placeholder="Search songs..."
                         autocomplete="off"

@@ -22,8 +22,7 @@
                     >
                         <span class="font-bold">{{ owner.name }}</span> •
                         {{ mix.mix_count }}
-                        {{ mix.mix_count === 1 ? "song" : "songs" }},
-                        approx.
+                        {{ mix.mix_count === 1 ? "song" : "songs" }}, approx.
                         {{ mixDuration }}
                     </span>
                 </div>
@@ -34,18 +33,6 @@
             <div
                 class="flex flex-row gap-3 justify-center items-center sm:justify-start"
             >
-                <!-- <UserPlusIcon
-                    class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
-                />
-                <UserMinusIcon
-                    class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
-                />
-                <ShieldExclamationIcon
-                    class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
-                />
-                <Cog8ToothIcon
-                    class="size-7 sm:size-9 text-dark-white cursor-pointer custom-item-hover"
-                /> -->
                 <SparklesIcon
                     v-if="authorization.isOwner"
                     @click="showUpdateThemeModal = true"
