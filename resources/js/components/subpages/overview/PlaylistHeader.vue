@@ -337,7 +337,7 @@ const showUpdateMixModal = ref(false);
 const showUpdateThemeModal = ref(false);
 const showImportSpotifyModal = ref(false);
 
-const mixDuration = page.props.mixDuration;
+const mixDuration = computed(() => page.props.mixDuration);
 
 const showMenuDropdown = computed(() => {
     return (

@@ -62,6 +62,7 @@
                 key-field="id"
                 v-slot="{ item, index }"
                 page-mode
+                :buffer="500"
             >
                 <div class="flex items-center w-full min-w-0">
                     <div
@@ -75,7 +76,9 @@
                         <div class="flex items-center gap-2 sm:gap-3">
                             <img
                                 v-lazy="{
-                                    src: item.image_url,
+                                    src:
+                                        item?.image_url ||
+                                        '/images/default-song.png',
                                     error: '/images/default-song.png',
                                     loading: '/images/default-song.png',
                                 }"
@@ -89,7 +92,7 @@
                                 <div
                                     class="text-zinc-400 text-xs sm:text-sm truncate"
                                 >
-                                    {{ item.artist }}
+                                    {{ item?.artist || "Unknown Artist" }}
                                 </div>
                             </div>
                         </div>
@@ -111,9 +114,13 @@
                             "
                         >
                             <img
-                                v-tippy="{ content: item.user.name }"
+                                v-tippy="{
+                                    content: item.user?.name || 'Unknown',
+                                }"
                                 v-lazy="{
-                                    src: item.user.avatar_url,
+                                    src:
+                                        item.user?.avatar_url ||
+                                        '/images/default-avatar.jpg',
                                     error: '/images/default-avatar.jpg',
                                     loading: '/images/default-avatar.jpg',
                                 }"
@@ -168,6 +175,7 @@ import axios from "axios";
 import { useTimeUtils } from "@/composables/useTimeUtils";
 import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
 import throttle from "lodash/throttle";
+import emitter from "@/eventBus.js";
 const { msToMinutes } = useTimeUtils();
 
 const page = usePage();
@@ -251,9 +259,17 @@ function updateWindowWidth() {
 //function that is executed when the user scrolls, throttled 200ms
 const throttledCheckScroll = throttle(checkScroll, 200);
 
+function handleSongAddedEvent(event) {
+    if (nextFetchURL.value !== null) {
+        return;
+    }
+    renderedSongs.value.push(event);
+}
+
 onMounted(() => {
     window.addEventListener("resize", updateWindowWidth);
     window.addEventListener("scroll", throttledCheckScroll);
+    emitter.on("song-added", handleSongAddedEvent);
 });
 onBeforeUnmount(() => {
     window.removeEventListener("resize", updateWindowWidth);

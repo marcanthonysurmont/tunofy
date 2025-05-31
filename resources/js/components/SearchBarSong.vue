@@ -146,6 +146,7 @@
 import { ref, computed, watch } from "vue";
 import axios from "axios";
 import { debounce } from "lodash";
+import emitter from "@/eventBus.js";
 
 import {
     Combobox,
@@ -240,22 +241,20 @@ function addToPlaylist(song) {
     form.artist = song.artists.map((artist) => artist.name).join(", ");
     form.image_url = song.album.images[0].url;
 
-    form.post(
-        route("mix.add-song", mix.id),
-        {
-            preserveScroll: true,
-            only: ["songs", "mix", "mixDuration", "success", "error"],
-            onSuccess: () => {
-                //add the song ID to the addedSongs set
-                //we do this because we want to track whichs songs have been added to avoid duplicate
-                //currently, this resets on reload but i will add a check to make sure it still shows a "checkmark" icon on songs that are in playlist
-                addedSongs.value.add(song.id);
-            },
-            onError: (error) => {
-                console.error("Error adding song:", error);
-            },
-        }
-    );
+    form.post(route("mix.add-song", mix.id), {
+        preserveScroll: true,
+        only: ["songs", "mix", "mixDuration", "your_mixes", "success", "error"],
+        onSuccess: () => {
+            //add the song ID to the addedSongs set
+            //we do this because we want to track whichs songs have been added to avoid duplicate
+            //currently, this resets on reload but i will add a check to make sure it still shows a "checkmark" icon on songs that are in playlist
+            addedSongs.value.add(song.id);
+            emitter.emit("song-added", song);
+        },
+        onError: (error) => {
+            console.error("Error adding song:", error);
+        },
+    });
 }
 
 //this function checks if a song has been added
