@@ -7,6 +7,7 @@ use App\Http\Requests\GenerateMixCodeRequest;
 use App\Models\Mix;
 use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class GenerateMixCodeController extends Controller
 {
@@ -15,16 +16,26 @@ class GenerateMixCodeController extends Controller
         $validated = $request->validated();
 
         try {
-            $code = Str::random(5);
+            $normalCode = Str::random(5);
+            $code = Str::upper($normalCode);
 
             $mix->update([
-                'session_code' => Str::upper($code),
+                'session_code' => $code,
                 'session_code_permission' => $validated['session_code_permission'],
                 'session_code_expires_at' => now()->addMinutes(30),
             ]);
 
+            $qrCode = QrCode::size(300)->generate(
+                route('mix.join', ['session_code' => $code])
+            );
+
+            $qrCodeBase64 = base64_encode($qrCode);
+
             return redirect()->back()
-                ->with(['success' => $mix->session_code]);
+                ->with([
+                    'session_code' => $mix->session_code,
+                    'qr_code' => $qrCodeBase64
+                ]);
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('danger', 'Failed to generate mix code');
