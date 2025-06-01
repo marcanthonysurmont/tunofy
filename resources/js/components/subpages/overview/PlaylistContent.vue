@@ -271,6 +271,7 @@ onMounted(() => {
     window.addEventListener("scroll", throttledCheckScroll);
     emitter.on("song-added", handleSongAddedEvent);
 });
+
 onBeforeUnmount(() => {
     window.removeEventListener("resize", updateWindowWidth);
     window.removeEventListener("scroll", throttledCheckScroll);

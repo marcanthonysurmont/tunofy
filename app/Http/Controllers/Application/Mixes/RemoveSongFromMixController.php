@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Application\Mixes;
 
+use App\Events\SongDeletedEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Song;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +17,8 @@ class RemoveSongFromMixController extends Controller
             $mix = $song->mix;
 
             $song->delete();
+
+            SongDeletedEvent::dispatch($mix, $song);
 
             $mix->update(['mix_count' => $mix->mix_count - 1]);
     
