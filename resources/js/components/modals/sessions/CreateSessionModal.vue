@@ -63,9 +63,9 @@
                         </div>
                     </div>
 
-                    <!-- Fixed Height Container -->
+                    <!-- fixed height container to avoid jumping -->
                     <div class="h-24 sm:h-32 flex items-center justify-center">
-                        <!-- Code Tab Content -->
+                        <!-- session code tab -->
                         <div
                             v-if="activeTab === 'code'"
                             class="border-2 border-zinc-800 rounded-lg p-6 text-center relative w-full"
@@ -86,7 +86,7 @@
                             />
                         </div>
 
-                        <!-- QR Code Tab Content -->
+                        <!-- qr code tab -->
                         <div
                             v-if="activeTab === 'qr'"
                             class="flex items-center justify-center w-full h-full"
