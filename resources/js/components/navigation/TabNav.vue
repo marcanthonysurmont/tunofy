@@ -89,9 +89,9 @@ function isActiveTab(index) {
 }
 
 function handleTabClick(tabName, index) {
-    if (tabName === "Voting" && !props.tabs[index].votingActive) {
-        return;
-    }
+    // if (tabName === "Voting" && !props.tabs[index].votingActive) {
+    //     return;
+    // }
     emit("tab-changed", tabName);
     scrollToTab(index);
 

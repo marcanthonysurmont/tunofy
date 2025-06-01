@@ -24,6 +24,11 @@ export const usePlaylistStore = defineStore("playlist", () => {
     function setIsFetching(val) {
         isFetching.value = val;
     }
+    function reset(){
+        renderedSongs.value = [];
+        nextFetchURL.value = null;
+        isFetching.value = false;
+    }
 
     return {
         renderedSongs,
@@ -35,5 +40,6 @@ export const usePlaylistStore = defineStore("playlist", () => {
         removeSong,
         setNextFetchURL,
         setIsFetching,
+        reset
     };
 });

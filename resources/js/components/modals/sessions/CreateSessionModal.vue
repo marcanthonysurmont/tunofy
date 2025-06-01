@@ -7,14 +7,14 @@
         "
         @submit-from-enter="generateCode"
     >
-        <template #title>
-            <h1 class="text-4xl" v-if="!codeGenerated">Generate Code</h1>
+        <template #title v-if="!codeGenerated">
+            <h1 class="text-3xl sm:text-4xl">Generate Code</h1>
             <p
-                class="text-red-400 flex items-center gap-1 mt-2"
+                class="text-red-400 flex items-center gap-1 mt-2 text-sm sm:text-base"
                 v-if="mix.session_code !== null && !codeGenerated"
             >
-                <ExclamationCircleIcon class="size-5" /> This will override your
-                other generated code.
+                <ExclamationCircleIcon class="size-5 hidden sm:flex" />
+                This will override your other generated code.
             </p>
         </template>
         <template #body>

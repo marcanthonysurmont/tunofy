@@ -16,7 +16,7 @@
                 <div
                     class="modern-border relative m-auto flex w-4/5 max-w-xl flex-col justify-center gap-4 overflow-hidden rounded-xl bg-modal-background border-2 border-modal-stroke p-8"
                 >
-                    <header class="mb-6">
+                    <header :class="slots.title ? 'mb-6' : ''">
                         <slot name="title"></slot>
                     </header>
                     <main>
@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, watch, onUnmounted } from "vue";
+import { defineProps, defineEmits, watch, onUnmounted, useSlots } from "vue";
 import { XMarkIcon } from "@heroicons/vue/24/outline";
 
 const props = defineProps({
@@ -45,6 +45,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["closeModal", "submitFromEnter"]);
+const slots = useSlots();
 
 function closeModal() {
     console.log("closeModal");
