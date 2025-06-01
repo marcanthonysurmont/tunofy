@@ -113,20 +113,22 @@ class MixPolicy
         if ($mix->co_dj_id && $user->type === 'premium') {
             return $user->id === $mix->co_dj_id;
         }
-        
+
         // Otherwise, only the owner can control playback
         return $user->id === $mix->user_id;
     }
 
-    public function removeUserMixAccess(User $user, Mix $mix): bool
+    public function removeUserMixAccess(User $user, Mix $mix, int $targetUserId = null): bool
     {
-        if($user->id === $mix->user_id) {
+        // Mix owner can remove anyone's access
+        if ($user->id === $mix->user_id) {
             return true;
         }
 
-        return $user->accessibleMixes()
+        // Non-owners can only remove themselves
+        return $targetUserId && $user->id === $targetUserId && $user->accessibleMixes()
             ->where('mix_id', $mix->id)
-            ->where('user_id', $user->id)
+            ->where('mix_accesses.user_id', $user->id)
             ->exists();
     }
 }
