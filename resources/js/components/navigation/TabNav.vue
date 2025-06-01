@@ -1,7 +1,7 @@
 <template>
     <div class="mb-12">
         <div
-            class="flex md:items-center justify-between md:flex-row flex-col gap-6"
+            class="flex md:items-center justify-between md:flex-row flex-col gap-6 md:flex-wrap"
         >
             <div class="relative w-full md:w-auto">
                 <nav

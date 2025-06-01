@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Application\Mixes;
 
+use App\Events\SongAddedEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AddSongToMixRequest;
 use App\Models\GlobalUserStat;
@@ -42,6 +43,8 @@ class AddSongToMixController extends Controller
             ]);
 
             $mix->update(['mix_count' => $mix->mix_count + 1]);
+
+            SongAddedEvent::dispatch($mix, $song);
 
             GlobalUserStat::updateOrCreate(
                 [
