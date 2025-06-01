@@ -248,6 +248,9 @@ window.addEventListener("popstate", (event) => {
     });
 });
 
+import { usePlaylistStore } from "@/stores/StorePlaylistContent.js";
+const playlistStore = usePlaylistStore();
+
 onMounted(() => {
     Echo.channel(`mix.${props.value.mix.id}`)
         .listen(".vote-updated", () => {
@@ -259,6 +262,16 @@ onMounted(() => {
                 only: ["allPendingSongs", "votableSongs", "success", "danger"],
             });
             console.log("Queue state updated");
+        })
+        .listen(".song.added", (e) => {
+            //if there are more pagination links --> early return
+            if (playlistStore.nextFetchURL !== null) {
+                return;
+            }
+            playlistStore.addSong(e.song);
+        })
+        .listen(".song.deleted", (e) => {
+            playlistStore.removeSong(e.song.id);
         });
 });
 </script>

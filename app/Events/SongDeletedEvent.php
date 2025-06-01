@@ -14,8 +14,10 @@ class SongDeletedEvent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public Mix $mix , public Song $song)
-    {}
+    public function __construct(public Mix $mix, public Song $song)
+    {
+        $this->dontBroadcastToCurrentUser();
+    }
 
     public function broadcastOn(): array
     {

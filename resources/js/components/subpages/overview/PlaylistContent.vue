@@ -52,12 +52,12 @@
 
         <!-- songs w/ virtual list implementation -->
         <div
-            v-if="renderedSongs.length > 0"
-            :class="isFetching ? 'mb-4' : 'mb-32'"
+            v-if="playlistStore.renderedSongs.length > 0"
+            :class="playlistStore.isFetching ? 'mb-4' : 'mb-32'"
         >
             <RecycleScroller
                 class="scroller"
-                :items="renderedSongs"
+                :items="playlistStore.renderedSongs"
                 :item-size="windowWidth < 640 ? 64 : 80"
                 key-field="id"
                 v-slot="{ item, index }"
@@ -148,10 +148,13 @@
                 </div>
             </RecycleScroller>
         </div>
-        <div v-if="isFetching" class="mb-32 flex justify-center w-full">
+        <div
+            v-if="playlistStore.isFetching"
+            class="mb-32 flex justify-center w-full"
+        >
             <SpinningCircle />
         </div>
-        <div v-if="renderedSongs.length === 0" class="mb-32 mt-8">
+        <div v-if="playlistStore.renderedSongs.length === 0" class="mb-32 mt-8">
             <p
                 class="text-white text-left text-base"
                 v-if="authorization.canAddSong"
@@ -176,39 +179,37 @@ import { useTimeUtils } from "@/composables/useTimeUtils";
 import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
 import throttle from "lodash/throttle";
 import emitter from "@/eventBus.js";
+import { usePlaylistStore } from "@/stores/StorePlaylistContent.js";
+
 const { msToMinutes } = useTimeUtils();
+const playlistStore = usePlaylistStore();
 
 const page = usePage();
 const props = computed(() => page.props);
 const songs = computed(() => props.value.songs);
 const authorization = computed(() => page.props.mix.authorized);
 const showButton = ref(false);
-const renderedSongs = ref(songs.value.data);
 
 const windowWidth = ref(window.innerWidth);
 
-const isFetching = ref(false);
-const nextFetchURL = ref(songs.value.links.next);
+const isDeleting = ref(false);
+
 async function fetchMoreSongs() {
-    if (isFetching.value || nextFetchURL.value === null) {
+    if (playlistStore.isFetching || playlistStore.nextFetchURL === null) {
         return;
     }
-    isFetching.value = true;
-    console.log("Fetching more songs...", isFetching.value);
-
+    playlistStore.setIsFetching(true);
     try {
-        const response = await axios.get(nextFetchURL.value, {
+        const response = await axios.get(playlistStore.nextFetchURL, {
             headers: { Accept: "application/json" },
         });
-        console.log("Fetched more songs:", response.data);
-        renderedSongs.value = [...renderedSongs.value, ...response.data.data];
-        nextFetchURL.value = response.data.links.next;
+        playlistStore.addSongs(response.data.data);
+        playlistStore.setNextFetchURL(response.data.links.next);
     } finally {
-        isFetching.value = false;
+        playlistStore.setIsFetching(false);
     }
 }
 
-const isDeleting = ref(false);
 function deleteSong(id) {
     if (isDeleting.value) {
         return;
@@ -217,8 +218,8 @@ function deleteSong(id) {
     router.delete(route("mix.remove-song", id), {
         preserveScroll: true,
         onSuccess: () => {
-            renderedSongs.value = renderedSongs.value.filter(
-                (song) => song.id !== id
+            playlistStore.setSongs(
+                playlistStore.renderedSongs.filter((song) => song.id !== id)
             );
             //added for edge case
             //if user loads page, doesnt scroll and delete items it previously would corrupt the infinite scroll
@@ -240,13 +241,9 @@ function scrollToTop() {
 
 function checkScroll() {
     showButton.value = window.scrollY > 600;
-
     const scrollPosition = window.scrollY + window.innerHeight;
-
-    //300px from bottom
     const nearBottom =
         document.documentElement.scrollHeight - scrollPosition < 300;
-
     if (nearBottom) {
         fetchMoreSongs();
     }
@@ -256,22 +253,26 @@ function updateWindowWidth() {
     windowWidth.value = window.innerWidth;
 }
 
-//function that is executed when the user scrolls, throttled 200ms
 const throttledCheckScroll = throttle(checkScroll, 200);
 
 function handleSongAddedEvent(event) {
-    if (nextFetchURL.value !== null) {
+    if (playlistStore.nextFetchURL !== null) {
         return;
     }
-    renderedSongs.value.push(event);
+    playlistStore.setSongs([...playlistStore.renderedSongs, event]);
 }
 
+//initialize store state on first mount or when songs change (e.g. on page reload)
 onMounted(() => {
+    //only initialize if the store is empty (prevents overwriting on tab switch)
+    if (playlistStore.renderedSongs.length === 0) {
+        playlistStore.setSongs(songs.value.data);
+        playlistStore.setNextFetchURL(songs.value.links.next);
+    }
     window.addEventListener("resize", updateWindowWidth);
     window.addEventListener("scroll", throttledCheckScroll);
     emitter.on("song-added", handleSongAddedEvent);
 });
-
 onBeforeUnmount(() => {
     window.removeEventListener("resize", updateWindowWidth);
     window.removeEventListener("scroll", throttledCheckScroll);
