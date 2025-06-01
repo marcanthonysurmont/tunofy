@@ -117,4 +117,16 @@ class MixPolicy
         // Otherwise, only the owner can control playback
         return $user->id === $mix->user_id;
     }
+
+    public function removeUserMixAccess(User $user, Mix $mix): bool
+    {
+        if($user->id === $mix->user_id) {
+            return true;
+        }
+
+        return $user->accessibleMixes()
+            ->where('mix_id', $mix->id)
+            ->where('user_id', $user->id)
+            ->exists();
+    }
 }

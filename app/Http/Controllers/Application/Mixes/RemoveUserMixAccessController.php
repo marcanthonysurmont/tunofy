@@ -11,6 +11,8 @@ class RemoveUserMixAccessController extends Controller
 {
     public function __invoke(RemoveUserMixAccessRequest $request, Mix $mix)
     {
+        $this->authorize('removeUserMixAccesss', $mix);
+
         $validated = $request->validated();
         
         MixAccess::where('mix_id', $mix->id)
