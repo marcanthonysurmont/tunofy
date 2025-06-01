@@ -22,6 +22,8 @@ class HandleInertiaRequests extends Middleware
             'user' => Auth::user(),
             'success' => session('success'),
             'danger' => session('error'),
+            'qr_code' => session('qr_code'),
+            'session_code' => session('session_code'),
         ];
     }
 }

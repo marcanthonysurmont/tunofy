@@ -29,10 +29,12 @@ class GenerateMixCodeController extends Controller
                 route('mix.join', ['session_code' => $code])
             );
 
+            $qrCodeBase64 = base64_encode($qrCode);
+
             return redirect()->back()
                 ->with([
-                    'success' => $mix->session_code, 
-                    'qr_code' => $qrCode
+                    'session_code' => $mix->session_code,
+                    'qr_code' => $qrCodeBase64
                 ]);
         } catch (\Exception $e) {
             return redirect()->back()

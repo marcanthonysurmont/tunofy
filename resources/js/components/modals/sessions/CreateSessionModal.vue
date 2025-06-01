@@ -31,25 +31,84 @@
             </div>
             <div v-else class="flex flex-col items-center">
                 <div class="mb-4 text-center">
-                    <h1 class="text-4xl mb-8">Your session code is ready!</h1>
-                    <div
-                        class="border-2 border-zinc-800 rounded-lg p-6 text-center relative"
-                    >
-                        <p class="text-2xl font-semibold">{{ sessionCode }}</p>
-                        <ClipboardDocumentIcon
-                            v-if="!copied"
-                            @click="copyToClipboard"
-                            class="absolute right-4 top-1/2 transform -translate-y-1/2 size-9 text-dark-white cursor-pointer p-1"
-                        />
+                    <h1 class="text-3xl sm:text-4xl mb-8">
+                        Your session code is ready!
+                    </h1>
 
-                        <CheckIcon
-                            v-if="copied"
-                            class="absolute right-4 top-1/2 transform -translate-y-1/2 size-9 text-green-600 p-1"
-                        />
+                    <!-- tabs -->
+                    <div class="mb-4">
+                        <div class="flex justify-center gap-8">
+                            <button
+                                @click="activeTab = 'code'"
+                                :class="[
+                                    'pb-2 text-sm font-medium transition-colors',
+                                    activeTab === 'code'
+                                        ? 'text-white border-b-2 border-blue-500'
+                                        : 'text-zinc-400 hover:text-zinc-200',
+                                ]"
+                            >
+                                Code
+                            </button>
+                            <button
+                                @click="activeTab = 'qr'"
+                                :class="[
+                                    'pb-2 text-sm font-medium transition-colors',
+                                    activeTab === 'qr'
+                                        ? 'text-white border-b-2 border-blue-500'
+                                        : 'text-zinc-400 hover:text-zinc-200',
+                                ]"
+                            >
+                                QR Code
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Fixed Height Container -->
+                    <div class="h-24 sm:h-32 flex items-center justify-center">
+                        <!-- Code Tab Content -->
+                        <div
+                            v-if="activeTab === 'code'"
+                            class="border-2 border-zinc-800 rounded-lg p-6 text-center relative w-full"
+                        >
+                            <p class="text-2xl font-semibold">
+                                {{ sessionCode }}
+                            </p>
+
+                            <ClipboardDocumentIcon
+                                v-if="!copied"
+                                @click="copyToClipboard"
+                                class="absolute right-4 top-1/2 transform -translate-y-1/2 size-9 text-dark-white cursor-pointer p-1"
+                            />
+
+                            <CheckIcon
+                                v-if="copied"
+                                class="absolute right-4 top-1/2 transform -translate-y-1/2 size-9 text-green-600 p-1"
+                            />
+                        </div>
+
+                        <!-- QR Code Tab Content -->
+                        <div
+                            v-if="activeTab === 'qr'"
+                            class="flex items-center justify-center w-full h-full"
+                        >
+                            <img
+                                v-if="qrcode"
+                                :src="`data:image/svg+xml;base64,${qrcode}`"
+                                alt="QR Code"
+                                class="max-h-full max-w-full object-contain"
+                            />
+                            <p v-else class="text-zinc-400 text-sm">
+                                QR Code not available
+                            </p>
+                        </div>
                     </div>
                 </div>
                 <p class="text-sm text-zinc-200 mb-4 text-center">
-                    Share this code with others to give them
+                    {{
+                        activeTab === "code"
+                            ? `Share this code with others to give them `
+                            : `Share this QR code with others to give them `
+                    }}
                     <span class="font-bold">{{ selectedMethod }}</span> access
                     to your mix.
                 </p>
@@ -107,9 +166,11 @@ const notificationMethods = [
 const selectedMethod = ref("viewer");
 const page = usePage();
 const mix = computed(() => page.props.mix);
+const qrcode = ref(null);
 const codeGenerated = ref(false);
 const sessionCode = ref(mix.value.session_code);
 const copied = ref(false);
+const activeTab = ref("code");
 
 defineProps({
     isVisible: Boolean,
@@ -129,6 +190,7 @@ function resetState() {
     form.clearErrors();
     codeGenerated.value = false;
     selectedMethod.value = "viewer";
+    activeTab.value = "code";
 }
 
 function generateCode() {
@@ -149,8 +211,9 @@ function generateCode() {
         },
         onSuccess: (response) => {
             codeGenerated.value = true;
+            qrcode.value = response?.props?.qr_code || null;
             sessionCode.value =
-                response?.props?.mix?.session_code || "Code not found";
+                response?.props?.session_code || "Code not found";
         },
         onError: (errors) => {
             console.log(selectedMethod.value);
@@ -158,6 +221,7 @@ function generateCode() {
         },
     });
 }
+
 function copyToClipboard() {
     navigator.clipboard.writeText(sessionCode.value).then(() => {
         //set copied to true to show the checkmark
