@@ -23,7 +23,7 @@
     @routes
 </head>
 
-<body class="bg-background-page text-dark-white mx-auto h-full" id="body">
+<body class="bg-background-page text-dark-white mx-auto h-full overflow-y-scroll" id="body">
     @inertia
 </body>
 
