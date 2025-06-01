@@ -10,12 +10,11 @@
         </button>
     </transition>
 
-    <div>
+    <div class="mt-4">
         <!-- header row -->
-        <div
-            class="mt-8 border-b border-zinc-800 flex items-center w-full min-w-0"
-        >
+        <div class="border-b border-zinc-800 flex items-center w-full min-w-0">
             <div
+                v-if="windowWidth >= 640"
                 class="py-3.5 pr-1 sm:pr-3 text-left text-sm font-semibold text-zinc-200 w-6 sm:w-10 flex-shrink-0"
             >
                 #
@@ -26,6 +25,7 @@
                 Song
             </div>
             <div
+                v-if="windowWidth >= 640"
                 class="px-1 sm:px-3 py-3.5 text-left text-sm font-semibold text-zinc-200 w-14 sm:w-20 flex-shrink-0"
             >
                 Time
@@ -66,6 +66,7 @@
             >
                 <div class="flex items-center w-full min-w-0">
                     <div
+                        v-if="windowWidth >= 640"
                         class="py-2 sm:py-4 pr-1 sm:pr-3 text-sm text-zinc-100 w-8 sm:w-10 flex-shrink-0"
                     >
                         {{ index + 1 }}
@@ -98,6 +99,7 @@
                         </div>
                     </div>
                     <div
+                        v-if="windowWidth >= 640"
                         class="px-1 sm:px-3 py-2 sm:py-4 text-sm text-zinc-400 w-14 sm:w-20 flex-shrink-0"
                     >
                         {{ msToMinutes(item.duration_ms) }}
@@ -240,7 +242,8 @@ function scrollToTop() {
 }
 
 function checkScroll() {
-    showButton.value = window.scrollY > 600;
+    showButton.value = window.scrollY > 1900;
+
     const scrollPosition = window.scrollY + window.innerHeight;
     const nearBottom =
         document.documentElement.scrollHeight - scrollPosition < 300;

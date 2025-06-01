@@ -1,38 +1,66 @@
 <template>
     <div class="flex flex-col gap-2">
         <div
-            class="flex flex-col sm:flex-row gap-4 md:gap-8 w-full items-center relative z-10 py-2 pr-2"
+            class="flex flex-col sm:flex-row gap-4 md:gap-8 w-full items-center relative z-10"
         >
             <img
                 :src="getImageUrl(mix)"
-                class="size-40 sm:size-64 object-cover flex-shrink-0 rounded-md"
+                class="size-56 sm:size-64 object-cover flex-shrink-0 rounded-md"
             />
 
             <div
-                class="flex flex-col justify-center items-center sm:items-start gap-3 flex-1 overflow-hidden min-w-0 py-2 text-center sm:text-left"
+                class="flex flex-col justify-start w-full items-center sm:items-start gap-1 flex-1 overflow-hidden min-w-0 text-left"
             >
                 <h1
-                    class="text-3xl sm:text-4xl md:text-5xl text-white font-normal mt-0 mb-0 leading-none truncate w-full sm:text-nowrap text-wrap"
+                    class="text-2xl sm:text-4xl md:text-5xl text-white font-medium mt-0 mb-0 leading-none truncate w-full sm:text-nowrap text-wrap"
                 >
                     {{ mix.name }}
                 </h1>
-                <div class="flex flex-col sm:flex-row items-center">
-                    <span
-                        class="text-dark-white text-base sm:text-lg mt-0 mb-0 leading-none"
+
+                <div class="flex flex-col sm:flex-row sm:items-center w-full">
+                    <!-- Desktop combined line -->
+                    <div
+                        class="hidden sm:flex items-center gap-2 text-zinc-300 text-sm sm:text-base"
                     >
-                        <span class="font-bold">{{ owner.name }}</span> •
-                        {{ mix.mix_count }}
-                        {{ mix.mix_count === 1 ? "song" : "songs" }}, approx.
-                        {{ mixDuration }}
-                    </span>
+                        <img
+                            :src="owner.avatar_url"
+                            class="size-5 sm:size-6 rounded-full"
+                        />
+                        <span class="font-medium text-dark-white">{{
+                            owner.name
+                        }}</span>
+                        <span>•</span>
+                        <span
+                            >{{ mix.mix_count }}
+                            {{ mix.mix_count === 1 ? "song" : "songs" }}</span
+                        >
+                        <span>•</span>
+                        <span>{{ mixDuration }}</span>
+                    </div>
+
+                    <!-- Mobile stacked -->
+                    <div class="flex sm:hidden flex-col items-start gap-1">
+                        <div class="flex items-center gap-2">
+                            <img
+                                :src="owner.avatar_url"
+                                class="size-5 sm:size-6 rounded-full"
+                            />
+                            <span
+                                class="font-medium text-dark-white text-sm sm:text-lg"
+                            >
+                                {{ owner.name }}
+                            </span>
+                        </div>
+                        <span class="text-zinc-300 text-sm sm:text-base">
+                            {{ mixDuration }}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="flex flex-col sm:flex-row gap-3 mt-2 sm:mt-0">
-            <div
-                class="flex flex-row gap-3 justify-center items-center sm:justify-start"
-            >
+        <div class="flex flex-col sm:flex-row gap-3 mt-2">
+            <div class="flex flex-row gap-3 items-center sm:justify-start">
                 <SparklesIcon
                     v-if="authorization.isOwner"
                     @click="showUpdateThemeModal = true"
