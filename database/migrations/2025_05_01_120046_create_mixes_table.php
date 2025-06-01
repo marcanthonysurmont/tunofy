@@ -13,6 +13,7 @@ return new class () extends Migration {
             $table->string('name');
             $table->string('slug');
             $table->string('session_code')->nullable();
+            $table->text('session_code_qr')->nullable();
             $table->timestamp('session_code_expires_at')->nullable();
             $table->enum('session_code_permission', ['viewer', 'contributor', 'editor'])->nullable();
             $table->boolean('is_public');

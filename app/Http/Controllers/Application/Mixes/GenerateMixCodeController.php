@@ -18,16 +18,18 @@ class GenerateMixCodeController extends Controller
         try {
             $normalCode = Str::random(5);
             $code = Str::upper($normalCode);
+            
+            $qrCode = QrCode::size(300)->generate(
+                route('mix.join', ['session_code' => $code])
+            );
 
             $mix->update([
                 'session_code' => $code,
+                'session_code_qr' => $qrCode,
                 'session_code_permission' => $validated['session_code_permission'],
                 'session_code_expires_at' => now()->addMinutes(30),
             ]);
 
-            $qrCode = QrCode::size(300)->generate(
-                route('mix.join', ['session_code' => $code])
-            );
 
             $qrCodeBase64 = base64_encode($qrCode);
 

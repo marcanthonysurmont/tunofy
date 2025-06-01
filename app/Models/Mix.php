@@ -22,6 +22,7 @@ class Mix extends Model
         'name',
         'slug',
         'session_code',
+        'session_code_qr',
         'session_code_expires_at',
         'session_code_permission',
         'is_public',

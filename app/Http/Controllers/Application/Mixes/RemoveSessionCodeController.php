@@ -13,6 +13,7 @@ class RemoveSessionCodeController extends Controller
         try {
             $mix->update([
                 'session_code' => null,
+                'session_code_qr' => null,
                 'session_code_expires_at' => null,
             ]);
 
