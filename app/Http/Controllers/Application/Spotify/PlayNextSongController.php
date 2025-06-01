@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Application\Spotify;
 use App\Events\QueueStateUpdatedEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
-use App\Services\Playback\PlaybackService;
 use App\Services\Playback\SongPlaybackService;
 use Illuminate\Http\JsonResponse;
 use App\Events\PlaybackDataUpdatedEvent;
@@ -18,6 +17,7 @@ use App\Models\QueueSong;
 use Illuminate\Support\Facades\Auth;
 use App\Models\MixStat;
 use Illuminate\Support\Facades\DB;
+use App\Events\StatUpdatedEvent;
 
 class PlayNextSongController extends Controller
 {
@@ -98,6 +98,8 @@ class PlayNextSongController extends Controller
                 'minutes_played' => DB::raw('minutes_played + ' . $playbackData['progress_ms'] / 60000),
             ]
         );
+
+        StatUpdatedEvent::dispatch($mix);
 
         // Check if queue is completed
         if (!$nextSong) {

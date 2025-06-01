@@ -15,6 +15,7 @@ use App\Services\Playback\PlaybackStateManager;
 use App\Events\QueueStateUpdatedEvent;
 use App\Models\MixStat;
 use Illuminate\Support\Facades\DB;
+use App\Events\StatUpdatedEvent;
 
 class PlayPreviousSongController extends Controller
 {
@@ -90,6 +91,8 @@ class PlayPreviousSongController extends Controller
                 'minutes_played' => DB::raw('minutes_played + ' . $oldPlaybackData['progress_ms'] / 60000),
             ]
         );
+
+        StatUpdatedEvent::dispatch($mix);
 
         if ($deviceId) {
             // Only activate if not recently activated

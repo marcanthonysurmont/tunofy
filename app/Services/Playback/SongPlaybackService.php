@@ -16,6 +16,7 @@ use App\Events\DeviceUpdatedEvent;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Queue\QueueManagementService;
 use App\Models\MixStat;
+use App\Events\StatUpdatedEvent;
 
 class SongPlaybackService
 {
@@ -104,6 +105,8 @@ class SongPlaybackService
                 'minutes_played' => DB::raw('minutes_played + ' . $playbackData['progress_ms'] / 60000),
             ]
         );
+
+        StatUpdatedEvent::dispatch($mix);
 
         if ($currentlyPlaying) {
             // If this song doesn't have a session, associate it now

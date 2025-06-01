@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Application\Spotify;
 
 use App\Events\MixStatusChangedEvent;
-use App\Events\QueueStateUpdatedEvent;
+use App\Events\StatUpdatedEvent;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -232,6 +232,8 @@ class SetMixActiveController extends Controller
                         'minutes_played' => DB::raw('minutes_played + ' . $playbackData['progress_ms'] / 60000),
                     ]
                 );
+
+                StatUpdatedEvent::dispatch($mix);
 
                 GlobalUserStat::updateOrCreate(
                     [

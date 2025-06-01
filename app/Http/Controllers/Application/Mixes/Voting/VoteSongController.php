@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Application\Mixes\Voting;
 
+use App\Events\StatUpdatedEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\VoteSongRequest;
 use App\Models\GlobalUserStat;
@@ -162,6 +163,7 @@ class VoteSongController extends Controller
             }
 
             VoteUpdatedEvent::dispatch($mix);
+            StatUpdatedEvent::dispatch($mix);
 
             return redirect()->back();
         } catch (Exception $e) {

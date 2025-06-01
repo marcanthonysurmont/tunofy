@@ -291,6 +291,9 @@ onMounted(() => {
                     "danger",
                 ],
             });
+        })
+        .listen(".stat.updated", () => {
+            router.reload({ only: ["mixStats", "success", "error"] });
         });
 });
 </script>

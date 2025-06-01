@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\PlaybackSession;
 use App\Models\QueueSong;
 use App\Services\QueueManagementService;
+use App\Events\StatUpdatedEvent;
 
 class AddSongToMixController extends Controller
 {
@@ -76,6 +77,8 @@ class AddSongToMixController extends Controller
                     'songs_added' => DB::raw('songs_added + 1'),
                 ],
             );
+
+            StatUpdatedEvent::dispatch($mix);
 
             $session = PlaybackSession::where('mix_id', $mix->id)
                 ->where('is_active', true)
