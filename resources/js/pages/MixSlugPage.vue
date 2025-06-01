@@ -65,6 +65,7 @@ import SkeletonPresetsSubPage from "@/components/skeletons/SkeletonPresetsSubPag
 import SkeletonDefault from "@/components/skeletons/SkeletonDefault.vue";
 import MixController from "@/components/playback/MixController.vue";
 import CustomThemeContainer from "@/components/themes/CustomThemeContainer.vue";
+import { usePlaylistStore } from "@/stores/StorePlaylistContent.js";
 
 const OverviewSubPageAsync = defineAsyncComponent(() =>
     import("@/components/subpages/overview/OverviewSubPage.vue")
@@ -93,6 +94,8 @@ const asyncComponents = {
 const currentAsyncComponent = computed(
     () => asyncComponents[localActiveTab.value]
 );
+
+const playlistStore = usePlaylistStore();
 
 const tabs = ref([
     { name: "Overview", active: true, id: "overview" },
@@ -248,9 +251,6 @@ window.addEventListener("popstate", (event) => {
     });
 });
 
-import { usePlaylistStore } from "@/stores/StorePlaylistContent.js";
-const playlistStore = usePlaylistStore();
-
 onMounted(() => {
     Echo.channel(`mix.${props.value.mix.id}`)
         .listen(".vote-updated", () => {
@@ -292,5 +292,10 @@ onMounted(() => {
                 ],
             });
         });
+});
+onBeforeUnmount(() => {
+    Echo.leave(`mix.${props.value.mix.id}`);
+    //reset the playlist songs
+    playlistStore.reset();
 });
 </script>
