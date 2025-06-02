@@ -204,8 +204,18 @@ async function fetchMoreSongs() {
         const response = await axios.get(playlistStore.nextFetchURL, {
             headers: { Accept: "application/json" },
         });
+        console.log("Fetched more songs:", response.data);
         playlistStore.addSongs(response.data.data);
         playlistStore.setNextFetchURL(response.data.links.next);
+
+        //always save the last known fetch url.
+        if (response.data.links.next !== null) {
+            console.log(
+                "Setting last known fetch URL:",
+                response.data.links.next
+            );
+            playlistStore.setLastKnownFetchURL(response.data.links.next);
+        }
     } finally {
         playlistStore.setIsFetching(false);
     }
@@ -263,6 +273,7 @@ onMounted(() => {
     if (playlistStore.renderedSongs.length === 0) {
         playlistStore.setSongs(songs.value.data);
         playlistStore.setNextFetchURL(songs.value.links.next);
+        playlistStore.setLastKnownFetchURL(songs.value.links.first);
     }
     window.addEventListener("resize", updateWindowWidth);
     window.addEventListener("scroll", throttledCheckScroll);

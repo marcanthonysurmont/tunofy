@@ -16,8 +16,8 @@ class GetMixSongsController extends Controller
 
         $validated = $request->validated();
         $page = $validated['page'] ?? 1;
-        $perPage = 20;
-        
+        $perPage = 15;
+
         // Get the songs with pagination and order by latest
         $songs = $mix->songs()
             ->with('user')
