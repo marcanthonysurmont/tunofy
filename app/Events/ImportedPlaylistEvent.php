@@ -13,7 +13,8 @@ class ImportedPlaylistEvent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public Mix $mix) {}
+    public function __construct(public Mix $mix, public array $songs, public bool $hasMore) 
+    {}
 
     public function broadcastOn(): array
     {
@@ -25,5 +26,13 @@ class ImportedPlaylistEvent implements ShouldBroadcastNow
     public function broadcastAs(): string
     {
         return 'playlist.imported';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'songs' => $this->songs,
+            'has_more' => $this->hasMore,
+        ];
     }
 }

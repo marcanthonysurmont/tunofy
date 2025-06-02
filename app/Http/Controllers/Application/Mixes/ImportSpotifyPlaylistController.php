@@ -68,6 +68,11 @@ class ImportSpotifyPlaylistController extends Controller
 
             // Batch insert songs
             $mix->songs()->insert($songsToInsert);
+            
+            $limitedSongsToInsert = array_slice($songsToInsert, 0, 20);
+            $hasMore = count($songsToInsert) > 20;
+
+            ImportedPlaylistEvent::dispatch($mix, $limitedSongsToInsert, $hasMore);
 
             // Fetch the inserted songs with all relevant DB fields (except user object)
             $insertedSongs = $mix->songs()->whereIn('spotify_id', $spotifyIds)
@@ -176,8 +181,6 @@ class ImportSpotifyPlaylistController extends Controller
             $successMessage = $songsCount === 1
                 ? '1 song imported successfully!'
                 : "{$songsCount} songs imported successfully!";
-
-            ImportedPlaylistEvent::dispatch($mix);
 
             return response()->json([
                 'success' => true,
