@@ -22,8 +22,6 @@ return new class extends Migration
             $table->string('artist');
             $table->string('image_url');
             $table->timestamps();
-
-            $table->unique(['spotify_id', 'mix_id'], 'unique_spotify_mix');
         });
     }
 
