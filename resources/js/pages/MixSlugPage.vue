@@ -326,8 +326,35 @@ onMounted(() => {
         .listen(".theme.updated", () => {
             router.reload({ only: ["themes", "success", "error"] });
         })
-        .listen(".playlist.imported", async () => {
-            console.log("Playlist imported");
+        .listen(".playlist.imported", async (e) => {
+            console.log("Playlist imported", e);
+            router.reload({
+                only: [
+                    "mixDuration",
+                    "mix",
+                    "your_mixes",
+                    "joined_mixes",
+                    "success",
+                    "danger",
+                ],
+            });
+            if (e.has_more === true && playlistStore.nextFetchURL === null) {
+                router.reload({
+                    only: ["songs", "success", "danger"],
+                    onSuccess: () => {
+                        //if there are no more pagination links --> add all songs locally
+                        playlistStore.setNextFetchURL(songs.value.links.next);
+                        if (playlistStore.nextFetchURL !== null) {
+                            console.log("adding songs nigga", e.songs);
+                            playlistStore.incrementFetchPage();
+                            playlistStore.addSongs(e.songs);
+                        }
+                    },
+                });
+                //if there are no more pagination links --> add all songs locally
+            } else if (e.has_more === false) {
+                playlistStore.addSongs(e.songs);
+            }
         });
 });
 

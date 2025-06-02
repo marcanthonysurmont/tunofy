@@ -180,9 +180,9 @@ async function importPlaylist(playlistID) {
             });
 
             //add imported songs to the store if there is no pagination pages remaining
-            if (playlistStore.nextFetchURL === null) {
-                playlistStore.addSongs(response.data.imported_songs);
-            }
+            // if (playlistStore.nextFetchURL === null) {
+            //     playlistStore.addSongs(response.data.imported_songs);
+            // }
             router.reload({
                 only: [
                     "mixDuration",
@@ -196,7 +196,7 @@ async function importPlaylist(playlistID) {
         } else {
             toast.add({
                 message: response.data.message || "Failed to import playlist.",
-                type: "danger", 
+                type: "danger",
             });
         }
     } catch (error) {

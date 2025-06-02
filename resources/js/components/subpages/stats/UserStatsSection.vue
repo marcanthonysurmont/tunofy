@@ -20,7 +20,7 @@
             class="relative min-h-[432px] overflow-hidden"
             v-if="displayCards.length > 0"
         >
-            <Transition name="scatter-cards" mode="out-in">
+            <Transition name="fade-with-slide" mode="out-in">
                 <ul
                     v-if="!isShuffling"
                     ref="scrollContainer"
@@ -384,34 +384,6 @@ onMounted(() => {
 
 .rotate-y-180 {
     transform: rotateY(180deg);
-}
-
-.scatter-cards-enter-active {
-    transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
-}
-.scatter-cards-leave-active {
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    pointer-events: none;
-}
-.scatter-cards-enter-from {
-    opacity: 0;
-    transform: translateY(60px) scale(0.8) rotateZ(-12deg);
-    filter: blur(4px);
-}
-.scatter-cards-enter-to {
-    opacity: 1;
-    transform: none;
-    filter: none;
-}
-.scatter-cards-leave-from {
-    opacity: 1;
-    transform: none;
-    filter: none;
-}
-.scatter-cards-leave-to {
-    opacity: 0;
-    transform: translateY(-60px) scale(0.8) rotateZ(12deg);
-    filter: blur(4px);
 }
 
 @media (max-width: 468px) {

@@ -74,8 +74,9 @@ class ImportSpotifyPlaylistController extends Controller
                 $song->setRelation('user', $user);
             }
 
-            $limitedInsertedSongs = $insertedSongs->take(20);
-            $hasMore = count($insertedSongs) > 20;
+            $limitedInsertedSongs = $insertedSongs->take(15);
+
+            $hasMore = count($insertedSongs) > 15;
 
             ImportedPlaylistEvent::dispatch($mix, $limitedInsertedSongs, $hasMore);
 
@@ -174,6 +175,7 @@ class ImportSpotifyPlaylistController extends Controller
                 'imported_songs' => $importedSongs,
             ]);
         } catch (Exception $e) {
+            \Log::error($e->getMessage());
             ds('Error importing Spotify playlist: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'Failed to import playlist: ' . $e->getMessage());

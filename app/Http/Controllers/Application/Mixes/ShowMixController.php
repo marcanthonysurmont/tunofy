@@ -18,7 +18,7 @@ class ShowMixController extends Controller
     {
         $this->authorize('view', $mix);
         $songsQuery = $mix->songs()->with('user');
-        $songs = (clone $songsQuery)->paginate(20);
+        $songs = (clone $songsQuery)->paginate(15);
         $totalDuration = (clone $songsQuery)->sum('duration_ms');
 
         $mixDuration = function () use ($totalDuration) {
@@ -46,7 +46,7 @@ class ShowMixController extends Controller
         $allPendingSongs = $mix->getAllPendingSongs();
 
         Log::debug("ShowMixController: Got " . $allPendingSongs->count() . " pending songs from getAllPendingSongs(): " .
-           $allPendingSongs->pluck('song_id')->implode(', '));
+            $allPendingSongs->pluck('song_id')->implode(', '));
 
         // Get votable songs after sorting
         $votableSongs = $mix->filterVotableSongs($allPendingSongs);
@@ -62,22 +62,22 @@ class ShowMixController extends Controller
         $collaborators->withPath("/{$mix->slug}/manage");
 
         return Inertia::render('MixSlugPage', [
-            'mix' => fn () => MixResource::make($mix)->jsonSerialize(),
-            'songs' => fn () => SongResource::collection($songs),
-            'mixDuration' => fn () => $mixDuration,
-            'collaborators' => fn () => CollaboratorResource::collection($collaborators),
-            'activeConflictingMixes' => fn () => $activeConflictingMixes,
-            'allPendingSongs' => fn () => $allPendingSongs,
-            'votableSongs' => fn () => $votableSongs,
-            'themes' => fn () => $mix->getThemeSettings(),
-            'presets' => fn () => $mix->all_presets,
-            'your_mixes' => fn () => $user->mixes,
-            'joined_mixes' => fn () => $user->accessibleMixes,
-            'owner' => fn () => $mix->user,
-            'devices' => fn () => $devices,
-            'activeTab' => fn () => $tab,
-            'mixStats' => fn () => $mix->mixStats,
-            'userStats' => fn () => $mix->mixUserStats
+            'mix' => fn() => MixResource::make($mix)->jsonSerialize(),
+            'songs' => fn() => SongResource::collection($songs),
+            'mixDuration' => fn() => $mixDuration,
+            'collaborators' => fn() => CollaboratorResource::collection($collaborators),
+            'activeConflictingMixes' => fn() => $activeConflictingMixes,
+            'allPendingSongs' => fn() => $allPendingSongs,
+            'votableSongs' => fn() => $votableSongs,
+            'themes' => fn() => $mix->getThemeSettings(),
+            'presets' => fn() => $mix->all_presets,
+            'your_mixes' => fn() => $user->mixes,
+            'joined_mixes' => fn() => $user->accessibleMixes,
+            'owner' => fn() => $mix->user,
+            'devices' => fn() => $devices,
+            'activeTab' => fn() => $tab,
+            'mixStats' => fn() => $mix->mixStats,
+            'userStats' => fn() => $mix->mixUserStats
         ]);
     }
 }
