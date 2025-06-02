@@ -18,10 +18,12 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
-import { usePage } from "@inertiajs/vue3";
+import { computed, onMounted } from "vue";
+import { usePage, router } from "@inertiajs/vue3";
 import YourMixesListItem from "@/components/mixes/YourMixesListItem.vue";
 import { ExclamationCircleIcon } from "@heroicons/vue/24/outline";
+import emitter from "@/eventBus.js";
+import { set } from "lodash";
 
 const page = usePage();
 const props = computed(() => page.props);
@@ -32,4 +34,12 @@ const currentMix = computed(() => props.value.mix);
 function isActive(mix) {
     return currentMix.value && currentMix.value.id === mix.id;
 }
+
+onMounted(() => {
+    emitter.on("mix-toggled", () => {
+        setTimeout(() => {
+            router.reload({ only: ['your_mixes'] });
+        }, 1000);
+    });
+});
 </script>
