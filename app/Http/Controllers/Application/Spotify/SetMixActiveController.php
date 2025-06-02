@@ -157,6 +157,8 @@ class SetMixActiveController extends Controller
                                 $playbackState->setPlaybackData($mix, $playbackData);
                                 Log::info("Broadcasting actual playback data for mix {$mix->id} after playback started");
                                 event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+                                event(new MixStatusChangedEvent($mix, true));
+
 
                                 // Flag manual change to prevent polling override
                                 $playbackState->setManualChange($mix);
@@ -177,7 +179,6 @@ class SetMixActiveController extends Controller
                                 $playbackState->setPlaybackData($mix, $emptyPlaybackData);
                                 event(new PlaybackDataUpdatedEvent($mix, $emptyPlaybackData));
 
-                                // Don't try to start playback if queue is empty
                             }
                         }
                         // Make sure to release the lock when done
