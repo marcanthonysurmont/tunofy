@@ -56,9 +56,8 @@ class StoreMixController extends Controller
                     'mixes_created' => DB::raw('mixes_created + 1'),
                 ],
             );
-            
-            return redirect()->route('mix.show', $mix->slug)
-                ->with('success', 'Mix created successfully!');
+
+            return redirect()->back()->with('success', 'Mix created successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('danger', 'Failed to create mix');
