@@ -23,7 +23,6 @@ import { usePage, router } from "@inertiajs/vue3";
 import YourMixesListItem from "@/components/mixes/YourMixesListItem.vue";
 import { ExclamationCircleIcon } from "@heroicons/vue/24/outline";
 import emitter from "@/eventBus.js";
-import { set } from "lodash";
 
 const page = usePage();
 const props = computed(() => page.props);
