@@ -66,33 +66,19 @@ class ImportSpotifyPlaylistController extends Controller
                 $spotifyIds[] = $song['track']['id'];
             }
 
-            // Batch insert songs
-            $mix->songs()->insert($songsToInsert);
-            
-            $limitedSongsToInsert = array_slice($songsToInsert, 0, 20);
-            $hasMore = count($songsToInsert) > 20;
+            // Use createMany which returns models with IDs
+            $insertedSongs = $mix->songs()->createMany($songsToInsert);
 
-            ImportedPlaylistEvent::dispatch($mix, $limitedSongsToInsert, $hasMore);
+            // Set the user relation on each song model
+            foreach ($insertedSongs as $song) {
+                $song->setRelation('user', $user);
+            }
 
-            // Fetch the inserted songs with all relevant DB fields (except user object)
-            $insertedSongs = $mix->songs()->whereIn('spotify_id', $spotifyIds)
-                ->orderBy('id', 'desc')
-                ->take(count($songsToInsert))
-                ->get([
-                    'id',
-                    'mix_id',
-                    'spotify_id',
-                    'user_id',
-                    'duration_ms',
-                    'last_fetched_at',
-                    'name',
-                    'artist',
-                    'image_url',
-                    'created_at',
-                    'updated_at',
-                ]);
+            $limitedInsertedSongs = $insertedSongs->take(20);
+            $hasMore = count($insertedSongs) > 20;
 
-            // Eager load user for each song
+            ImportedPlaylistEvent::dispatch($mix, $limitedInsertedSongs, $hasMore);
+
             $userData = [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -188,6 +174,7 @@ class ImportSpotifyPlaylistController extends Controller
                 'imported_songs' => $importedSongs,
             ]);
         } catch (Exception $e) {
+            ds('Error importing Spotify playlist: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'Failed to import playlist: ' . $e->getMessage());
         }
