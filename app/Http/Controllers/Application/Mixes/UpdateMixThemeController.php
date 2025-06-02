@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateMixThemeRequest;
 use App\Models\Mix;
 use App\Models\Theme;
 use Illuminate\Http\RedirectResponse;
+use App\Events\ThemeUpdatedEvent;
 
 class UpdateMixThemeController extends Controller
 {
@@ -17,9 +18,10 @@ class UpdateMixThemeController extends Controller
         try {
             $mix->update(['theme_setting_definition_id' => $validated['theme_setting_definition_id']]);
 
-            if($validated['theme_setting_definition_id'] === 1) {
+            if ($validated['theme_setting_definition_id'] === 1) {
+                ThemeUpdatedEvent::dispatch($mix);
                 return redirect()->back()
-                    ->with('success', 'Theme updated successfully');    
+                    ->with('success', 'Theme updated successfully');
             }
 
             Theme::updateOrCreate(
@@ -31,6 +33,8 @@ class UpdateMixThemeController extends Controller
                     'settings' => $validated['settings'],
                 ]
             );
+
+            ThemeUpdatedEvent::dispatch($mix);
 
             return redirect()->back()
                 ->with('success', 'Theme updated successfully');

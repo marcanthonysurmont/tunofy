@@ -320,6 +320,9 @@ onMounted(() => {
         })
         .listen(".stat.updated", () => {
             router.reload({ only: ["mixStats", "success", "error"] });
+        })
+        .listen(".theme.updated", () => {
+            router.reload({ only: ["themes", "success", "error"] });
         });
 });
 
