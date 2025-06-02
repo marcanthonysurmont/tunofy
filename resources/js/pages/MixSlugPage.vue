@@ -319,7 +319,9 @@ onMounted(() => {
             });
         })
         .listen(".stat.updated", () => {
-            router.reload({ only: ["mixStats", "success", "error"] });
+            router.reload({
+                only: ["mixStats", "userStats", "success", "error"],
+            });
         })
         .listen(".theme.updated", () => {
             router.reload({ only: ["themes", "success", "error"] });

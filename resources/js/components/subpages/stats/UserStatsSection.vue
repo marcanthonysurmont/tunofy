@@ -15,11 +15,12 @@
         </p>
 
         <div class="relative" v-if="displayCards.length > 0">
-            <div
+            <ul
+                v-auto-animate
                 ref="scrollContainer"
                 class="flex overflow-x-auto gap-4 pb-12 hide-scrollbar relative"
             >
-                <div
+                <li
                     v-for="card in displayCards"
                     :key="card.uniqueId"
                     class="peeking-item flex-shrink-0 cursor-pointer"
@@ -96,8 +97,8 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                </li>
+            </ul>
             <div
                 class="absolute right-6 bottom-0 flex flex-row items-center gap-2"
             >
@@ -135,7 +136,8 @@ import { FastAverageColor } from "fast-average-color";
 const flippedCards = ref(new Set());
 
 const page = usePage();
-const cards = ref(page.props.userStats || []);
+const cards = computed(() => page.props.userStats || []);
+const avatarColorCache = new Map();
 
 //card
 const cardTypes = {
@@ -266,7 +268,9 @@ const displayCards = computed(() => {
                             ? cardConfig.backDescription(userStat)
                             : cardConfig.backDescription,
                     priority: cardConfig.priority(userStat),
-                    dominantColor: "#444",
+                    dominantColor:
+                        avatarColorCache.get(userStat.user.avatar_url) ||
+                        "#444",
                 };
                 if (!bestCard || card.priority > bestCard.priority) {
                     bestCard = card;
@@ -279,29 +283,30 @@ const displayCards = computed(() => {
         }
     });
 
-    //sort by priority and take max 5 cards
+    //sort by priority and take max 6 cards
     return Array.from(userCards.values())
         .sort((a, b) => b.priority - a.priority)
-        .slice(0, 5);
+        .slice(0, 6);
 });
 
 function setDominantColor(card, imgEl, url) {
-    try {
-        if (url.includes("tunofy")) {
-            return;
-        }
-        const fac = new FastAverageColor();
-        fac.getColorAsync(imgEl)
-            .then((color) => {
-                card.dominantColor = color.rgba;
-            })
-            .catch(() => {
-                //when error happens use default color
-                card.dominantColor = "#444";
-            });
-    } catch (e) {
+    if (url.includes("tunofy")) {
         card.dominantColor = "#444";
+        return;
     }
+    if (avatarColorCache.has(url)) {
+        card.dominantColor = avatarColorCache.get(url);
+        return;
+    }
+    const fac = new FastAverageColor();
+    fac.getColorAsync(imgEl)
+        .then((color) => {
+            avatarColorCache.set(url, color.rgba);
+            card.dominantColor = color.rgba;
+        })
+        .catch(() => {
+            card.dominantColor = "#444";
+        });
 }
 
 function toggleFlip(id) {
