@@ -37,9 +37,7 @@ function isActive(mix) {
 
 onMounted(() => {
     emitter.on("mix-toggled", () => {
-        setTimeout(() => {
-            router.reload({ only: ['your_mixes'] });
-        }, 1000);
+        router.reload({ only: ["your_mixes"] });
     });
 });
 </script>

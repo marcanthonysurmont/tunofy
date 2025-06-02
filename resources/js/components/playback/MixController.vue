@@ -61,6 +61,7 @@ import { usePage, router } from "@inertiajs/vue3";
 import toast from "@/stores/StoreToast.js";
 import { useBattery } from "@vueuse/core";
 import { StoreInformationModal } from "@/stores/StoreInformationModal";
+import emitter from "@/eventBus.js";
 
 const page = usePage();
 const windowSize = ref(window.innerWidth);
@@ -487,6 +488,7 @@ async function toggleMixActive() {
         console.error("Error toggling mix state:", error);
     } finally {
         isLoading.value = false;
+        emitter.emit("mix-toggled");
     }
 }
 

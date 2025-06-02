@@ -8,7 +8,7 @@
                 :model-value="isMixActive"
                 :disabled="isLoading || queueActivationDisabled"
                 :label="isMixActive ? 'Queue active' : 'Queue inactive'"
-                @click="emit('toggle-mix-active'); emitter.emit('mix-toggled')"
+                @click="emit('toggle-mix-active')"
             />
         </div>
 
@@ -190,7 +190,6 @@ import CoDJSelector from "@/components/playback/co-dj/CoDJSelector.vue";
 import CoDJSelectorDrawer from "@/components/playback/co-dj/CoDJSelectorDrawer.vue";
 import { ref, computed } from "vue";
 import { usePage } from "@inertiajs/vue3";
-import emitter from "@/eventBus.js";
 
 const page = usePage();
 const authorization = computed(() => page.props.mix.authorized);
