@@ -206,6 +206,15 @@ async function fetchMoreSongs() {
         });
         playlistStore.addSongs(response.data.data);
         playlistStore.setNextFetchURL(response.data.links.next);
+
+        //always save the last known fetch url.
+        if (response.data.links.next !== null) {
+            console.log(
+                "Setting last known fetch URL:",
+                response.data.links.next
+            );
+            playlistStore.setLastKnownFetchURL(response.data.links.next);
+        }
     } finally {
         playlistStore.setIsFetching(false);
     }
