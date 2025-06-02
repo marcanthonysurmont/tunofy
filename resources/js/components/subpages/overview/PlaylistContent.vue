@@ -12,7 +12,10 @@
 
     <div class="mt-4">
         <!-- header row -->
-        <div class="border-b border-zinc-800 flex items-center w-full min-w-0">
+        <div
+            class="border-b border-zinc-800 flex items-center w-full min-w-0"
+            v-if="playlistStore.renderedSongs.length > 0"
+        >
             <div
                 v-if="windowWidth >= 640"
                 class="py-3.5 pr-1 sm:pr-3 text-left text-sm font-semibold text-zinc-200 w-6 sm:w-10 flex-shrink-0"
@@ -156,15 +159,19 @@
         >
             <SpinningCircle />
         </div>
-        <div v-if="playlistStore.renderedSongs.length === 0" class="mb-32 mt-8">
-            <p
-                class="text-white text-left text-base"
-                v-if="authorization.canAddSong"
-            >
-                No songs found. Search for a song and add it!
-            </p>
-            <p v-else class="text-white text-center sm:text-left">
-                No songs found..
+        <div
+            v-if="playlistStore.renderedSongs.length === 0"
+            class="mb-32 mt-8 pt-8 flex border-t-1 border-zinc-800 flex-col gap-2 text-left items-start justify-start"
+        >
+            <h1 class="text-white text-2xl sm:text-3xl font-medium">
+                {{ authorization.canAddSong ? "Mix is empty" : "Mix is empty" }}
+            </h1>
+            <p class="text-muted">
+                {{
+                    authorization.canAddSong
+                        ? "Start adding some songs to the mix."
+                        : "Check back later for new additions."
+                }}
             </p>
         </div>
     </div>
