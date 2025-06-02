@@ -31,8 +31,11 @@ class ImportSpotifyPlaylistController extends Controller
 
             // If no songs to import, return early with appropriate message
             if ($songsCount === 0) {
-                return redirect()->back()
-                    ->with('error', 'No new songs to import. All tracks from this playlist are already in your mix.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No new songs to import. All tracks from this playlist are already in your mix.',
+                    'imported_songs' => []
+                ]);
             }
 
             // Prepare data for batch operations

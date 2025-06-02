@@ -195,8 +195,8 @@ async function importPlaylist(playlistID) {
             });
         } else {
             toast.add({
-                message: "Failed to import playlist.",
-                type: "danger",
+                message: response.data.message || "Failed to import playlist.",
+                type: "danger", 
             });
         }
     } catch (error) {
