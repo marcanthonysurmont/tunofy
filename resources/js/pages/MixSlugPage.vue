@@ -66,6 +66,7 @@ import SkeletonDefault from "@/components/skeletons/SkeletonDefault.vue";
 import MixController from "@/components/playback/MixController.vue";
 import CustomThemeContainer from "@/components/themes/CustomThemeContainer.vue";
 import { usePlaylistStore } from "@/stores/StorePlaylistContent.js";
+import emitter from "@/eventBus.js";
 
 const OverviewSubPageAsync = defineAsyncComponent(() =>
     import("@/components/subpages/overview/OverviewSubPage.vue")
@@ -112,11 +113,15 @@ const tabs = ref([
 
 const page = usePage();
 const props = computed(() => page.props);
+const songs = computed(() => props.value.songs);
 const nameOfMix = computed(() => page.props.mix?.name || "Mix");
 const mix = computed(() => page.props.mix || null);
 const votableSongs = computed(
     () => Object.values(page.props.votableSongs) || {}
 );
+
+//not using computed here because inertia fucks with it otherwise and we cant unmount ws
+const mixId = ref(page.props.mix?.id || null);
 
 //if there are votable songs, set the votingActive property to true
 //this makes sure an exclamation mark icon is shown in the voting tab
@@ -130,6 +135,18 @@ watch(
         }
     },
     { immediate: true }
+);
+
+watch(
+    () => page.props.mix?.slug,
+    (newSlug) => {
+        //when slug changes, reset the playlist songs
+        playlistStore.reset();
+        if (playlistStore.renderedSongs.length === 0) {
+            playlistStore.setSongs(songs.value.data);
+            playlistStore.setNextFetchURL(songs.value.links.next);
+        }
+    }
 );
 
 const showFallback = ref(false);
@@ -251,7 +268,16 @@ window.addEventListener("popstate", (event) => {
     });
 });
 
+function handleSongAddedEvent(song) {
+    //currently commented out because for adding a song we'll just use the websocket event
+    // if (playlistStore.nextFetchURL === null) {
+    //     console.log("Adding song locally", song);
+    //     playlistStore.addSong(song);
+    // }
+}
+
 onMounted(() => {
+    emitter.on("song-added", handleSongAddedEvent);
     Echo.channel(`mix.${props.value.mix.id}`)
         .listen(".vote-updated", () => {
             router.reload({ only: ["allPendingSongs", "success", "danger"] });
@@ -298,7 +324,8 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    Echo.leave(`mix.${props.value.mix.id}`);
+    Echo.leave(`mix.${mixId.value}`);
+    emitter.off("song-added", handleSongAddedEvent);
     //reset the playlist songs
     playlistStore.reset();
 });

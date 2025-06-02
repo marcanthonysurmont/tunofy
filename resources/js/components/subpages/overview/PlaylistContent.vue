@@ -180,7 +180,6 @@ import axios from "axios";
 import { useTimeUtils } from "@/composables/useTimeUtils";
 import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
 import throttle from "lodash/throttle";
-import emitter from "@/eventBus.js";
 import { usePlaylistStore } from "@/stores/StorePlaylistContent.js";
 
 const { msToMinutes } = useTimeUtils();
@@ -258,13 +257,6 @@ function updateWindowWidth() {
 
 const throttledCheckScroll = throttle(checkScroll, 200);
 
-function handleSongAddedEvent(event) {
-    if (playlistStore.nextFetchURL !== null) {
-        return;
-    }
-    playlistStore.setSongs([...playlistStore.renderedSongs, event]);
-}
-
 //initialize store state on first mount or when songs change (e.g. on page reload)
 onMounted(() => {
     //only initialize if the store is empty (prevents overwriting on tab switch)
@@ -274,7 +266,6 @@ onMounted(() => {
     }
     window.addEventListener("resize", updateWindowWidth);
     window.addEventListener("scroll", throttledCheckScroll);
-    emitter.on("song-added", handleSongAddedEvent);
 });
 onBeforeUnmount(() => {
     window.removeEventListener("resize", updateWindowWidth);

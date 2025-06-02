@@ -98,10 +98,14 @@
 <script setup>
 import CreateModalDefault from "@/components/modals/CreateModalDefault.vue";
 import RegularButton from "@/components/buttons/RegularButton.vue";
-import { useForm } from "@inertiajs/vue3";
+import { router, useForm } from "@inertiajs/vue3";
 import { onMounted, ref } from "vue";
 import axios from "axios";
 import { CheckIcon } from "@heroicons/vue/24/solid";
+import { usePlaylistStore } from "@/stores/StorePlaylistContent.js";
+import toast from "@/stores/StoreToast.js";
+
+const playlistStore = usePlaylistStore();
 
 const props = defineProps({
     isVisible: Boolean,
@@ -158,23 +162,46 @@ async function importSelectedPlaylists() {
     }
 }
 
+// Remove Inertia form usage, use axios for importPlaylist
 async function importPlaylist(playlistID) {
-    form.playlist_id = playlistID;
-    form.clearErrors("playlist_id");
+    try {
+        const response = await axios.post(
+            route("mix.import-spotify-playlist", props.mix.id),
+            {
+                playlist_id: playlistID,
+            }
+        );
 
-    //promise will be resolved when the form's post was succesful
-    //promise will be rejected when the form's post was not succesful
-    return new Promise((resolve, reject) => {
-        form.post(route("mix.import-spotify-playlist", props.mix.id), {
-            onSuccess: () => {
-                resolve();
-            },
-            onError: (errors) => {
-                console.log(errors);
-                reject(errors);
-            },
-        });
-    });
+        if (response.data.success) {
+            //add toast
+            toast.add({
+                message: response.data.message,
+                type: "success",
+            });
+
+            //add imported songs to the store if there is no pagination pages remaining
+            if (playlistStore.nextFetchURL === null) {
+                playlistStore.addSongs(response.data.imported_songs);
+            }
+            router.reload({
+                only: [
+                    "mixDuration",
+                    "mix",
+                    "your_mixes",
+                    "joined_mixes",
+                    "success",
+                    "danger",
+                ],
+            });
+        } else {
+            toast.add({
+                message: "Failed to import playlist.",
+                type: "danger",
+            });
+        }
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 function closeModal() {
@@ -197,7 +224,6 @@ onMounted(async () => {
     try {
         //flag
         isFetchingPlaylists.value = true;
-
         //api call to fetch playlists
         const response = await axios.post(route("api.spotify.get-playlist"));
         availablePlaylists.value = response.data;

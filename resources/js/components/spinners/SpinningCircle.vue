@@ -1,6 +1,6 @@
 <template>
     <svg
-        class="animate-spin h-5 w-5 mr-2"
+        :class="['animate-spin', customClass, size]"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -21,4 +21,17 @@
     </svg>
 </template>
 
-<script setup></script>
+<script setup>
+defineProps({
+    customClass: {
+        type: String,
+        default: "",
+        required: false,
+    },
+    size: {
+        type: String,
+        default: "h-5 w-5",
+        required: false,
+    },
+});
+</script>

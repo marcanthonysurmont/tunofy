@@ -109,28 +109,23 @@
                                 </div>
                                 <div class="ml-2 flex-shrink-0">
                                     <button
-                                        class="lg:opacity-0 lg:group-hover:opacity-100 opacity-100 p-1 rounded-full transition-all duration-200"
-                                        :class="
-                                            isSongAdded(song)
-                                                ? 'text-green-500 hover:text-green-400 hover:bg-zinc-700/30'
-                                                : 'text-zinc-400 hover:text-dark-white hover:bg-zinc-700/30'
-                                        "
+                                        class="lg:opacity-0 lg:group-hover:opacity-100 opacity-100 p-1 rounded-full transition-all duration-200 text-zinc-400 hover:text-dark-white hover:bg-zinc-700/30"
                                         @mousedown.prevent
                                         @click.prevent.stop="
                                             addToPlaylist(song)
                                         "
                                         type="button"
                                     >
-                                        <CheckIcon
-                                            v-if="isSongAdded(song)"
-                                            class="size-4 cursor-default"
-                                            @mousedown.prevent
-                                            @click.prevent.stop
-                                        />
                                         <PlusIcon
-                                            v-else
+                                            v-if="processingSongId !== song.id"
+                                            :class="
+                                                form.processing
+                                                    ? 'opacity-50'
+                                                    : ''
+                                            "
                                             class="size-4 cursor-pointer"
                                         />
+                                        <SpinningCircle v-else size="h-3 w-3" />
                                     </button>
                                 </div>
                             </li>
@@ -147,6 +142,7 @@ import { ref, computed, watch } from "vue";
 import axios from "axios";
 import { debounce } from "lodash";
 import emitter from "@/eventBus.js";
+import SpinningCircle from "@/components/spinners/SpinningCircle.vue";
 
 import {
     Combobox,
@@ -167,7 +163,7 @@ const query = ref("");
 const isFocused = ref(false);
 const isLoading = ref(false);
 const songs = ref([]);
-const addedSongs = ref(new Set());
+const processingSongId = ref(null);
 const form = useForm({
     spotify_id: "",
     duration_ms: 0,
@@ -231,10 +227,11 @@ const filteredSongs = computed(() => {
 });
 
 function addToPlaylist(song) {
-    //if song is already added, return early
-    if (addedSongs.value.has(song.id)) {
+    if (form.processing) {
         return;
     }
+
+    processingSongId.value = song.id;
     form.spotify_id = song.id;
     form.duration_ms = song.duration_ms;
     form.name = song.name;
@@ -245,20 +242,15 @@ function addToPlaylist(song) {
         preserveScroll: true,
         only: ["songs", "mix", "mixDuration", "your_mixes", "success", "error"],
         onSuccess: () => {
-            //add the song ID to the addedSongs set
-            //we do this because we want to track whichs songs have been added to avoid duplicate
-            //currently, this resets on reload but i will add a check to make sure it still shows a "checkmark" icon on songs that are in playlist
-            addedSongs.value.add(song.id);
+            //emit an event to notify that a song has been added
             emitter.emit("song-added", song);
         },
         onError: (error) => {
             console.error("Error adding song:", error);
         },
+        onFinish: () => {
+            processingSongId.value = null;
+        },
     });
-}
-
-//this function checks if a song has been added
-function isSongAdded(song) {
-    return addedSongs.value.has(song.id);
 }
 </script>

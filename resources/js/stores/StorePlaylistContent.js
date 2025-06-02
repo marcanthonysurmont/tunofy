@@ -13,7 +13,11 @@ export const usePlaylistStore = defineStore("playlist", () => {
         renderedSongs.value = [...renderedSongs.value, ...songs];
     }
     function addSong(song) {
-        renderedSongs.value.push(song);
+        //cant use push due to reactivity issues
+        // renderedSongs.value.push(song);
+
+        //currently testing with new array reference
+        renderedSongs.value = [...renderedSongs.value, song];
     }
     function removeSong(id) {
         renderedSongs.value = renderedSongs.value.filter(song => song.id !== id);
