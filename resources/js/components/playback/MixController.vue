@@ -595,6 +595,8 @@ onMounted(() => {
                     showQueueCompletedModal.value = true;
                 }
 
+                router.reload({ only: ["your_mixes", "joined_mixes", "success", "danger"] });
+                
                 if (e.reason === "other_mix") {
                     router.reload({
                         only: ["activeConflictingMixes", "success", "danger"],
