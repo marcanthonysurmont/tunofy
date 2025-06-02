@@ -325,6 +325,9 @@ onMounted(() => {
         })
         .listen(".theme.updated", () => {
             router.reload({ only: ["themes", "success", "error"] });
+        })
+        .listen(".playlist.imported", async () => {
+            console.log("Playlist imported");
         });
 });
 

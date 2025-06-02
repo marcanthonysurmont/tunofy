@@ -12,6 +12,7 @@ use App\Models\Mix;
 use App\Services\Spotify\SpotifyService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Events\ImportedPlaylistEvent;
 
 class ImportSpotifyPlaylistController extends Controller
 {
@@ -175,6 +176,8 @@ class ImportSpotifyPlaylistController extends Controller
             $successMessage = $songsCount === 1
                 ? '1 song imported successfully!'
                 : "{$songsCount} songs imported successfully!";
+
+            ImportedPlaylistEvent::dispatch($mix);
 
             return response()->json([
                 'success' => true,
