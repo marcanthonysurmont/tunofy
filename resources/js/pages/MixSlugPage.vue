@@ -67,6 +67,7 @@ import MixController from "@/components/playback/MixController.vue";
 import CustomThemeContainer from "@/components/themes/CustomThemeContainer.vue";
 import { usePlaylistStore } from "@/stores/StorePlaylistContent.js";
 import emitter from "@/eventBus.js";
+import toast from "@/stores/StoreToast.js";
 
 const OverviewSubPageAsync = defineAsyncComponent(() =>
     import("@/components/subpages/overview/OverviewSubPage.vue")
@@ -325,6 +326,13 @@ onMounted(() => {
         })
         .listen(".theme.updated", () => {
             router.reload({ only: ["themes", "success", "error"] });
+        })
+        .listen(".mix.deleted", () => {
+            router.visit(route("app"));
+            toast.add({
+                message: "The mix has been deleted by the owner.",
+                type: "danger",
+            });
         })
         .listen(".playlist.imported", async (e) => {
             console.log("Playlist imported", e);
