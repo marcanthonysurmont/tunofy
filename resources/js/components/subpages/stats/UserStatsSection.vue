@@ -56,7 +56,7 @@
 
                             <!-- back side -->
                             <div
-                                class="absolute inset-0 bg-zinc-800 border-2 border-card-stroke shadow-md rounded-lg py-4 flex flex-col gap-1 items-center justify-center text-center text-zinc-100 backface-hidden"
+                                class="absolute inset-0 bg-zinc-800 border-2 border-card-stroke shadow-md rounded-lg py-4 px-4 flex flex-col gap-1 items-center justify-center text-center text-zinc-100 backface-hidden"
                                 style="transform: rotateY(180deg)"
                                 :style="{
                                     background: `linear-gradient(135deg, ${
@@ -89,12 +89,12 @@
                                 />
                                 <div>
                                     <h3
-                                        class="text-zinc-100 text-2xl font-semibold pb-0 mb-0.5"
+                                        class="text-zinc-100 text-xl sm:text-2xl font-semibold pb-0 mb-0.5 break-words whitespace-normal break-all"
                                     >
                                         {{ card.user.name }}
                                     </h3>
                                     <p
-                                        class="text-zinc-200 text-lg pt-0 pb-0 font-normal"
+                                        class="text-zinc-200 text-base sm:text-lg pt-0 pb-0 font-normal"
                                     >
                                         {{ card.frontTitle }}
                                     </p>
@@ -420,15 +420,22 @@ onMounted(() => {
 
 @media (max-width: 468px) {
     .peeking-item {
-        min-width: 40dvw;
-        max-width: 250px;
+        min-width: 60dvw;
+        max-width: 400px;
     }
 }
 
 @media (min-width: 469px) {
     .peeking-item {
-        min-width: 42dvw;
-        max-width: 250px;
+        min-width: 50dvw;
+        max-width: 400px;
+    }
+}
+
+@media (min-width: 669px) {
+    .peeking-item {
+        min-width: 40dvw;
+        max-width: 350px;
     }
 }
 
