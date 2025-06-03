@@ -54,7 +54,7 @@ use App\Http\Controllers\Auth\DeleteAccountController;
 use App\Http\Controllers\Application\Mixes\Voting\VoteSongController;
 use App\Http\Controllers\Application\ShowNewsPageController;
 
-Route::domain('app.' . parse_url(env('APP_URL'), PHP_URL_HOST))->group(function () {
+Route::domain('app.' . parse_url(config('app.url'), PHP_URL_HOST))->group(function () {
     Route::middleware('auth')->group(function () {
         Route::prefix('/mix')->name('mix.')->group(function () {
             Route::post('/store', StoreMixController::class)->name('store');
