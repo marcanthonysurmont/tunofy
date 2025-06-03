@@ -17,11 +17,11 @@
 
                     <!-- tabs -->
                     <a
-                        v-for="(tab, index) in tabs"
+                        v-for="(tab, index) in visibleTabs"
                         :key="tab.name"
                         :ref="
                             (el) => {
-                                if (el) tabRefs[index] = el;
+                                if (el) tabRefs[visibleTabsMap[index]] = el;
                             }
                         "
                         :class="[
@@ -35,7 +35,9 @@
                             //     : 'cursor-pointer',
                         ]"
                         :aria-current="tab.active ? 'page' : undefined"
-                        @click.prevent="handleTabClick(tab.name, index)"
+                        @click.prevent="
+                            handleTabClick(tab.name, visibleTabsMap[index])
+                        "
                         :disabled="tab.votingActive === false"
                     >
                         {{ tab.name }}
@@ -68,6 +70,8 @@ const props = defineProps({
     },
 });
 
+console.log("TabNav component loaded with tabs:", props.tabs);
+
 const emit = defineEmits(["tab-changed"]);
 
 const activeTabIndicator = ref(null);
@@ -83,6 +87,24 @@ const authorization = computed(() => page.props.mix.authorized);
 const activeTabIndex = computed(() =>
     props.tabs.findIndex((tab) => tab.active)
 );
+
+// Filter out disabled tabs
+const visibleTabs = computed(() => props.tabs.filter((tab) => !tab.disabled));
+
+// Map visible tab indices to their original indices in the tabs array
+const visibleTabsMap = computed(() => {
+    const map = {};
+    let visibleIndex = 0;
+
+    props.tabs.forEach((tab, originalIndex) => {
+        if (!tab.disabled) {
+            map[visibleIndex] = originalIndex;
+            visibleIndex++;
+        }
+    });
+
+    return map;
+});
 
 function isActiveTab(index) {
     return activeTabIndex.value === index;
@@ -158,7 +180,7 @@ onUnmounted(() => {
     window.removeEventListener("resize", updateIndicatorPosition);
 });
 
-//watches changes in tabs array = if user selects another tab
+//watches changes in tabs array = if user selects another tab or tab visibility changes
 watch(
     () => [...props.tabs],
     () => nextTick(updateIndicatorPosition),

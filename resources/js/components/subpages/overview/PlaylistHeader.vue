@@ -73,11 +73,8 @@
                     class="size-6 sm:size-8 text-dark-white cursor-pointer custom-item-hover"
                 />
                 <MenuDropdown v-if="showMenuDropdown">
-                    <div class="px-1.5 py-1.5">
-                        <MenuItem
-                            v-slot="{ active }"
-                            v-if="authorization.isOwner"
-                        >
+                    <div class="px-1.5 py-1.5" v-if="authorization.isOwner">
+                        <MenuItem v-slot="{ active }">
                             <button
                                 @click="showUpdateMixModal = true"
                                 :class="[
@@ -133,7 +130,10 @@
                             </button>
                         </MenuItem>
                     </div>
-                    <div class="px-1.5 py-1.5">
+                    <div
+                        class="px-1.5 py-1.5"
+                        v-if="authorization.isOwner && mix.is_public"
+                    >
                         <MenuItem
                             v-slot="{ active }"
                             v-if="authorization.isOwner && mix.is_public"
@@ -158,8 +158,8 @@
                             </button>
                         </MenuItem>
                         <MenuItem
-                            v-slot="{ active }"
                             v-else-if="authorization.isOwner"
+                            v-slot="{ active }"
                         >
                             <button
                                 @click="toggleVisibility"
@@ -181,11 +181,8 @@
                             </button>
                         </MenuItem>
                     </div>
-                    <div class="px-1.5 py-1.5">
-                        <MenuItem
-                            v-slot="{ active }"
-                            v-if="authorization.isOwner"
-                        >
+                    <div class="px-1.5 py-1.5" v-if="authorization.isOwner">
+                        <MenuItem v-slot="{ active }">
                             <button
                                 @click="importFromSpotify"
                                 :class="[
@@ -206,11 +203,8 @@
                             </button>
                         </MenuItem>
                     </div>
-                    <div class="px-1.5 py-1.5">
-                        <MenuItem
-                            v-slot="{ active }"
-                            v-if="authorization.isOwner"
-                        >
+                    <div class="px-1.5 py-1.5" v-if="authorization.isOwner">
+                        <MenuItem v-slot="{ active }">
                             <button
                                 @click="deleteMix"
                                 :class="[
@@ -281,10 +275,7 @@
                         </MenuItem>
                         <MenuItem
                             v-slot="{ active }"
-                            v-if="
-                                authorization.isOwner &&
-                                authorization.canCopySessionCode
-                            "
+                            v-if="authorization.canCopySessionCode"
                         >
                             <button
                                 @click="copyCodeToClipboard"
@@ -378,7 +369,8 @@ const showMenuDropdown = computed(() => {
         authorization.value.canUpdate ||
         authorization.value.isOwner ||
         authorization.value.canGenerateSessionCode ||
-        (authorization.value.isOwner && authorization.value.canCopySessionCode)
+        authorization.value.isOwner ||
+        authorization.value.canCopySessionCode
     );
 });
 

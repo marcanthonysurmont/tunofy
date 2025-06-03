@@ -99,6 +99,16 @@ const currentAsyncComponent = computed(
 
 const playlistStore = usePlaylistStore();
 
+const page = usePage();
+const props = computed(() => page.props);
+const songs = computed(() => props.value.songs);
+const nameOfMix = computed(() => page.props.mix?.name || "Mix");
+const mix = computed(() => page.props.mix || null);
+const authorization = computed(() => page.props.mix.authorized);
+const votableSongs = computed(
+    () => Object.values(page.props.votableSongs) || {}
+);
+
 const tabs = ref([
     { name: "Overview", active: true, id: "overview" },
     {
@@ -108,18 +118,19 @@ const tabs = ref([
         votingActive: true,
     },
     { name: "Stats", active: false, id: "stats" },
-    { name: "Presets", active: false, id: "presets" },
-    { name: "Manage", active: false, id: "manage" },
+    {
+        name: "Presets",
+        active: false,
+        id: "presets",
+        disabled: !authorization.value.isOwner,
+    },
+    {
+        name: "Manage",
+        active: false,
+        id: "manage",
+        disabled: !authorization.value.canManageCollaborators,
+    },
 ]);
-
-const page = usePage();
-const props = computed(() => page.props);
-const songs = computed(() => props.value.songs);
-const nameOfMix = computed(() => page.props.mix?.name || "Mix");
-const mix = computed(() => page.props.mix || null);
-const votableSongs = computed(
-    () => Object.values(page.props.votableSongs) || {}
-);
 
 //not using computed here because inertia fucks with it otherwise and we cant unmount ws
 const mixId = ref(page.props.mix?.id || null);
