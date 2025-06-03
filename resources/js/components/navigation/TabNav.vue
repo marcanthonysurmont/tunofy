@@ -88,10 +88,10 @@ const activeTabIndex = computed(() =>
     props.tabs.findIndex((tab) => tab.active)
 );
 
-// Filter out disabled tabs
+//filter out disabled tabs so they dont get rendered !
 const visibleTabs = computed(() => props.tabs.filter((tab) => !tab.disabled));
 
-// Map visible tab indices to their original indices in the tabs array
+//map visible tab indices to their original indices in the tabs array
 const visibleTabsMap = computed(() => {
     const map = {};
     let visibleIndex = 0;
@@ -153,14 +153,17 @@ function updateIndicatorPosition() {
     const activeTab = tabRefs.value[activeTabIndex.value];
     if (!activeTab) {
         //retry if refs aren't ready yet
-        setTimeout(updateIndicatorPosition, 10);
+        requestAnimationFrame(updateIndicatorPosition);
         return;
     }
 
-    activeTabIndicator.value.style.left = `${activeTab.offsetLeft}px`;
-    activeTabIndicator.value.style.width = `${activeTab.offsetWidth}px`;
-
-    scrollToTab(activeTabIndex.value);
+    requestAnimationFrame(() => {
+        const left = activeTab.offsetLeft;
+        const width = activeTab.offsetWidth;
+        activeTabIndicator.value.style.transform = `translateX(${left}px)`;
+        activeTabIndicator.value.style.width = `${width}px`;
+        scrollToTab(activeTabIndex.value);
+    });
 }
 
 onMounted(() => {
@@ -194,5 +197,12 @@ watch(
         min-width: 25dvw;
         max-width: 150px;
     }
+}
+
+[ref="activeTabIndicator"] {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, width;
+    left: 0;
 }
 </style>
