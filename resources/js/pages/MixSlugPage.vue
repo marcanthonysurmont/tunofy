@@ -288,7 +288,30 @@ function handleSongAddedEvent(song) {
     // }
 }
 
+function isIOS() {
+    return (
+        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.userAgent.includes("Macintosh") && "ontouchend" in document)
+    );
+}
+
+function handleVisibilityChange() {
+    if (isIOS() && document.visibilityState === "visible") {
+        router.reload({
+            only: [],
+            onSuccess: () => {
+                playlistStore.reset();
+                if (playlistStore.renderedSongs.length === 0) {
+                    playlistStore.setSongs(songs.value.data);
+                    playlistStore.setNextFetchURL(songs.value.links.next);
+                }
+            },
+        });
+    }
+}
+
 onMounted(() => {
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     emitter.on("song-added", handleSongAddedEvent);
     Echo.channel(`mix.${props.value.mix.id}`)
         .listen(".vote-updated", () => {
@@ -378,6 +401,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
     Echo.leave(`mix.${mixId.value}`);
     emitter.off("song-added", handleSongAddedEvent);
     //reset the playlist songs
