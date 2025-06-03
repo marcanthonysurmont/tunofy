@@ -384,13 +384,18 @@ function getImageUrl(song) {
         : "/storage/" + song.avatar;
 }
 
-function deleteMix() {
-    router.delete(route("mix.destroy", mix.value.id), {
-        onError: (error) => {
-            console.error("Error deleting mix:", error);
-        },
-        onFinish: () => {},
+async function deleteMix() {
+    const confirmed = await storeConfirmationModal.confirm({
+        title: "Remove this mix?",
+        text: "This action is permanent and cannot be undone. Are you sure?",
     });
+    if (confirmed) {
+        router.delete(route("mix.destroy", mix.value.id), {
+            onError: (error) => {
+                console.error("Error deleting mix:", error);
+            },
+        });
+    }
 }
 function copyCodeToClipboard() {
     navigator.clipboard.writeText(mix.value.session_code).then(() => {

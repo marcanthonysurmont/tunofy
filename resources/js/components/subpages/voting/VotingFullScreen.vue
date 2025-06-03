@@ -40,7 +40,7 @@
 
 <script setup>
 import { XMarkIcon } from "@heroicons/vue/24/outline";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import IntroductionScreen from "./IntroductionScreen.vue";
 import VotingScreen from "./VotingScreen.vue";
 import FinishedScreen from "./FinishedScreen.vue";
@@ -51,6 +51,18 @@ const props = defineProps({
         default: false,
     },
 });
+
+watch(
+    () => props.isVisible,
+    (newValue) => {
+        if (newValue) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+    },
+    { immediate: true }
+);
 
 const emit = defineEmits(["close-fullscreen"]);
 
