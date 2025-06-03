@@ -11,6 +11,7 @@ export default defineConfig({
         laravel({
             input:['resources/js/app.js', 'resources/js/landingpage.js'],
             refresh: true,
+            https: true,
         }),
         tailwindcss(),
         vue({
