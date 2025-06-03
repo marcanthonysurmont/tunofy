@@ -59,8 +59,13 @@
             </div>
         </div>
 
-        <div class="flex flex-col sm:flex-row gap-3 mt-2">
+        <div class="flex flex-col sm:flex-row gap-3 mt-4">
             <div class="flex flex-row gap-3 items-center sm:justify-start">
+                <ArrowLeftEndOnRectangleIcon
+                    v-if="!authorization.isOwner"
+                    @click="leaveMix"
+                    class="size-6 sm:size-8 text-dark-white cursor-pointer custom-item-hover"
+                />
                 <SparklesIcon
                     v-if="authorization.isOwner"
                     @click="showUpdateThemeModal = true"
@@ -337,6 +342,7 @@ import {
     LockOpenIcon,
     SparklesIcon,
     ArrowDownOnSquareIcon,
+    ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/vue/24/outline";
 
 import MenuDropdown from "@/components/menus/MenuDropdown.vue";
@@ -469,6 +475,30 @@ async function toggleVisibility() {
                 onFinish: () => {},
                 onError: (error) => {
                     console.error("Error toggling visibility:", error);
+                },
+            }
+        );
+    }
+}
+
+async function leaveMix() {
+    const confirmed = await storeConfirmationModal.confirm({
+        title: "Leave mix?",
+        text: "You will no longer be a part of this mix and will lose access to it.",
+    });
+
+    if (confirmed) {
+        router.post(
+            route("mix.remove-user-access", mix.value.id),
+            {
+                user_id: page.props.user.id,
+            },
+            {
+                onError: (error) => {
+                    console.error("Error leaving mix:", error);
+                },
+                onFinish: () => {
+                    router.visit(route("app"));
                 },
             }
         );
