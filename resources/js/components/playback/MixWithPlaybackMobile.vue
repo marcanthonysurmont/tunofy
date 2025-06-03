@@ -70,23 +70,23 @@
 
         <div v-else-if="isMixActive">
             <div
-                class="flex flex-row items-center w-full lg:hidden gap-2 sm:gap-0"
+                class="flex flex-row items-center w-full lg:hidden gap-2 sm:gap-0 overflow-hidden"
             >
-                <div class="flex items-center flex-1">
+                <div class="flex items-center flex-1 min-w-0">
                     <img
                         v-if="currentTrack.album?.images?.length"
                         :src="currentTrack.album.images[0].url"
                         class="size-10 rounded-sm"
                         alt="Album Art"
                     />
-                    <div class="flex-1 ml-2">
+                    <div class="flex-1 ml-2 min-w-0">
                         <div class="mb-1">
-                            <p class="font-semibold text-sm">
+                            <p class="font-semibold text-sm truncate pr-4">
                                 {{ currentTrack.name }}
                             </p>
                         </div>
                         <div>
-                            <p class="text-xs text-zinc-400">
+                            <p class="text-xs text-zinc-400 truncate">
                                 {{
                                     currentTrack.artists
                                         ?.map((a) => a.name)
@@ -96,9 +96,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-3 flex-none max-w-[6rem]">
                     <div
-                        class="flex flex-row items-center justify-center flex-none gap-2"
+                        class="flex flex-row items-center justify-center gap-2"
                     >
                         <DeviceSelectorStatus
                             @click.stop="showDeviceSelectorModal = true"
