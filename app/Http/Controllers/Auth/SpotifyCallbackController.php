@@ -37,9 +37,11 @@ class SpotifyCallbackController extends Controller
     
             Auth::login($user);
     
-            return redirect()->away('https://app.tunofy.ddev.site')->with('success', 'Logged in successfully!');
+            $appUrl = 'https://app.' . parse_url(config('app.url'), PHP_URL_HOST);
+            return redirect()->away($appUrl)->with('success', 'Logged in successfully!');
         } catch (Exception $e) {
-            return redirect()->away('https://tunofy.ddev.site');
+            $mainUrl = config('app.url');
+            return redirect()->away($mainUrl);
         }
     }
 }
