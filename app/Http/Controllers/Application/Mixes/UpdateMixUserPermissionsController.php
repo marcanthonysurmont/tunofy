@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Application\Mixes;
 
+use App\Events\UserAccessUpdatedEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateMixUserPermissionsRequest;
 use App\Models\Mix;
@@ -29,6 +30,8 @@ class UpdateMixUserPermissionsController extends Controller
 
         if ($mixAccess) {
             $mixAccess->update(['permission' => $validated['role']]);
+
+            UserAccessUpdatedEvent::dispatch($mix);
 
             return redirect()->back()
                 ->with('success', 'User permissions updated successfully.');

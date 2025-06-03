@@ -8,6 +8,7 @@ use App\Models\MixAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use App\Events\UserAccessUpdatedEvent;
 
 class JoinMixController extends Controller
 {
@@ -45,6 +46,8 @@ class JoinMixController extends Controller
                     'permission' => $mix->session_code_permission,
                 ]
             );
+
+            UserAccessUpdatedEvent::dispatch($mix);
 
             return redirect()->route('mix.show', $mix->slug)
                 ->with('success', 'You have joined the mix successfully.');
