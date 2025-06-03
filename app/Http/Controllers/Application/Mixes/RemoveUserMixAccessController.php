@@ -7,6 +7,7 @@ use App\Http\Requests\RemoveUserMixAccessRequest;
 use App\Models\Mix;
 use App\Models\MixAccess;
 use Illuminate\Support\Facades\Auth;
+use App\Events\UserAccessUpdatedEvent;
 
 class RemoveUserMixAccessController extends Controller
 {
@@ -22,10 +23,13 @@ class RemoveUserMixAccessController extends Controller
             ->where('user_id', $validated['user_id'])
             ->delete();
 
+        UserAccessUpdatedEvent::dispatch($mix);
+
         if ($user->id === $validated['user_id']) {
             return redirect()->route('app')
                 ->with('success', 'You have left the mix successfully.');
         }
+
         return redirect()->back()
             ->with('success', 'User access removed successfully.');
     }

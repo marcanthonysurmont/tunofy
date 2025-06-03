@@ -605,6 +605,11 @@ onMounted(() => {
             })
             .listen(".device.updated", async () => {
                 await refreshDevices();
+            })
+            .listen(".user-access-updated", () => {
+                router.reload({
+                    only: ["collaborators", "success", "danger"],
+                });
             });
 
         Echo.private("user." + page.props.user.id).listen(
