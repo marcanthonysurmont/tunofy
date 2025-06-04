@@ -291,26 +291,34 @@ class Mix extends Model
             ->where('status', 'playing')
             ->first(['id', 'round_number']);
 
-        // Get pending songs grouped by round in a single query
-        $pendingSongsQuery = $this->queueSongs()
+        // Get the minimum round number that has any PLAYABLE pending songs
+        // This is the key change - we find the lowest round with non-killed pending songs
+        $lowestRoundWithPlayableSongs = $this->queueSongs()
             ->where('status', 'pending')
-            ->orderBy('round_number')
-            ->with(['song.user']);
+            ->where('is_killed', false)  // Look for playable songs only
+            ->min('round_number');
 
-        // Get first round with pending songs
-        $lowestRound = $pendingSongsQuery->min('round_number');
+        // If no playable songs in any round, fall back to the lowest round with any songs
+        $lowestRound = $lowestRoundWithPlayableSongs ?? $this->queueSongs()
+            ->where('status', 'pending')
+            ->min('round_number');
 
         if ($lowestRound === null) {
             return collect();
         }
 
-        // If there are pending songs in the lowest round, check if we should look ahead
+        // Get metrics for the active round
         $pendingCountInLowestRound = $this->queueSongs()
             ->where('status', 'pending')
             ->where('round_number', $lowestRound)
             ->count();
 
-        // Get all playing + pending songs in the current round for context
+        $playablePendingCountInLowestRound = $this->queueSongs()
+            ->where('status', 'pending')
+            ->where('is_killed', false)
+            ->where('round_number', $lowestRound)
+            ->count();
+
         $totalRoundSongsCount = $this->queueSongs()
             ->whereIn('status', ['playing', 'pending'])
             ->where('round_number', $lowestRound)
@@ -320,35 +328,18 @@ class Mix extends Model
         $batchSize = $this->preset ? $this->preset->batch_size : 5;
 
         $isLastSongOfRound = false;
-        // IMPORTANT: Only consider it the last song of the round if ALL other songs have been played
         if ($currentlyPlayingSong && $currentlyPlayingSong->round_number == $lowestRound) {
-            // If the playing song is from this round AND there are NO pending songs left,
-            // then we're at the end of the round
-            $isLastSongOfRound = ($pendingCountInLowestRound === 0);
+            // If playing last playable song of round
+            $isLastSongOfRound = ($playablePendingCountInLowestRound === 0);
         }
 
         Log::debug("Round voting info - Round: {$lowestRound}, Playing: " .
                    ($currentlyPlayingSong ? "Yes (round {$currentlyPlayingSong->round_number})" : 'No') .
-                   ", Pending in lowest round: {$pendingCountInLowestRound}, Total: {$totalRoundSongsCount}, Batch: {$batchSize}, isLastSong: " .
+                   ", Total pending: {$pendingCountInLowestRound}, Playable pending: {$playablePendingCountInLowestRound}, " .
+                   "Total: {$totalRoundSongsCount}, Batch: {$batchSize}, isLastSong: " .
                    ($isLastSongOfRound ? 'Yes' : 'No'));
 
-        // Look ahead to next round ONLY when it's truly the last song of the current round
-        if ($isLastSongOfRound) {
-            // Look for songs in the next round
-            $nextRound = $lowestRound + 1;
-            $nextRoundSongs = $this->queueSongs()
-                ->where('status', 'pending')
-                ->where('round_number', $nextRound)
-                ->with(['song.user'])
-                ->get();
-
-            if ($nextRoundSongs->isNotEmpty()) {
-                Log::info("Showing next round {$nextRound} for voting as round {$lowestRound} has no pending songs left");
-                return $nextRoundSongs;
-            }
-        }
-
-        // Otherwise, return current round's songs
+        // Return songs from the determined round
         $pendingSongs = $this->queueSongs()
             ->where('status', 'pending')
             ->where('round_number', $lowestRound)
