@@ -10,6 +10,7 @@ use App\Models\QueueSong;
 use App\Services\Spotify\SpotifyService;
 use App\Models\GlobalUserStat;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 
 class PlaybackStateManager
 {
@@ -47,9 +48,78 @@ class PlaybackStateManager
     }
 
     /**
+     * Set a value with version tracking for better cache consistency
+     */
+    public function set(Mix $mix, string $key, $value, ?int $ttl = null): void
+    {
+        $cacheKey = "mix:{$mix->id}:{$key}";
+
+        // Use Redis transaction for atomicity
+        Redis::transaction(function ($redis) use ($mix, $key, $value, $cacheKey, $ttl) {
+            // Store the value
+            if ($ttl) {
+                Redis::setex($cacheKey, $ttl, serialize($value));
+            } else {
+                Redis::set($cacheKey, serialize($value));
+            }
+
+            // Increment version atomically
+            Redis::incr("mix:{$mix->id}:state_version");
+
+            // Set last updated timestamp
+            Redis::set("mix:{$mix->id}:last_updated", time());
+        });
+    }
+
+    /**
+     * Get a value with consistent serialization
+     */
+    public function get(Mix $mix, string $key, $default = null)
+    {
+        $cacheKey = "mix:{$mix->id}:{$key}";
+        $cachedValue = Redis::get($cacheKey);
+
+        if ($cachedValue === null) {
+            return $default;
+        }
+
+        return unserialize($cachedValue);
+    }
+
+    /**
+     * Clear all state for a mix atomically
+     */
+    public function clearAllState(Mix $mix): void
+    {
+        $pattern = "mix:{$mix->id}:*";
+        $keys = Redis::keys($pattern);
+
+        // Keep device ID if needed
+        $deviceId = $this->getDeviceId($mix);
+
+        if (!empty($keys)) {
+            // Use multi to make this atomic
+            Redis::transaction(function ($redis) use ($keys, $mix, $deviceId) {
+                // Delete all keys
+                $redis->del($keys);
+
+                // Increment version
+                $redis->incr("mix:{$mix->id}:state_version");
+
+                // Restore device ID if needed
+                if ($deviceId) {
+                    $redis->set("mix:{$mix->id}:device_id", $deviceId);
+                }
+            });
+        }
+
+        Log::info("Cleared all state for mix {$mix->id}");
+    }
+
+    /**
      * Set a playback state value
      */
-    public function set(Mix $mix, string $state, $value = true): void
+    public function setState(Mix $mix, string $state, $value = true): void
     {
         $key = $this->formatKey($mix->id, $state);
 
@@ -64,7 +134,7 @@ class PlaybackStateManager
     /**
      * Get a playback state value
      */
-    public function get(Mix $mix, string $state, $default = null)
+    public function getState(Mix $mix, string $state, $default = null)
     {
         return Cache::get($this->formatKey($mix->id, $state), $default);
     }
@@ -72,7 +142,7 @@ class PlaybackStateManager
     /**
      * Check if a playback state exists
      */
-    public function has(Mix $mix, string $state): bool
+    public function hasState(Mix $mix, string $state): bool
     {
         return Cache::has($this->formatKey($mix->id, $state));
     }
@@ -80,7 +150,7 @@ class PlaybackStateManager
     /**
      * Remove a playback state
      */
-    public function forget(Mix $mix, string $state): void
+    public function forgetState(Mix $mix, string $state): void
     {
         Cache::forget($this->formatKey($mix->id, $state));
     }
@@ -91,10 +161,10 @@ class PlaybackStateManager
     public function setPaused(Mix $mix, bool $isPaused = true): void
     {
         if ($isPaused) {
-            $this->set($mix, self::PAUSED, true);
+            $this->setState($mix, self::PAUSED, true);
             Log::info("Set mix {$mix->id} as paused");
         } else {
-            $this->forget($mix, self::PAUSED);
+            $this->forgetState($mix, self::PAUSED);
             Log::info("Cleared paused state for mix {$mix->id}");
         }
     }
@@ -104,7 +174,7 @@ class PlaybackStateManager
      */
     public function isPaused(Mix $mix): bool
     {
-        return $this->has($mix, self::PAUSED);
+        return $this->hasState($mix, self::PAUSED);
     }
 
     /**
@@ -112,8 +182,8 @@ class PlaybackStateManager
      */
     public function setManualChange(Mix $mix): void
     {
-        $this->set($mix, self::MANUAL_CHANGE);
-        $this->set($mix, 'manual_change_timestamp');
+        $this->setState($mix, self::MANUAL_CHANGE);
+        $this->setState($mix, 'manual_change_timestamp');
         Log::info("Set manual change flag for mix {$mix->id}");
     }
 
@@ -124,15 +194,15 @@ class PlaybackStateManager
     {
         if ($value) {
             // Use the regular set method with no TTL
-            $this->set($mix, 'device_changed', true);
+            $this->setState($mix, 'device_changed', true);
 
             // Store the timestamp for manual verification later
-            $this->set($mix, 'device_changed_timestamp', time());
+            $this->setState($mix, 'device_changed_timestamp', time());
 
             Log::info("Set device change flag for mix {$mix->id}");
         } else {
-            $this->forget($mix, 'device_changed');
-            $this->forget($mix, 'device_changed_timestamp');
+            $this->forgetState($mix, 'device_changed');
+            $this->forgetState($mix, 'device_changed_timestamp');
         }
     }
 
@@ -141,7 +211,7 @@ class PlaybackStateManager
      */
     public function hasDeviceChanged(Mix $mix): bool
     {
-        return $this->has($mix, 'device_changed');
+        return $this->hasState($mix, 'device_changed');
     }
 
     /**
@@ -150,9 +220,9 @@ class PlaybackStateManager
      */
     public function consumePollFlags(Mix $mix): void
     {
-        $this->forget($mix, self::MANUAL_CHANGE);
-        $this->forget($mix, self::DEVICE_CHANGED);
-        $this->forget($mix, self::PLAYBACK_CHANGED);
+        $this->forgetState($mix, self::MANUAL_CHANGE);
+        $this->forgetState($mix, self::DEVICE_CHANGED);
+        $this->forgetState($mix, self::PLAYBACK_CHANGED);
     }
 
     /**
@@ -161,7 +231,7 @@ class PlaybackStateManager
     public function setQueueCompleted(Mix $mix, bool $isCompleted = true): void
     {
         if ($isCompleted) {
-            $this->set($mix, self::QUEUE_COMPLETED, true);
+            $this->setState($mix, self::QUEUE_COMPLETED, true);
 
             // Update the model (this is now working)
             $mix->update(['is_active' => false]);
@@ -184,30 +254,30 @@ class PlaybackStateManager
                 Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
             }
 
-                $coDj = $mix->coDj;
-                if ($coDj) {
-                    GlobalUserStat::updateOrCreate(
-                        [
-                            'user_id' => $coDj->id,
-                        ],
-                        [
-                            'mixes_played' => DB::raw('mixes_played + 1'),
-                        ],
-                    );
-                }
-
+            $coDj = $mix->coDj;
+            if ($coDj) {
                 GlobalUserStat::updateOrCreate(
                     [
-                        'user_id' => $mix->user_id,
+                        'user_id' => $coDj->id,
                     ],
                     [
                         'mixes_played' => DB::raw('mixes_played + 1'),
                     ],
                 );
+            }
+
+            GlobalUserStat::updateOrCreate(
+                [
+                    'user_id' => $mix->user_id,
+                ],
+                [
+                    'mixes_played' => DB::raw('mixes_played + 1'),
+                ],
+            );
 
             Log::info("Set queue completed for mix {$mix->id}");
         } else {
-            $this->forget($mix, self::QUEUE_COMPLETED);
+            $this->forgetState($mix, self::QUEUE_COMPLETED);
             Log::info("Cleared queue completed state for mix {$mix->id}");
         }
     }
@@ -217,7 +287,7 @@ class PlaybackStateManager
      */
     public function isQueueCompleted(Mix $mix): bool
     {
-        return $this->has($mix, self::QUEUE_COMPLETED);
+        return $this->hasState($mix, self::QUEUE_COMPLETED);
     }
 
     /**
@@ -225,7 +295,7 @@ class PlaybackStateManager
      */
     public function setDeviceId(Mix $mix, string $deviceId): void
     {
-        $this->set($mix, 'device_id', $deviceId);
+        $this->setState($mix, 'device_id', $deviceId);
         Log::info("Set device ID {$deviceId} for mix {$mix->id}");
     }
 
@@ -234,7 +304,7 @@ class PlaybackStateManager
      */
     public function getDeviceId(Mix $mix): ?string
     {
-        return $this->get($mix, 'device_id');
+        return $this->getState($mix, 'device_id');
     }
 
     /**
@@ -276,7 +346,7 @@ class PlaybackStateManager
      */
     public function updatePollTime(Mix $mix): void
     {
-        $this->set($mix, self::LAST_POLL_TIME, now()->timestamp);
+        $this->setState($mix, self::LAST_POLL_TIME, now()->timestamp);
     }
 
     /**
@@ -284,7 +354,7 @@ class PlaybackStateManager
      */
     public function getLastPollTime(Mix $mix): ?int
     {
-        return $this->get($mix, self::LAST_POLL_TIME);
+        return $this->getState($mix, self::LAST_POLL_TIME);
     }
 
     /**
@@ -300,17 +370,17 @@ class PlaybackStateManager
         }
 
         // Clear all possible states by name
-        $this->forget($mix, self::DEVICE_CHANGED);
-        $this->forget($mix, self::MANUAL_CHANGE);
-        $this->forget($mix, self::PLAYBACK_CHANGED);
-        $this->forget($mix, self::PAUSED);
-        $this->forget($mix, self::QUEUE_COMPLETED);
-        $this->forget($mix, self::POLLING_ACTIVE);
-        $this->forget($mix, self::LAST_POLL_TIME);
-        $this->forget($mix, self::LAST_POLL_DATA);
-        $this->forget($mix, self::SONG_NEARING_END);
-        $this->forget($mix, self::SONG_PROGRESS);
-        $this->forget($mix, self::SONG_DURATION);
+        $this->forgetState($mix, self::DEVICE_CHANGED);
+        $this->forgetState($mix, self::MANUAL_CHANGE);
+        $this->forgetState($mix, self::PLAYBACK_CHANGED);
+        $this->forgetState($mix, self::PAUSED);
+        $this->forgetState($mix, self::QUEUE_COMPLETED);
+        $this->forgetState($mix, self::POLLING_ACTIVE);
+        $this->forgetState($mix, self::LAST_POLL_TIME);
+        $this->forgetState($mix, self::LAST_POLL_DATA);
+        $this->forgetState($mix, self::SONG_NEARING_END);
+        $this->forgetState($mix, self::SONG_PROGRESS);
+        $this->forgetState($mix, self::SONG_DURATION);
 
         // Restore device ID if it existed
         if ($deviceId) {
@@ -325,7 +395,7 @@ class PlaybackStateManager
      */
     public function resetQueuePosition(Mix $mix): void
     {
-        $this->set($mix, 'queue_position', 0);
+        $this->setState($mix, 'queue_position', 0);
         Log::info("Reset queue position for mix {$mix->id}");
     }
 
@@ -334,8 +404,8 @@ class PlaybackStateManager
      */
     public function setSongProgress(Mix $mix, int $progressMs, int $durationMs): void
     {
-        $this->set($mix, self::SONG_PROGRESS, $progressMs);
-        $this->set($mix, self::SONG_DURATION, $durationMs);
+        $this->setState($mix, self::SONG_PROGRESS, $progressMs);
+        $this->setState($mix, self::SONG_DURATION, $durationMs);
 
         // Calculate remaining percentage
         $remainingMs = $durationMs - $progressMs;
@@ -343,9 +413,9 @@ class PlaybackStateManager
 
         // Flag if song is nearing end (less than 15% remaining)
         if ($percentRemaining <= 15) {
-            $this->set($mix, self::SONG_NEARING_END, true);
+            $this->setState($mix, self::SONG_NEARING_END, true);
         } else {
-            $this->forget($mix, self::SONG_NEARING_END);
+            $this->forgetState($mix, self::SONG_NEARING_END);
         }
     }
 
@@ -355,9 +425,9 @@ class PlaybackStateManager
     public function setCurrentSong(Mix $mix, ?QueueSong $queueSong): void
     {
         if ($queueSong) {
-            $this->set($mix, 'current_song_id', $queueSong->id);
+            $this->setState($mix, 'current_song_id', $queueSong->id);
         } else {
-            $this->forget($mix, 'current_song_id');
+            $this->forgetState($mix, 'current_song_id');
         }
     }
 
@@ -366,7 +436,7 @@ class PlaybackStateManager
      */
     public function getCurrentSongId(Mix $mix): ?int
     {
-        return $this->get($mix, 'current_song_id');
+        return $this->getState($mix, 'current_song_id');
     }
 
     /**
@@ -393,23 +463,43 @@ class PlaybackStateManager
         ];
     }
 
+    /**
+     * Get the full playback state as a single atomic unit
+     */
     public function getPlaybackState(Mix $mix): array
     {
-        return [
-            'is_paused' => $this->isPaused($mix),
-            'is_queue_completed' => $this->isQueueCompleted($mix),
-            'device_id' => $this->getDeviceId($mix),
-            'current_song' => $this->getCurrentSong($mix),
-            'last_poll_time' => $this->getLastPollTime($mix),
-            'song_progress' => $this->get($mix, self::SONG_PROGRESS),
-            'song_duration' => $this->get($mix, self::SONG_DURATION),
-            'song_nearing_end' => $this->has($mix, self::SONG_NEARING_END),
-            'pending_flags' => [
-                'device_changed' => $this->has($mix, self::DEVICE_CHANGED),
-                'manual_change' => $this->has($mix, self::MANUAL_CHANGE),
-                'playback_changed' => $this->has($mix, self::PLAYBACK_CHANGED),
-            ]
-        ];
+        $cacheKey = "mix:{$mix->id}:playback_state";
+        $state = Cache::get($cacheKey, []);
+
+        return array_merge([
+            'current_song_id' => null,
+            'current_song' => null,
+            'playback_data' => null,
+            'is_playing' => false,
+            'last_updated' => 0,
+        ], $state);
+    }
+
+    /**
+     * Update the playback state atomically
+     */
+    public function updatePlaybackState(Mix $mix, array $updates): void
+    {
+        $cacheKey = "mix:{$mix->id}:playback_state";
+
+        // Get current state
+        $state = $this->getPlaybackState($mix);
+
+        // Update with new values
+        $newState = array_merge($state, $updates, [
+            'last_updated' => now()->timestamp
+        ]);
+
+        // Store updated state
+        Cache::put($cacheKey, $newState);
+
+        // Invalidate version
+        Redis::incr("mix:{$mix->id}:state_version");
     }
 
     /**
@@ -419,9 +509,9 @@ class PlaybackStateManager
     public function shouldPoll(Mix $mix): bool
     {
         // If any high-priority flags are set, poll immediately
-        if ($this->has($mix, self::MANUAL_CHANGE) ||
-            $this->has($mix, self::DEVICE_CHANGED) ||
-            $this->has($mix, self::PLAYBACK_CHANGED)) {
+        if ($this->hasState($mix, self::MANUAL_CHANGE) ||
+            $this->hasState($mix, self::DEVICE_CHANGED) ||
+            $this->hasState($mix, self::PLAYBACK_CHANGED)) {
             return true;
         }
 
@@ -441,11 +531,11 @@ class PlaybackStateManager
      */
     public function startPolling(Mix $mix): bool
     {
-        if ($this->has($mix, self::POLLING_ACTIVE)) {
+        if ($this->hasState($mix, self::POLLING_ACTIVE)) {
             return false;
         }
 
-        $this->set($mix, self::POLLING_ACTIVE, true);
+        $this->setState($mix, self::POLLING_ACTIVE, true);
         return true;
     }
 
@@ -454,7 +544,7 @@ class PlaybackStateManager
      */
     public function endPolling(Mix $mix): void
     {
-        $this->forget($mix, self::POLLING_ACTIVE);
+        $this->forgetState($mix, self::POLLING_ACTIVE);
     }
 
     /**
@@ -463,9 +553,9 @@ class PlaybackStateManager
     public function getSecondsUntilNextPoll(Mix $mix): int
     {
         // If priority flags set, poll immediately
-        if ($this->has($mix, self::MANUAL_CHANGE) ||
-            $this->has($mix, self::DEVICE_CHANGED) ||
-            $this->has($mix, self::PLAYBACK_CHANGED)) {
+        if ($this->hasState($mix, self::MANUAL_CHANGE) ||
+            $this->hasState($mix, self::DEVICE_CHANGED) ||
+            $this->hasState($mix, self::PLAYBACK_CHANGED)) {
             return 0;
         }
 
@@ -730,5 +820,21 @@ class PlaybackStateManager
                 Log::info("Cleared stale device change flag for mix {$mix->id}");
             }
         }
+    }
+
+    /**
+     * Wrapper for hasState - used by many methods
+     */
+    public function has(Mix $mix, string $key): bool
+    {
+        return $this->hasState($mix, $key);
+    }
+
+    /**
+     * Wrapper for forgetState - used by many methods
+     */
+    public function forget(Mix $mix, string $key): void
+    {
+        $this->forgetState($mix, $key);
     }
 }

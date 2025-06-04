@@ -4,10 +4,8 @@ namespace App\Services\Playback;
 
 use App\Models\Mix;
 use App\Models\QueueSong;
-use App\Models\PlaybackSession;
 use Illuminate\Support\Facades\Log;
 use App\Events\PlaybackDataUpdatedEvent;
-use App\Events\CoDJUpdatedEvent;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Queue\QueueManagementService;
 
@@ -28,87 +26,50 @@ class SpotifyPollingService
      */
     public function pollPlayback(Mix $mix): ?array
     {
-        // Clear stale flags based on timestamps rather than TTL
-        $this->playbackState->clearStaleDeviceChangeFlags($mix);
-
         try {
+            // Record the poll start time for reference
+            $pollStartTime = now()->timestamp;
+            $this->playbackState->set($mix, 'poll_start_time', $pollStartTime);
+
+            // Handle special states first with early returns
             if ($this->playbackState->isQueueCompleted($mix)) {
-                Log::info("Mix {$mix->id} queue completed, skipping polling");
-                return null;
+                return ['success' => false, 'action' => 'stop_polling', 'message' => 'Queue completed'];
             }
 
             if ($this->playbackState->hasDeviceFailure($mix)) {
-                Log::info("Mix {$mix->id} has device failure flag, stopping polling until user action");
-                return [
-                    'success' => false,
-                    'action' => 'waiting_for_device_selection',
-                    'message' => 'Waiting for user to select device and resume playback'
-                ];
+                return ['success' => false, 'action' => 'waiting_for_device', 'message' => 'No device available'];
             }
 
-            // Get the mix owner
-            // Determine which user to use for playback
+            // Get the controlling user
             $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
-            // Check if we recently changed devices - if so, skip this poll cycle
-            if ($this->playbackState->has($mix, PlaybackStateManager::DEVICE_CHANGED)) {
-                Log::info("Mix {$mix->id} was just manually changed, skipping this poll");
-                // Consume the flag after using it
-                $this->playbackState->forget($mix, PlaybackStateManager::DEVICE_CHANGED);
-                return null;
-            }
-
-            // Get current playback data from Spotify
+            // Get and store Spotify playback data
             $playbackData = $this->spotifyService->getCurrentPlayback($user);
-
-            // Store previous playback data for comparison
             $previousData = $this->playbackState->getPlaybackData($mix);
 
-            // No active playback detected
-            if (!$playbackData) {
-                // Handle no playback case
-                $this->handlePlayerState($mix, PlaybackStateManager::PLAYER_STATE_NO_PLAYBACK);
+            // Always atomically update the cache with current data
+            $this->playbackState->setPlaybackData($mix, $playbackData ?: ['status' => 'no_playback', 'timestamp' => time()]);
 
-                // Use the updateCacheAndBroadcast method to handle no playback data
-                $this->updateCacheAndBroadcast($mix, null, $previousData);
-                return null;
-            }
-
-            // Store the playback data in cache
-            $this->playbackState->setPlaybackData($mix, $playbackData);
-
-            // Get the currently playing song according to our queue
+            // Get current queue state
             $currentQueueSong = $this->songPlaybackService->getCurrentlyPlayingSong($mix);
 
-            // Analyze the current playback state
+            // Analyze and handle the current state
             $playerState = $this->analyzePlayerState($mix, $currentQueueSong, $playbackData, $previousData);
+            $actionResult = $this->handlePlayerState($mix, $playerState, $playbackData, $currentQueueSong, $previousData);
 
-            // Handle the player state - now with return value
-            $result = $this->handlePlayerState($mix, $playerState, $playbackData, $currentQueueSong, $previousData);
-
-            // Check for queue completion signal
-            if ($result === PlaybackStateManager::QUEUE_COMPLETED) {
-                // Set the queue_completed flag in cache
-                $this->playbackState->setQueueCompleted($mix, true);
-                return [
-                    'success' => false,
-                    'action' => 'stop_polling',
-                    'message' => 'Queue completed'
-                ];
+            // Only broadcast if there are significant changes
+            if ($this->hasSignificantChanges($previousData, $playbackData)) {
+                event(new PlaybackDataUpdatedEvent($mix, $playbackData ?: ['status' => 'no_playback']));
             }
 
-            return [
-                'success' => true,
-                'action' => 'continue',
-                'message' => 'Polling completed successfully'
-            ];
+            // Check if we need to extend queue
+            $this->songPlaybackService->extendQueueIfNeeded($mix);
+
+            return $actionResult ?? ['success' => true, 'action' => 'continue'];
+
         } catch (\Exception $e) {
-            Log::error("Error polling Spotify: " . $e->getMessage());
-            return [
-                'success' => false,
-                'action' => 'error',
-                'message' => "Polling error: " . $e->getMessage()
-            ];
+            Log::error("Error polling Spotify: " . $e->getMessage(), ['exception' => $e]);
+            return ['success' => false, 'action' => 'error', 'message' => $e->getMessage()];
         }
     }
 
@@ -117,51 +78,40 @@ class SpotifyPollingService
      */
     private function analyzePlayerState(Mix $mix, ?QueueSong $currentQueueSong, array $playbackData, ?array $previousData = null): string
     {
-        // NEW CHECK: Always check if mix is still active first
+        // Guard conditions (most important checks first)
         if (!$mix->is_active) {
-            Log::info("Mix {$mix->id} is inactive - skipping further analysis");
             return PlaybackStateManager::PLAYER_STATE_NO_PLAYBACK;
         }
 
-        // 1. Check for recent manual changes (user interactions take precedence)
-        if ($this->shouldTrustManualChanges($mix)) {
-            return PlaybackStateManager::PLAYER_STATE_NORMAL;
-        }
-
-        // 2. Handle case when no song is in our queue
-        if (!$currentQueueSong) {
-            return $this->analyzeStateWithoutCurrentSong($mix, $playbackData);
-        }
-
-        // 3. Check for no active playback
+        // No playback data means no active playback
         if (empty($playbackData) || !isset($playbackData['item'])) {
             return PlaybackStateManager::PLAYER_STATE_NO_PLAYBACK;
         }
 
-        // 4. Check for track mismatch
-        if ($this->hasTrackMismatch($mix, $currentQueueSong, $playbackData)) {
+        // No current song in our database
+        if (!$currentQueueSong) {
             return PlaybackStateManager::PLAYER_STATE_TRACK_MISMATCH;
         }
 
-        // 5. Check if paused
-        if (isset($playbackData['is_playing']) && $playbackData['is_playing'] === false) {
+        // Check if paused
+        if (!$playbackData['is_playing']) {
             return PlaybackStateManager::PAUSED;
         }
 
-        // 6. Check for manual seek to end
-        if ($this->isManualSeekToEnd($mix, $previousData, $currentQueueSong)) {
-            return PlaybackStateManager::PLAYER_STATE_MANUAL_SEEK_END;
+        // Track mismatch check (different song playing than expected)
+        if ($playbackData['item']['id'] !== $currentQueueSong->song->spotify_id) {
+            return PlaybackStateManager::PLAYER_STATE_TRACK_MISMATCH;
         }
 
-        // 7. Check if song is ending
-        $trackEndingStatus = $this->checkTrackEnding($mix, $previousData, $playbackData, $currentQueueSong);
-        if ($trackEndingStatus !== null) {
-            return $trackEndingStatus;
-        }
+        // Check if track has ended
+        if (isset($playbackData['item']['duration_ms']) && isset($playbackData['progress_ms'])) {
+            $durationMs = $playbackData['item']['duration_ms'];
+            $progressMs = $playbackData['progress_ms'];
 
-        // 8. Check if playback is stuck
-        if ($this->isPlaybackStuck($previousData, $playbackData)) {
-            return PlaybackStateManager::PLAYER_STATE_STUCK;
+            // Track is at 97% or more of its duration
+            if ($durationMs > 0 && ($progressMs / $durationMs) >= 0.97) {
+                return PlaybackStateManager::PLAYER_STATE_TRACK_ENDED;
+            }
         }
 
         // Default: normal playback
@@ -377,210 +327,78 @@ class SpotifyPollingService
      */
     private function handlePlayerState(Mix $mix, string $playerState, ?array $playbackData = null, ?QueueSong $currentQueueSong = null, ?array $previousData = null)
     {
-        // NEW CHECK: Don't handle player state for inactive mixes
+        // Don't handle player state for inactive mixes
         if (!$mix->is_active && $playerState !== PlaybackStateManager::QUEUE_COMPLETED) {
-            Log::info("Not handling player state for inactive mix {$mix->id}");
             return null;
         }
 
-        // Add protection at the beginning of the method
-        if ($playerState === PlaybackStateManager::PLAYER_STATE_NORMAL && $playbackData === null) {
-            Log::error("Received null playback data for NORMAL state in mix {$mix->id}");
-            return; // Early return to prevent further processing
-        }
+        Log::info("Handling player state {$playerState} for mix {$mix->id}");
 
-        // Try harder to find device ID - check multiple patterns
-        $deviceId = $this->playbackState->getDeviceId($mix);
-
-        Log::info("Handling player state {$playerState} for mix {$mix->id}" .
-                  ($deviceId ? " with device {$deviceId}" : " with no specific device"));
-
+        // Handle the most common cases first with cleaner logic
         switch ($playerState) {
-            case PlaybackStateManager::QUEUE_COMPLETED:
-                Log::info("Queue completion detected for mix {$mix->id}");
-
-                // Mark all songs as finished
-                QueueSong::where('mix_id', $mix->id)
-                    ->whereIn('status', ['playing', 'pending'])
-                    ->update([
-                        'status' => 'finished',
-                        'played_at' => now()
-                    ]);
-
-                // Mark session as inactive
-                PlaybackSession::where('mix_id', $mix->id)
-                    ->where('is_active', true)
-                    ->update([
-                        'is_active' => false,
-                        'ended_at' => now()
-                    ]);
-
-                $coDj = $mix->coDj;
-                if ($coDj) {
-                    $mix->update(['co_dj_id' => null]);
-                    CoDJUpdatedEvent::dispatch($coDj);
-                }
-
-                CoDJUpdatedEvent::dispatch($mix->user);
-
-                try {
-                    $user = $mix->user; // Use the owner for pausing when queue completes
-                    $this->spotifyService->pausePlayback($user);
-                    Log::info("Paused playback after queue completion for mix {$mix->id}");
-                } catch (\Exception $e) {
-                    Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
-                }
-
-                // Set cache flag
-                $this->playbackState->setQueueCompleted($mix, true);
-
-
-                return PlaybackStateManager::QUEUE_COMPLETED;
-
             case PlaybackStateManager::PLAYER_STATE_TRACK_ENDED:
-                // Get the time when we last started a song
-                $lastSongStartTime = $this->playbackState->get($mix, 'last_song_start_time');
-                $lastSongStarted = $this->playbackState->get($mix, 'last_song_started');
-                $currentTime = time();
-
-                // If we just started this song less than 3 seconds ago, this is likely a false track_ended event
-                if ($lastSongStartTime &&
-                    ($currentTime - $lastSongStartTime) < 3 &&
-                    $lastSongStarted == $currentQueueSong->song->spotify_id) {
-
-                    Log::info("Ignoring false track_ended event - song {$lastSongStarted} was just started " .
-                             ($currentTime - $lastSongStartTime) . " seconds ago");
-                    return;
-                }
-
-                Log::info("Detected track ended for mix {$mix->id}, advancing to next song");
-
-                // NEW: Check if this is a false "track ended" during a round transition
-                $lastPlayStartTime = $this->playbackState->get($mix, 'last_play_start_time');
-                $currentTime = time();
-
-                if ($lastPlayStartTime && ($currentTime - $lastPlayStartTime) < 3) {
-                    Log::info("Ignoring potential false track_ended detection - song was just started " .
-                             ($currentTime - $lastPlayStartTime) . " seconds ago");
-                    $this->changeReason = 'ignored_false_track_end';
-                    break;
-                }
-
-                // Clear notification flags
-                if (isset($currentQueueSong)) {
-                    $this->playbackState->clearTrackEndNotification($mix, $currentQueueSong->song->spotify_id);
-                }
-
-                // Clear nearing end flag
-                $this->playbackState->forget($mix, PlaybackStateManager::SONG_NEARING_END);
-
-                // Explicitly log advancement attempt
-                Log::info("Attempting to advance to next song for mix {$mix->id}");
-
-                // Advance to next song
-                $result = $this->songPlaybackService->advanceToNextSong($mix);
-
-                // Log the result for debugging
-                Log::info("Advance result: " . json_encode($result));
-                break;
+                return $this->handleTrackEnded($mix, $currentQueueSong);
 
             case PlaybackStateManager::PLAYER_STATE_TRACK_MISMATCH:
-                // Only try to fix mismatches if we're not in a device change grace period
-                if (!$this->playbackState->hasDeviceChanged($mix)) {
-                    Log::info("Detected track mismatch for mix {$mix->id}, resuming intended track");
-                    $this->songPlaybackService->resumeIntendedTrack($mix);
-                } else {
-                    Log::info("Track mismatch detected but ignoring due to recent device change for mix {$mix->id}");
-                }
-                break;
-
-            case PlaybackStateManager::PLAYER_STATE_STUCK:
-                // Get when we last attempted to resume stuck playback
-                $lastResumeAttempt = $this->playbackState->get($mix, 'last_stuck_resume_attempt');
-                $currentTime = time();
-
-                // Only attempt to resume if we haven't tried in the last 5 seconds
-                if (!$lastResumeAttempt || ($currentTime - $lastResumeAttempt) > 5) {
-                    Log::info("Detected stuck playback for mix {$mix->id}, resuming playback");
-
-                    // Mark that we're attempting to resume
-                    $this->playbackState->set($mix, 'last_stuck_resume_attempt', $currentTime);
-
-                    // Try to resume playback
-                    if (isset($currentQueueSong)) {
-                        // Resume intended track
-                        $result = $this->songPlaybackService->resumeIntendedTrack($mix);
-
-                        // Increment stuck count to detect persistent issues
-                        $stuckCount = $this->playbackState->get($mix, 'stuck_count', 0);
-                        $this->playbackState->set($mix, 'stuck_count', $stuckCount + 1);
-
-                        // If we've been stuck too many times on the same song, force advance
-                        if ($stuckCount > 3) {
-                            Log::info("Song appears permanently stuck after {$stuckCount} attempts, advancing to next song");
-                            $this->songPlaybackService->advanceToNextSong($mix);
-                            $this->playbackState->forget($mix, 'stuck_count');
-                        }
-                    }
-                } else {
-                    Log::info("Skipping stuck playback handling - last attempt was " .
-                            ($currentTime - $lastResumeAttempt) . " seconds ago");
-                }
-                break;
-
-            case PlaybackStateManager::PLAYER_STATE_MANUAL_SEEK_END:
-                Log::info("Detected manual seek to end for mix {$mix->id}, advancing to next song");
-                $this->songPlaybackService->advanceToNextSong($mix);
-                // Clear the seek detection flag
-                if (isset($currentQueueSong)) {
-                    $this->playbackState->forget($mix, "seek:{$currentQueueSong->id}");
-                }
-                break;
+                return $this->handleTrackMismatch($mix);
 
             case PlaybackStateManager::PLAYER_STATE_NO_PLAYBACK:
-                // If we know a song should be playing but nothing is playing
-                if ($this->songPlaybackService->getCurrentlyPlayingSong($mix)) {
-                    Log::info("No playback detected but song should be playing for mix {$mix->id}, resuming playback");
-                    $this->songPlaybackService->resumeIntendedTrack($mix);
-                }
-                break;
+                return $this->handleNoPlayback($mix);
 
             case PlaybackStateManager::PAUSED:
-                Log::info("Detected paused playback for mix {$mix->id}, broadcasting pause event");
-
-                if ($this->hasSignificantChanges($previousData, $playbackData)) {
-                    event(new PlaybackDataUpdatedEvent($mix, $playbackData));
-                } else {
-                    Log::debug("Paused state unchanged for mix {$mix->id}, skipping broadcast");
-                }
-                break;
+                // Just update cache and broadcast if needed
+                $this->updateCacheAndBroadcast($mix, $playbackData, $previousData);
+                return null;
 
             case PlaybackStateManager::PLAYER_STATE_NORMAL:
-                Log::info("Detected normal (playing) playback for mix {$mix->id}, broadcasting play event");
-
-                // Fetch the CACHED playback data, not null playbackData parameter
-                $cachedPlaybackData = $this->playbackState->getPlaybackData($mix);
-
-                // Debug playback data
-                Log::debug("Playback data: " . ($cachedPlaybackData ? 'Valid cached data' : 'null'));
-
-                // Check if we have valid data
-                if (!$cachedPlaybackData) {
-                    Log::error("Invalid playback data for mix {$mix->id}: NULL");
-                    return; // Early return
-                }
-
-                // Only proceed if we have significant changes
-                if ($this->hasSignificantChanges($previousData, $cachedPlaybackData)) {
-                    Log::info("Broadcasting playback change for mix {$mix->id}");
-                    event(new PlaybackDataUpdatedEvent($mix, $cachedPlaybackData));
-                } else {
-                    Log::debug("No significant changes for mix {$mix->id} - skipping broadcast");
-                }
-                break;
+                // Just update cache and broadcast if needed
+                $this->updateCacheAndBroadcast($mix, $playbackData, $previousData);
+                return null;
         }
 
-        // Add a default return
+        return null;
+    }
+
+    /**
+     * Handle track ended state
+     */
+    private function handleTrackEnded(Mix $mix, ?QueueSong $currentQueueSong): ?array
+    {
+        Log::info("Detected track ended for mix {$mix->id}, advancing to next song");
+
+        if ($currentQueueSong) {
+            $this->playbackState->clearTrackEndNotification($mix, $currentQueueSong->song->spotify_id);
+        }
+
+        // Advance to next song
+        return $this->songPlaybackService->advanceToNextSong($mix);
+    }
+
+    /**
+     * Handle track mismatch state
+     */
+    private function handleTrackMismatch(Mix $mix): ?array
+    {
+        // Only try to fix mismatches if we're not in a device change grace period
+        if (!$this->playbackState->hasDeviceChanged($mix)) {
+            Log::info("Detected track mismatch for mix {$mix->id}, resuming intended track");
+            return $this->songPlaybackService->resumeIntendedTrack($mix);
+        } else {
+            Log::info("Track mismatch detected but ignoring due to recent device change for mix {$mix->id}");
+        }
+        return null;
+    }
+
+    /**
+     * Handle no playback state
+     */
+    private function handleNoPlayback(Mix $mix): ?array
+    {
+        // If we know a song should be playing but nothing is playing
+        if ($this->songPlaybackService->getCurrentlyPlayingSong($mix)) {
+            Log::info("No playback detected but song should be playing for mix {$mix->id}, resuming playback");
+            return $this->songPlaybackService->resumeIntendedTrack($mix);
+        }
         return null;
     }
 
