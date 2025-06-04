@@ -121,6 +121,11 @@
         :text="storeInformationModal.text"
         @close-modal="storeInformationModal.hideInfoModal"
     />
+    <SpinningCircleOverlay
+        :is-visible="fullscreenLoader.isVisible"
+        :title="fullscreenLoader.title"
+        :description="fullscreenLoader.message"
+    />
 </template>
 
 <script setup>
@@ -138,10 +143,13 @@ import ToastList from "@/components/toasts/ToastList.vue";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal.vue";
 import { StoreConfirmationModal } from "@/stores/StoreConfirmationModal";
 import { StoreInformationModal } from "@/stores/StoreInformationModal";
+import { useFullscreenLoaderStore } from "@/stores/StoreShowFullscreenLoader";
 import SidebarDesktop from "@/components/navigation/SidebarDesktop.vue";
 import SidebarMobile from "@/components/navigation/SidebarMobile.vue";
 import InformationModal from "@/components/modals/InformationModal.vue";
+import SpinningCircleOverlay from "@/components/SpinningCircleOverlay.vue";
 
+const fullscreenLoader = useFullscreenLoaderStore();
 const storeConfirmationModal = StoreConfirmationModal();
 const storeInformationModal = StoreInformationModal();
 

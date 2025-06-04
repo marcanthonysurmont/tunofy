@@ -66,6 +66,7 @@ import SkeletonDefault from "@/components/skeletons/SkeletonDefault.vue";
 import MixController from "@/components/playback/MixController.vue";
 import CustomThemeContainer from "@/components/themes/CustomThemeContainer.vue";
 import { usePlaylistStore } from "@/stores/StorePlaylistContent.js";
+import { useFullscreenLoaderStore } from "@/stores/StoreShowFullscreenLoader";
 import emitter from "@/eventBus.js";
 import toast from "@/stores/StoreToast.js";
 
@@ -289,6 +290,7 @@ function handleSongAddedEvent(song) {
 }
 
 let wasDisconnected = false;
+const fullscreenLoader = useFullscreenLoaderStore();
 
 onMounted(() => {
     //echo websocket reconnect logic
@@ -298,15 +300,30 @@ onMounted(() => {
         Echo.connector.pusher &&
         Echo.connector.pusher.connection
     ) {
-        Echo.connector.pusher.connection.bind("disconnected", () => {
+        Echo.connector.pusher.connection.bind("unavailable", () => {
             wasDisconnected = true;
-            console.log("WebSocket disconnected");
+            fullscreenLoader.show();
+            fullscreenLoader.setText(
+                "Please wait while we reconnect you to the mix...",
+                "Hold on!"
+            );
+        });
+
+        Echo.connector.pusher.connection.bind("state_change", (states) => {
+            if (states.current === "connecting") {
+                wasDisconnected = true;
+                fullscreenLoader.show();
+                fullscreenLoader.setText(
+                    "Please wait while we reconnect you to the mix...",
+                    "Hold on!"
+                );
+            }
         });
 
         Echo.connector.pusher.connection.bind("connected", () => {
             if (wasDisconnected) {
                 wasDisconnected = false;
-                //we reload all the props and we also set the tongs again
+                //we reload all the props and we also set the songs again
                 router.reload({
                     only: [],
                     onSuccess: () => {
@@ -317,6 +334,8 @@ onMounted(() => {
                                 songs.value.links.next
                             );
                         }
+                        fullscreenLoader.hide();
+
                         //scroll to top of the page
                         window.scrollTo({
                             top: 0,
@@ -326,6 +345,39 @@ onMounted(() => {
             }
         });
     }
+
+    //listen for tab visibility changes
+    // function handleVisibilityChange() {
+    //     console.log("handling visibility");
+    //     if (document.visibilityState === "visible") {
+    //         console.log("is visible and was disconnected:", wasDisconnected);
+    //         if (wasDisconnected) {
+    //             console.log("show loader and router reload");
+    //             fullscreenLoader.show();
+    //             fullscreenLoader.setText(
+    //                 "Please wait while we reconnect you to the mix...",
+    //                 "Hold on!"
+    //             );
+    //             router.reload({
+    //                 only: [],
+    //                 onSuccess: () => {
+    //                     console.log("fetched new songs!");
+    //                     playlistStore.reset();
+    //                     if (playlistStore.renderedSongs.length === 0) {
+    //                         playlistStore.setSongs(songs.value.data);
+    //                         playlistStore.setNextFetchURL(
+    //                             songs.value.links.next
+    //                         );
+    //                     }
+    //                     fullscreenLoader.hide();
+    //                     window.scrollTo({ top: 0 });
+    //                     wasDisconnected = false;
+    //                 },
+    //             });
+    //         }
+    //     }
+    // }
+    // document.addEventListener("visibilitychange", handleVisibilityChange);
 
     emitter.on("song-added", handleSongAddedEvent);
     Echo.channel(`mix.${props.value.mix.id}`)
@@ -340,7 +392,6 @@ onMounted(() => {
             console.log("Queue state updated");
         })
         .listen(".song.added", (e) => {
-            //if there are no more pagination links --> add locally
             if (playlistStore.nextFetchURL === null) {
                 playlistStore.addSong(e.song);
             }
@@ -399,35 +450,37 @@ onMounted(() => {
                 router.reload({
                     only: ["songs", "success", "danger"],
                     onSuccess: () => {
-                        //if there are no more pagination links --> add all songs locally
                         playlistStore.setNextFetchURL(songs.value.links.next);
                         if (playlistStore.nextFetchURL !== null) {
-                            console.log("adding songs nigga", e.songs);
                             playlistStore.incrementFetchPage();
                             playlistStore.addSongs(e.songs);
                         }
                     },
                 });
-                //if there are no more pagination links --> add all songs locally
             } else if (e.has_more === false) {
                 playlistStore.addSongs(e.songs);
             }
         });
-});
 
-onBeforeUnmount(() => {
-    //unbind Echo connection events
-    if (
-        Echo.connector &&
-        Echo.connector.pusher &&
-        Echo.connector.pusher.connection
-    ) {
-        Echo.connector.pusher.connection.unbind("disconnected");
-        Echo.connector.pusher.connection.unbind("connected");
-    }
-    Echo.leave(`mix.${mixId.value}`);
-    emitter.off("song-added", handleSongAddedEvent);
-    //reset the playlist songs
-    playlistStore.reset();
+    //clean up on unmount
+    onBeforeUnmount(() => {
+        if (
+            Echo.connector &&
+            Echo.connector.pusher &&
+            Echo.connector.pusher.connection
+        ) {
+            Echo.connector.pusher.connection.unbind("disconnected");
+            Echo.connector.pusher.connection.unbind("connected");
+            Echo.connector.pusher.connection.unbind("unavailable");
+            Echo.connector.pusher.connection.unbind("state_change");
+        }
+        Echo.leave(`mix.${mixId.value}`);
+        emitter.off("song-added", handleSongAddedEvent);
+        // document.removeEventListener(
+        //     "visibilitychange",
+        //     handleVisibilityChange
+        // );
+        playlistStore.reset();
+    });
 });
 </script>
