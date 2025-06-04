@@ -2,7 +2,9 @@
     <div
         class="relative aspect-[9/16] w-full sm:w-[70%] md:w-[320px] h-auto max-h-[80vh] animated-gradient rounded-xl shadow-lg"
     >
-        <div class="flex flex-col items-center justify-center h-full w-full">
+        <div
+            class="flex flex-col items-center justify-center h-full w-full p-6"
+        >
             <template v-if="!showStats">
                 <h1 ref="thanksHeader" class="text-5xl text-center font-medium">
                     Thank you!

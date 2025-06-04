@@ -3,7 +3,7 @@
         class="relative aspect-[9/16] w-full sm:w-[70%] md:w-[320px] h-auto max-h-[80vh] bg-gradient-to-r from-blue-200 to-cyan-200 rounded-xl shadow-lg pulse-bg"
     >
         <div
-            class="flex flex-col items-center justify-center h-full w-full text-black"
+            class="flex flex-col items-center justify-center h-full w-full p-6 text-black"
         >
             <template v-if="!showStats">
                 <h1 ref="smoothText" class="text-5xl text-center font-medium">

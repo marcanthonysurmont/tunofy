@@ -2,7 +2,9 @@
     <div
         class="relative aspect-[9/16] w-full sm:w-[70%] md:w-[320px] h-auto max-h-[80vh] bg-gradient-to-r from-pink-600 to-yellow-600 rounded-xl shadow-lg"
     >
-        <div class="flex flex-col items-center justify-center h-full w-full">
+        <div
+            class="flex flex-col items-center justify-center h-full w-full p-6"
+        >
             <template v-if="!showStats">
                 <h1 ref="woahText" class="text-5xl text-center font-medium">
                     Woah!
@@ -44,15 +46,18 @@
                 >
                     <div class="flex flex-col animate-scrollUp">
                         <div
-                            v-for="i in 20"
+                            v-for="i in 50"
                             :key="i"
-                            class="text-white text-3xl font-black text-center opacity-5 leading-[2.5rem] whitespace-nowrap"
+                            class="text-white text-3xl font-black text-center opacity-10 leading-[2.5rem] whitespace-nowrap"
                         >
                             {{ highestAddedSong.song_name }}
                         </div>
                     </div>
                 </div>
-                <div ref="mostBox" class="opacity-0">
+                <div
+                    ref="mostBox"
+                    class="opacity-0 flex flex-col items-center justify-center"
+                >
                     <h2 class="text-3xl text-center mb-2 font-medium">
                         Most added song
                     </h2>
@@ -66,7 +71,7 @@
                                 loading: '/images/default-song.png',
                             }"
                             alt="cover"
-                            class="w-8 h-8 sm:w-10 sm:h-10 rounded flex-shrink-0"
+                            class="w-9 h-9 sm:w-10 sm:h-10 rounded flex-shrink-0"
                         />
                         <div class="min-w-0 flex-1 overflow-hidden">
                             <div
@@ -304,7 +309,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .animate-scrollUp {
-    animation: scrollUp 9s linear infinite;
+    animation: scrollUp 20s linear infinite;
 }
 @keyframes scrollUp {
     0% {

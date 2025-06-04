@@ -1,7 +1,7 @@
 <template>
     <Head title="Tunofy | Remix" />
     <Transition name="fade-with-slide" appear mode="out-in" :duration="300">
-        <div class="flex flex-col h-[100dvh] px-4 py-8 max-w-6xl mx-auto">
+        <div class="flex flex-col h-[100dvh] px-6 py-8 max-w-6xl mx-auto">
             <div class="w-full flex gap-2 py-4 mb-4 md:mb-8">
                 <div
                     v-for="(step, index) in totalSteps"
