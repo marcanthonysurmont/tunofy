@@ -44,6 +44,8 @@ class AddSongToMixController extends Controller
             ]);
 
             $mix->update(['mix_count' => $mix->mix_count + 1]);
+            
+            $song->setRelation('user', $user);
 
             SongAddedEvent::dispatch($mix, $song);
 
@@ -227,6 +229,7 @@ class AddSongToMixController extends Controller
             return redirect()->back()
                 ->with('success', 'Song added to mix successfully.');
         } catch (Exception $e) {
+            ds('error', 'Failed to add song to mix: ' . $e->getMessage());
 
             if ($e->getCode() == 23000) {
                 return redirect()->back()

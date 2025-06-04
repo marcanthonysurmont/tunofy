@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Http\Resources\SongResource;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -34,7 +35,7 @@ class SongAddedEvent implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
-            'song' => $this->song,
+            'song' => SongResource::make($this->song),
         ];
     }
 }
