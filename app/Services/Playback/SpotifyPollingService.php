@@ -11,8 +11,6 @@ use App\Services\Queue\QueueManagementService;
 
 class SpotifyPollingService
 {
-    protected $changeReason = '';
-
     public function __construct(
         protected SpotifyService $spotifyService,
         protected SongPlaybackService $songPlaybackService,
@@ -435,7 +433,6 @@ class SpotifyPollingService
 
         // Only broadcast if we have significant changes - even for active mixes
         if ($this->hasSignificantChanges($previousData, $playbackData)) {
-            Log::info("Broadcasting playback change for mix {$mix->id}: {$this->changeReason}");
             event(new PlaybackDataUpdatedEvent($mix, $playbackData));
         } else {
             Log::debug("No significant changes for mix {$mix->id} - skipping broadcast");
