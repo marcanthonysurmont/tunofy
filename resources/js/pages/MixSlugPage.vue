@@ -304,7 +304,7 @@ function hideFullScreenLoader() {
     fullscreenLoader.hide();
 }
 
-onMounted(() => {
+onBeforeMount(() => {
     //echo websocket reconnect logic
     //this is used for cases where user closes safari app for exampel to quickly open spotify and then open safari again
     if (
@@ -313,6 +313,10 @@ onMounted(() => {
         Echo.connector.pusher.connection
     ) {
         const connection = Echo.connector.pusher.connection;
+
+        if (connection.state !== "connected") {
+            Echo.connector.pusher.connect();
+        }
 
         connection.bind("unavailable", () => {
             wasDisconnected = true;
