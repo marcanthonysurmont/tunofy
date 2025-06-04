@@ -190,20 +190,14 @@ class PlaybackStateManager
     /**
      * Set device changed flag with explicit cleanup
      */
-    public function setDeviceChanged(Mix $mix, bool $value = true): void
+    public function setDeviceChanged(Mix $mix, bool $changed = true, int $seconds = 2): void
     {
-        if ($value) {
-            // Use the regular set method with no TTL
-            $this->setState($mix, 'device_changed', true);
+        Cache::put("mix:{$mix->id}:device_changed", $changed, now()->addSeconds($seconds));
 
-            // Store the timestamp for manual verification later
-            $this->setState($mix, 'device_changed_timestamp', time());
+        // Store the timestamp for manual verification later
+        $this->setState($mix, 'device_changed_timestamp', time());
 
-            Log::info("Set device change flag for mix {$mix->id}");
-        } else {
-            $this->forgetState($mix, 'device_changed');
-            $this->forgetState($mix, 'device_changed_timestamp');
-        }
+        Log::info("Set device change flag for mix {$mix->id}");
     }
 
     /**

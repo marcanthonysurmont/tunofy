@@ -55,11 +55,6 @@ class SpotifyPollingService
             $playerState = $this->analyzePlayerState($mix, $currentQueueSong, $playbackData, $previousData);
             $actionResult = $this->handlePlayerState($mix, $playerState, $playbackData, $currentQueueSong, $previousData);
 
-            // Only broadcast if there are significant changes
-            if ($this->hasSignificantChanges($previousData, $playbackData)) {
-                event(new PlaybackDataUpdatedEvent($mix, $playbackData ?: ['status' => 'no_playback']));
-            }
-
             // Check if we need to extend queue
             $this->songPlaybackService->extendQueueIfNeeded($mix);
 
@@ -101,13 +96,64 @@ class SpotifyPollingService
             return PlaybackStateManager::PLAYER_STATE_TRACK_MISMATCH;
         }
 
-        // Check if track has ended
+        // Enhanced track end detection
         if (isset($playbackData['item']['duration_ms']) && isset($playbackData['progress_ms'])) {
             $durationMs = $playbackData['item']['duration_ms'];
             $progressMs = $playbackData['progress_ms'];
 
-            // Track is at 97% or more of its duration
-            if ($durationMs > 0 && ($progressMs / $durationMs) >= 0.97) {
+            // Track is at 90% or more of its duration (lower threshold)
+            if ($durationMs > 0 && ($progressMs / $durationMs) >= 0.90) {
+                // If we're near end AND progress hasn't changed significantly
+                if ($previousData &&
+                    isset($previousData['progress_ms']) &&
+                    abs($progressMs - $previousData['progress_ms']) < 500 &&
+                    $progressMs > 5000) { // Make sure we're not just starting
+
+
+                    // If we're VERY close to end (>97%) OR stalled for multiple polls
+                    if (($progressMs / $durationMs) >= 0.97 ||
+                        $this->playbackState->hasState($mix, 'progress_stalled')) {
+
+                        Log::info("Detected track ended for mix {$mix->id} (progress: {$progressMs}/{$durationMs})");
+                        return PlaybackStateManager::PLAYER_STATE_TRACK_ENDED;
+                    } else {
+                        // Mark stalled progress for next poll
+                        $this->playbackState->setState($mix, 'progress_stalled', true);
+                    }
+                } else {
+                    // Progress is still advancing, clear stalled state
+                    $this->playbackState->forgetState($mix, 'progress_stalled');
+                }
+            }
+        }
+
+        // Loop Detection - Check this before any other playback analysis
+        if (isset($previousData['item']['id']) &&
+            isset($playbackData['item']['id']) &&
+            isset($previousData['progress_ms']) &&
+            isset($playbackData['progress_ms'])) {
+
+            // If same track ID but progress reset to beginning
+            if ($previousData['item']['id'] === $playbackData['item']['id'] &&
+                $previousData['progress_ms'] > 5000 && // Wasn't already at start
+                $playbackData['progress_ms'] < 3000) { // Now is at start
+
+                Log::info("Detected track reset to beginning for mix {$mix->id}, treating as track ended");
+                return PlaybackStateManager::PLAYER_STATE_TRACK_ENDED;
+            }
+        }
+
+        // Check for tracks that might be about to repeat due to reaching their end
+        if (isset($playbackData['item']['id']) &&
+            isset($playbackData['item']['duration_ms']) &&
+            isset($playbackData['progress_ms'])) {
+
+            $durationMs = $playbackData['item']['duration_ms'];
+            $progressMs = $playbackData['progress_ms'];
+
+            // If we're at 98%+ of the song, just consider it ended
+            if (($progressMs / $durationMs) >= 0.98) {
+                Log::info("Detected track at very end for mix {$mix->id} ({$progressMs}/{$durationMs}), treating as track ended");
                 return PlaybackStateManager::PLAYER_STATE_TRACK_ENDED;
             }
         }
@@ -173,14 +219,33 @@ class SpotifyPollingService
      */
     private function handleTrackMismatch(Mix $mix): ?array
     {
-        // Only try to fix mismatches if we're not in a device change grace period
-        if (!$this->playbackState->hasDeviceChanged($mix)) {
-            Log::info("Detected track mismatch for mix {$mix->id}, resuming intended track");
-            return $this->songPlaybackService->resumeIntendedTrack($mix);
-        } else {
-            Log::info("Track mismatch detected but ignoring due to recent device change for mix {$mix->id}");
+        // Get current queue song
+        $currentQueueSong = $this->songPlaybackService->getCurrentlyPlayingSong($mix);
+
+        // Get playback data
+        $playbackData = $this->playbackState->getPlaybackData($mix);
+
+        // ALWAYS CHECK FOR LOOPS FIRST - regardless of any other state
+        if ($currentQueueSong && $playbackData &&
+            isset($playbackData['item']['id']) &&
+            $playbackData['item']['id'] === $currentQueueSong->song->spotify_id &&
+            isset($playbackData['progress_ms']) &&
+            $playbackData['progress_ms'] < 3000) {
+
+            // This is definitely a loop back to beginning
+            Log::info("Detected track looped back to beginning for mix {$mix->id}, treating as track ended - IGNORING DEVICE CHANGE");
+            return $this->songPlaybackService->advanceToNextSong($mix);
         }
-        return null;
+
+        // Only then check device change
+        if ($this->playbackState->hasDeviceChanged($mix)) {
+            Log::info("Track mismatch detected but ignoring due to recent device change for mix {$mix->id}");
+            return null;
+        }
+
+        // Otherwise resume intended track
+        Log::info("Detected track mismatch for mix {$mix->id}, resuming intended track");
+        return $this->songPlaybackService->resumeIntendedTrack($mix);
     }
 
     /**
