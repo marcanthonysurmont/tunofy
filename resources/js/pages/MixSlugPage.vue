@@ -292,6 +292,18 @@ function handleSongAddedEvent(song) {
 let wasDisconnected = false;
 const fullscreenLoader = useFullscreenLoaderStore();
 
+function showFullScreenLoader() {
+    fullscreenLoader.show();
+    fullscreenLoader.setText(
+        "Please wait while we reconnect you to the mix...",
+        "Hold on!"
+    );
+}
+
+function hideFullScreenLoader() {
+    fullscreenLoader.hide();
+}
+
 onMounted(() => {
     //echo websocket reconnect logic
     //this is used for cases where user closes safari app for exampel to quickly open spotify and then open safari again
@@ -300,33 +312,35 @@ onMounted(() => {
         Echo.connector.pusher &&
         Echo.connector.pusher.connection
     ) {
-        Echo.connector.pusher.connection.bind("unavailable", () => {
+        const connection = Echo.connector.pusher.connection;
+
+        connection.bind("unavailable", () => {
             wasDisconnected = true;
-            fullscreenLoader.show();
-            fullscreenLoader.setText(
-                "Please wait while we reconnect you to the mix...",
-                "Hold on!"
-            );
+            showFullScreenLoader();
         });
 
-        Echo.connector.pusher.connection.bind("state_change", (states) => {
+        connection.bind("state_change", (states) => {
+            console.log("state changed: ", states);
             if (states.current === "connecting") {
                 wasDisconnected = true;
-                fullscreenLoader.show();
-                fullscreenLoader.setText(
-                    "Please wait while we reconnect you to the mix...",
-                    "Hold on!"
-                );
+                showFullScreenLoader();
+            }
+
+            if (states.current === "disconnected") {
+                wasDisconnected = true;
+                showFullScreenLoader();
             }
         });
 
-        Echo.connector.pusher.connection.bind("connected", () => {
+        connection.bind("connected", () => {
+            console.log("connected");
             if (wasDisconnected) {
                 wasDisconnected = false;
                 //we reload all the props and we also set the songs again
                 router.reload({
                     only: [],
                     onSuccess: () => {
+                        console.log("router reload that shit");
                         playlistStore.reset();
                         if (playlistStore.renderedSongs.length === 0) {
                             playlistStore.setSongs(songs.value.data);
@@ -334,7 +348,8 @@ onMounted(() => {
                                 songs.value.links.next
                             );
                         }
-                        fullscreenLoader.hide();
+
+                        hideFullScreenLoader();
 
                         //scroll to top of the page
                         window.scrollTo({
@@ -345,39 +360,6 @@ onMounted(() => {
             }
         });
     }
-
-    //listen for tab visibility changes
-    // function handleVisibilityChange() {
-    //     console.log("handling visibility");
-    //     if (document.visibilityState === "visible") {
-    //         console.log("is visible and was disconnected:", wasDisconnected);
-    //         if (wasDisconnected) {
-    //             console.log("show loader and router reload");
-    //             fullscreenLoader.show();
-    //             fullscreenLoader.setText(
-    //                 "Please wait while we reconnect you to the mix...",
-    //                 "Hold on!"
-    //             );
-    //             router.reload({
-    //                 only: [],
-    //                 onSuccess: () => {
-    //                     console.log("fetched new songs!");
-    //                     playlistStore.reset();
-    //                     if (playlistStore.renderedSongs.length === 0) {
-    //                         playlistStore.setSongs(songs.value.data);
-    //                         playlistStore.setNextFetchURL(
-    //                             songs.value.links.next
-    //                         );
-    //                     }
-    //                     fullscreenLoader.hide();
-    //                     window.scrollTo({ top: 0 });
-    //                     wasDisconnected = false;
-    //                 },
-    //             });
-    //         }
-    //     }
-    // }
-    // document.addEventListener("visibilitychange", handleVisibilityChange);
 
     emitter.on("song-added", handleSongAddedEvent);
     Echo.channel(`mix.${props.value.mix.id}`)
@@ -476,10 +458,6 @@ onMounted(() => {
         }
         Echo.leave(`mix.${mixId.value}`);
         emitter.off("song-added", handleSongAddedEvent);
-        // document.removeEventListener(
-        //     "visibilitychange",
-        //     handleVisibilityChange
-        // );
         playlistStore.reset();
     });
 });
