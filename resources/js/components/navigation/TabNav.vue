@@ -4,55 +4,62 @@
             class="flex md:items-center justify-between md:flex-row flex-col gap-6 md:flex-wrap"
         >
             <div class="relative w-full md:w-auto">
-                <nav
-                    ref="tabsContainer"
-                    class="flex space-x-4 relative overflow-x-auto hide-scrollbar"
-                    aria-label="Tabs"
-                >
-                    <!-- sliding background indicator -->
-                    <div
-                        ref="activeTabIndicator"
-                        class="absolute bg-primary rounded-lg transition-all duration-300 ease-in-out h-full z-0"
-                    ></div>
-
-                    <!-- tabs -->
-                    <a
-                        v-for="(tab, index) in visibleTabs"
-                        :key="tab.name"
-                        :ref="
-                            (el) => {
-                                if (el) tabRefs[visibleTabsMap[index]] = el;
-                            }
-                        "
-                        :class="[
-                            'border-2 rounded-lg flex cursor-pointer items-center justify-center px-3 tab-nav-item-center tab-nav-peeking-item sm:text-xl md:text-2xl font-medium font-headers hover:text-neutral-300 z-10 transition-colors duration-300 ease-in-out relative whitespace-nowrap',
-                            tab.active
-                                ? 'border-primary text-white'
-                                : 'border-tab-stroke-inactive text-white',
-                            dyslexiaFontEnabled ? 'pb-2 pt-2' : 'pb-1.5 pt-2.5',
-                            // tab.votingActive === false && !tab.active
-                            //     ? 'opacity-50 cursor-not-allowed'
-                            //     : 'cursor-pointer',
-                        ]"
-                        :aria-current="tab.active ? 'page' : undefined"
-                        @click.prevent="
-                            handleTabClick(tab.name, visibleTabsMap[index])
-                        "
-                        :disabled="tab.votingActive === false"
+                <div class="overflow-x-scroll hide-scrollbar pt-2">
+                    <nav
+                        ref="tabsContainer"
+                        class="flex space-x-4 relative"
+                        aria-label="Tabs"
                     >
-                        {{ tab.name }}
-                        <span
-                            class="absolute -top-1 -right-1"
-                            v-if="tab.votingActive"
+                        <!-- sliding background indicator -->
+                        <div
+                            ref="activeTabIndicator"
+                            class="absolute bg-primary rounded-lg transition-all duration-300 ease-in-out h-full z-0"
+                        ></div>
+
+                        <!-- tabs -->
+                        <a
+                            v-for="(tab, index) in visibleTabs"
+                            :key="tab.name"
+                            :ref="
+                                (el) => {
+                                    if (el) tabRefs[visibleTabsMap[index]] = el;
+                                }
+                            "
+                            :class="[
+                                'border-2 rounded-lg flex cursor-pointer items-center justify-center px-3 tab-nav-item-center tab-nav-peeking-item sm:text-xl md:text-2xl font-medium font-headers hover:text-neutral-300 z-10 transition-colors duration-300 ease-in-out relative whitespace-nowrap',
+                                tab.active
+                                    ? 'border-primary text-white'
+                                    : 'border-tab-stroke-inactive text-white',
+                                dyslexiaFontEnabled
+                                    ? 'pb-2 pt-2'
+                                    : 'pb-1.5 pt-2.5',
+                                // tab.votingActive === false && !tab.active
+                                //     ? 'opacity-50 cursor-not-allowed'
+                                //     : 'cursor-pointer',
+                            ]"
+                            :aria-current="tab.active ? 'page' : undefined"
+                            @click.prevent="
+                                handleTabClick(tab.name, visibleTabsMap[index])
+                            "
+                            :disabled="tab.votingActive === false"
                         >
-                            <ExclamationCircleIcon
-                                class="size-6 text-yellow-500"
-                            />
-                        </span>
-                    </a>
-                </nav>
+                            {{ tab.name }}
+                            <span
+                                class="absolute -top-3 -right-2.5"
+                                v-if="tab.votingActive"
+                            >
+                                <ExclamationCircleIcon
+                                    class="size-6 text-yellow-500"
+                                />
+                            </span>
+                        </a>
+                    </nav>
+                </div>
             </div>
-            <SearchBarSong v-if="isActiveTab(0) && authorization.canAddSong" />
+            <SearchBarSong
+                v-if="isActiveTab(0) && authorization.canAddSong"
+                class="pt-2"
+            />
         </div>
     </div>
 </template>
