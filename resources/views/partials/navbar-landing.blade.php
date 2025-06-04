@@ -62,13 +62,14 @@
             <hr class="border-t border-navbar-stroke">
             @auth
                 <a href="{{ route('app') }}"
-                    class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">Go
+                    class="font-headings font-normal bg-primary rounded-md px-4 pb-2 pt-2.5 flex items-center justify-center custom-item-hover">Go
                     to App</a>
             @else
                 <a href="{{ route('login') }}"
-                    class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">
-                    <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">Sign
-                    In</a>
+                    class="flex items-center justify-center text-center flex-row bg-primary rounded-md px-4 custom-item-hover cursor-pointer">
+                    <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-5">
+                    <span class="font-headings font-normal pb-2 pt-2.5">Sign In</span>
+                </a>
             @endauth
         </div>
     </nav>
