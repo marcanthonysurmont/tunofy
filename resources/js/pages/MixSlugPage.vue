@@ -288,30 +288,45 @@ function handleSongAddedEvent(song) {
     // }
 }
 
-function isIOS() {
-    return (
-        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-        (navigator.userAgent.includes("Macintosh") && "ontouchend" in document)
-    );
-}
-
-function handleVisibilityChange() {
-    if (isIOS() && document.visibilityState === "visible") {
-        router.reload({
-            only: [],
-            onSuccess: () => {
-                playlistStore.reset();
-                if (playlistStore.renderedSongs.length === 0) {
-                    playlistStore.setSongs(songs.value.data);
-                    playlistStore.setNextFetchURL(songs.value.links.next);
-                }
-            },
-        });
-    }
-}
+let wasDisconnected = false;
 
 onMounted(() => {
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    //echo websocket reconnect logic
+    //this is used for cases where user closes safari app for exampel to quickly open spotify and then open safari again
+    if (
+        Echo.connector &&
+        Echo.connector.pusher &&
+        Echo.connector.pusher.connection
+    ) {
+        Echo.connector.pusher.connection.bind("disconnected", () => {
+            wasDisconnected = true;
+            console.log("WebSocket disconnected");
+        });
+
+        Echo.connector.pusher.connection.bind("connected", () => {
+            if (wasDisconnected) {
+                wasDisconnected = false;
+                //we reload all the props and we also set the tongs again
+                router.reload({
+                    only: [],
+                    onSuccess: () => {
+                        playlistStore.reset();
+                        if (playlistStore.renderedSongs.length === 0) {
+                            playlistStore.setSongs(songs.value.data);
+                            playlistStore.setNextFetchURL(
+                                songs.value.links.next
+                            );
+                        }
+                        //scroll to top of the page
+                        window.scrollTo({
+                            top: 0,
+                        });
+                    },
+                });
+            }
+        });
+    }
+
     emitter.on("song-added", handleSongAddedEvent);
     Echo.channel(`mix.${props.value.mix.id}`)
         .listen(".vote-updated", () => {
@@ -401,7 +416,15 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    document.removeEventListener("visibilitychange", handleVisibilityChange);
+    //unbind Echo connection events
+    if (
+        Echo.connector &&
+        Echo.connector.pusher &&
+        Echo.connector.pusher.connection
+    ) {
+        Echo.connector.pusher.connection.unbind("disconnected");
+        Echo.connector.pusher.connection.unbind("connected");
+    }
     Echo.leave(`mix.${mixId.value}`);
     emitter.off("song-added", handleSongAddedEvent);
     //reset the playlist songs
