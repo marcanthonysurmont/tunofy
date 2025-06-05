@@ -425,7 +425,7 @@ async function toggleMixActive() {
             return;
         }
 
-        if (songs.value.length === 0) {
+        if (songs.value.data.length === 0 && !isMixActive.value) {
             toast.add({
                 message: `You must add at least one song to the mix.`,
                 type: "danger",
@@ -595,8 +595,10 @@ onMounted(() => {
                     showQueueCompletedModal.value = true;
                 }
 
-                router.reload({ only: ["your_mixes", "joined_mixes", "success", "danger"] });
-                
+                router.reload({
+                    only: ["your_mixes", "joined_mixes", "success", "danger"],
+                });
+
                 if (e.reason === "other_mix") {
                     router.reload({
                         only: ["activeConflictingMixes", "success", "danger"],
