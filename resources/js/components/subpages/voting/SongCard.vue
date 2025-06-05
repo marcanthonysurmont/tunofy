@@ -77,7 +77,7 @@
             <div class="flex items-center gap-2 text-xs text-zinc-300">
                 <img
                     :src="song.user.avatar_url"
-                    alt="Avatar"
+                    alt="Avatar of the user who added the song to the mix"
                     class="w-5 h-5 rounded-full object-cover"
                 />
                 <span class="font-medium text-zinc-400">{{

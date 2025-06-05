@@ -47,6 +47,7 @@
                     </p>
                     <img
                         class="size-24 object-cover rounded-lg mt-8"
+                        alt="A funny gif of a serial killer"
                         src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdjUyb3RqZGlnd3ZraWc5dDlkcDFyNG1rZ3Z5Nzhpb3k1Y3BydXZpdSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/XpbBHJS7fNVHG/giphy.gif"
                     />
                 </div>

@@ -38,7 +38,7 @@
                     <img
                         src="/images/default-song.png"
                         class="size-10 rounded-sm"
-                        alt="Album Art"
+                        alt="A placeholder song cover featuring a white background with a blue note"
                     />
                     <div class="flex-1 ml-2">
                         <div class="mb-1">
@@ -77,7 +77,7 @@
                         v-if="currentTrack.album?.images?.length"
                         :src="currentTrack.album.images[0].url"
                         class="size-10 rounded-sm"
-                        alt="Album Art"
+                        alt="The cover art of the current playing track"
                     />
                     <div class="flex-1 ml-2 min-w-0">
                         <div class="mb-1">

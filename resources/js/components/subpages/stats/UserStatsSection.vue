@@ -72,7 +72,7 @@
                             to only do this if the image is not from tunofy -->
                                 <img
                                     :src="card.user.avatar_url"
-                                    alt="User Avatar"
+                                    alt="Avatar of the user that belongs to the card"
                                     @load="
                                         setDominantColor(
                                             card,

@@ -70,7 +70,7 @@
                                 error: '/images/default-song.png',
                                 loading: '/images/default-song.png',
                             }"
-                            alt="cover"
+                            alt="Cover of the most added song"
                             class="w-9 h-9 sm:w-10 sm:h-10 rounded flex-shrink-0"
                         />
                         <div class="min-w-0 flex-1 overflow-hidden">

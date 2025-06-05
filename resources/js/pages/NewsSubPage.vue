@@ -17,7 +17,7 @@
             <img
                 class="w-full h-full object-cover rounded-2xl object-center"
                 src="https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/65d5c1f4a90585d36de4f2f0_Embed%20your%20DevCard-p-1080.jpg"
-                alt="News Image"
+                alt="Cover image of the news article"
             />
         </div>
         <div
@@ -28,6 +28,7 @@
                     <img
                         src="https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1300984920068935&height=300&width=300&ext=1751012523&hash=AT9KBeR_i11e0kb1SgoWCagw"
                         class="size-14 rounded-full"
+                        alt="Author's avatar"
                     />
                     <div class="flex flex-col gap-2 justify-center">
                         <p class="text-base font-medium">Gilles Serrien</p>

@@ -28,6 +28,7 @@
             <div class="flex flex-col gap-2 relative z-0 p-0.5">
                 <Marquee :speed="27" :autoFill="true">
                     <img
+                        alt="Cover image of a song"
                         :src="image"
                         class="h-20 sm:h-32 w-auto rounded-sm mr-3"
                         v-for="(image, i) in songsTop"
@@ -37,6 +38,7 @@
                 </Marquee>
                 <Marquee :speed="20" :autoFill="true">
                     <img
+                        alt="Cover image of a song"
                         :src="image"
                         class="h-20 sm:h-32 w-auto rounded-sm mr-3"
                         v-for="(image, i) in songsMid"
@@ -46,6 +48,7 @@
                 </Marquee>
                 <Marquee :speed="31" :autoFill="true">
                     <img
+                        alt="Cover image of a song"
                         :src="image"
                         class="h-20 sm:h-32 w-auto rounded-sm mr-3"
                         v-for="(image, i) in songsBottom"

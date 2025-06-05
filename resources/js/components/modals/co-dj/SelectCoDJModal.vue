@@ -75,7 +75,7 @@
                                         <img
                                             class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
                                             :src="user.avatar_url"
-                                            alt="User"
+                                            alt="Image of user's avatar"
                                         />
                                         <p
                                             class="text-sm sm:text-base text-white truncate max-w-[60vw] sm:max-w-none"

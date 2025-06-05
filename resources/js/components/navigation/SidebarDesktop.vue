@@ -11,13 +11,13 @@
                     <img
                         class="h-8 w-auto"
                         src="/images/logos/tunofy-logo-white.png"
-                        alt="Tunofy"
+                        alt="Tunofy Logo"
                     />
                 </Link>
             </div>
             <nav class="flex flex-1 flex-col min-h-0">
-                <ul role="list" class="flex flex-1 flex-col gap-y-7 min-h-0">
-                    <li class="flex flex-col mb-8 flex-1 min-h-0">
+                <div class="flex flex-1 flex-col gap-y-7 min-h-0">
+                    <div class="flex flex-col mb-8 flex-1 min-h-0">
                         <div
                             class="flex flex-row justify-between items-center mb-2"
                         >
@@ -30,14 +30,13 @@
                                 class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
                             />
                         </div>
-                        <ul
-                            role="list"
+                        <div
                             class="flex-1 flex flex-col gap-y-4 overflow-y-auto custom-scrollbar-hover min-h-0"
                         >
                             <YourMixesList />
-                        </ul>
-                    </li>
-                    <li class="flex flex-col mb-8 flex-1 min-h-0">
+                        </div>
+                    </div>
+                    <div class="flex flex-col mb-8 flex-1 min-h-0">
                         <div
                             class="flex flex-row justify-between items-center mb-2"
                         >
@@ -49,14 +48,13 @@
                                 class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
                             />
                         </div>
-                        <ul
-                            role="list"
+                        <div
                             class="flex-1 flex flex-col gap-y-4 overflow-y-auto custom-scrollbar-hover min-h-0"
                         >
                             <JoinedMixesList />
-                        </ul>
-                    </li>
-                    <li
+                        </div>
+                    </div>
+                    <div
                         class="-mx-6 mt-auto flex flex-row items-center justify-between border-t border-regular-stroke px-6 py-3"
                     >
                         <a
@@ -91,8 +89,8 @@
                                 />
                             </Link>
                         </div>
-                    </li>
-                </ul>
+                    </div>
+                </div>
             </nav>
         </div>
     </div>

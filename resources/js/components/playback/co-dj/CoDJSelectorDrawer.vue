@@ -116,7 +116,7 @@
                                                                 :src="
                                                                     user.avatar_url
                                                                 "
-                                                                alt="User"
+                                                                alt="Avatar of a user"
                                                             />
                                                             <p
                                                                 class="text-sm sm:text-base text-white truncate max-w-[60vw] sm:max-w-none"

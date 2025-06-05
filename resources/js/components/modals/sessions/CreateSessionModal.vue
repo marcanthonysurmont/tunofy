@@ -94,7 +94,7 @@
                             <img
                                 v-if="qrcode"
                                 :src="`data:image/svg+xml;base64,${qrcode}`"
-                                alt="QR Code"
+                                alt="QR Code for session invite"
                                 class="max-h-full max-w-full object-contain"
                             />
                             <p v-else class="text-zinc-400 text-sm">

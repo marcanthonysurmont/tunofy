@@ -7,7 +7,7 @@
                 <img
                     class="h-8 w-auto"
                     src="/images/logos/tunofy-logo-white.png"
-                    alt="Tunofy"
+                    alt="Tunofy logo"
                 />
             </Link>
         </div>

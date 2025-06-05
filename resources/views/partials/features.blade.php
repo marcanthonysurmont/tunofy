@@ -184,9 +184,10 @@
 
     <div
         class="bg-card-background h-fit border border-card-stroke w-full lg:mt-32 mt-16 rounded-xl flex lg:items-center lg:justify-center lg:gap-12 relative md:p-9 lg:p-8 flex-col lg:flex-row p-6 gap-8">
-        <img src="{{ asset('images/demo/demo-image.png') }}" alt="Tunofy Demo Image"
+        <img src="{{ asset('images/demo/demo-image.png') }}" alt="A demo image of Tunofy featuring a mix"
             class="lg:w-[45%] lg:h-[80%] w-full h-full object-contain rounded-xl custom-image-hover border-2 p-2 border-card-stroke">
-        <img src="{{ asset('images/demo/demo-image2.png') }}" alt="Tunofy Demo Image"
+        <img src="{{ asset('images/demo/demo-image2.png') }}"
+            alt="A demo image of a mix on Tunofy featuring a mix's presets subpage"
             class="lg:w-[30%] lg:h-[60%] w-full h-full object-contain rounded-xl custom-image-hover border-2 p-2 border-card-stroke lg:ml-24">
     </div>
 

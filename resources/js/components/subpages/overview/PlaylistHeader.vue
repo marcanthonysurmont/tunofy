@@ -5,6 +5,7 @@
         >
             <img
                 :src="getImageUrl(mix)"
+                alt="Cover image of the mix"
                 class="size-56 sm:size-64 object-cover flex-shrink-0 rounded-md"
             />
 
@@ -24,6 +25,7 @@
                     >
                         <img
                             :src="owner.avatar_url"
+                            alt="Avatar of the mix owner"
                             class="size-5 sm:size-6 rounded-full"
                         />
                         <span class="font-medium text-dark-white">{{
@@ -42,6 +44,7 @@
                     <div class="flex sm:hidden flex-col items-start gap-1">
                         <div class="flex items-center gap-2">
                             <img
+                                alt="Avatar of the mix owner"
                                 :src="owner.avatar_url"
                                 class="size-5 sm:size-6 rounded-full"
                             />

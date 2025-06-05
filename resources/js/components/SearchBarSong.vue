@@ -77,6 +77,7 @@
                                     class="flex items-center space-x-3 flex-1 min-w-0 overflow-hidden"
                                 >
                                     <img
+                                        alt="A cover for a song"
                                         :src="song.album.images[0].url"
                                         class="w-10 h-10 rounded-md object-cover flex-shrink-0"
                                     />
