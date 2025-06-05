@@ -197,6 +197,7 @@ const props = computed(() => page.props);
 const songs = computed(() => props.value.songs);
 const authorization = computed(() => page.props.mix.authorized);
 const showButton = ref(false);
+console.log(authorization.value);
 
 const windowWidth = ref(window.innerWidth);
 

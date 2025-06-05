@@ -4,7 +4,7 @@ namespace App\Http\Enums;
 
 enum Permission: string
 {
-    case VIEW = 'view';
-    case CONTRIBUTE = 'contribute';
-    case EDIT = 'edit';
+    case VIEW = 'viewer';
+    case CONTRIBUTE = 'contributor';
+    case EDIT = 'editor';
 }
