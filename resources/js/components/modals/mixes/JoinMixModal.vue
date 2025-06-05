@@ -72,7 +72,7 @@ function joinMix() {
         return;
     }
     isLoading.value = true;
-    router.post(
+    router.get(
         route("mix.join", inputCode.value),
         {},
         {

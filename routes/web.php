@@ -63,7 +63,7 @@ Route::domain('app.' . parse_url(config('app.url'), PHP_URL_HOST))->group(functi
             Route::post('/add-song/{mix}', AddSongToMixController::class)->name('add-song');
             Route::delete('/remove-song/{song}', RemoveSongFromMixController::class)->name('remove-song');
             Route::post('/generate-code/{mix}', GenerateMixCodeController::class)->name('generate-code');
-            Route::post('/join/{session_code}', JoinMixController::class)->name('join');
+            Route::get('/join/{session_code}', JoinMixController::class)->name('join');
             Route::post('/remove-session-code/{mix}', RemoveSessionCodeController::class)->name('remove-session-code');
             Route::post('/assign-co-dj/{mix}', AssignCoDJController::class)->name('assign-co-dj');
             Route::post('/remove-co-dj/{mix}', RemoveCoDJController::class)->name('remove-co-dj');
