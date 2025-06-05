@@ -66,7 +66,7 @@
                     >
                         <img
                             v-lazy="{
-                                src: 'https://i.scdn.co/image/ab67616d00001e0281e8dbcc784d8dbc7243ee0e',
+                                src: highestAddedSong.image_url,
                                 error: '/images/default-song.png',
                                 loading: '/images/default-song.png',
                             }"
