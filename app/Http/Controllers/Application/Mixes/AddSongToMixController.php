@@ -66,6 +66,7 @@ class AddSongToMixController extends Controller
                 [
                     'song_name' => $validated['name'],
                     'artist' => $validated['artist'],
+                    'image_url' => $validated['image_url'],
                     'times_added' => DB::raw('times_added + 1'),
                 ],
             );

@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('spotify_id')->index();
             $table->string('song_name');
             $table->string('artist');
+            $table->string('image_url')->nullable();
             $table->integer('times_added')->default(0);
             $table->timestamps();
         });

@@ -126,7 +126,8 @@ class ImportSpotifyPlaylistController extends Controller
 
                     $songDetails[$song['track']['id']] = [
                         'name' => $song['track']['name'],
-                        'artist' => $artistNames
+                        'artist' => $artistNames,
+                        'image_url' => $song['track']['album']['images'][0]['url'] ?? null,
                     ];
                 }
 
@@ -137,6 +138,7 @@ class ImportSpotifyPlaylistController extends Controller
                             'song_name' => $songDetails[$spotifyId]['name'],
                             'artist' => $songDetails[$spotifyId]['artist'],
                             'spotify_id' => $spotifyId,
+                            'image_url' => $songDetails[$spotifyId]['image_url'],
                             'times_added' => 1,
                             'created_at' => $now,
                             'updated_at' => $now

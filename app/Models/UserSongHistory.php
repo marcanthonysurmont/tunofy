@@ -15,6 +15,7 @@ class UserSongHistory extends Model
         'spotify_id',
         'song_name',
         'artist',
+        'image_url',
         'times_added',
     ];
 
