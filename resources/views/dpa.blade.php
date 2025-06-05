@@ -11,7 +11,7 @@
 
 @section('content')
     @include('partials.navbar-policy')
-    <section class="w-full max-w-[1728px] mt-44 md:mt-48 mx-auto flex-col flex mb-32 px-4">
+    <section class="w-full max-w-[1728px] mt-44 md:mt-48 mx-auto flex-col flex mb-32 px-8">
         <div class="flex flex-col gap-2 mb-8 text-left">
             <h1 class="font-medium text-4xl md:text-5xl">Data Processing Agreement (WIP)</h1>
             <p class="text-l md:text-xl font-nohemi text-zinc-400">Last updated: Apr 29, 2025</p>
