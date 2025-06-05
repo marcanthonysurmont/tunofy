@@ -13,7 +13,7 @@
             <a href="/dpa">GDPR</a>
         </div>
         <div class="flex flex-row items-center">
-            <p class="text-sm font-light">© 2025 Tunofy - All rights reserved.</p>
+            <p class="text-sm font-light">© {{ date('Y') }} Tunofy - All rights reserved.</p>
         </div>
     </div>
 </footer>

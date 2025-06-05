@@ -21,7 +21,7 @@
     ];
 @endphp
 
-<section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-4"
+<section class="w-full max-w-[1728px] mt-32 md:mt-48 mx-auto flex-col flex items-center justify-center mb-32 px-8"
     id="how-it-works">
     <div class="flex flex-col gap-10 items-center justify-center mb-16 text-center">
         <h2 class="font-medium text-3xl md:text-4xl">How it works</h2>

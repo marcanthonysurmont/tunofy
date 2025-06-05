@@ -37,8 +37,18 @@
                     </div>
                 </div>
                 <div class="flex flex-row gap-2.5">
-                    <Instagram class="size-5 sm:size-6" />
-                    <Linkedin class="size-5 sm:size-6" />
+                    <a
+                        href="https://www.instagram.com/gillesser1/"
+                        target="_blank"
+                    >
+                        <Instagram class="size-5 sm:size-6" />
+                    </a>
+                    <a
+                        href="https://www.linkedin.com/in/gillesserrien/"
+                        target="_blank"
+                    >
+                        <Linkedin class="size-5 sm:size-6" />
+                    </a>
                 </div>
             </div>
         </div>
