@@ -2,10 +2,10 @@
     <nav x-data="{ open: false }"
         class="mx-auto px-4 py-4 w-full bg-navbar-background/60 backdrop-blur-lg max-w-[1728px] shadow-xl border-navbar-stroke border-2 rounded-lg">
         <div class="flex items-center justify-between">
-            <a class="flex flex-row items-center space-x-4" href="/">
-                <img src="{{ asset('images/logos/tunofy-logo-small.png') }}" alt="Tunofy Logo"
+            <a class="flex flex-row items-center space-x-3" href="/">
+                <img src="{{ asset('images/logos/tunofy-logo-white.png') }}" alt="Tunofy Logo"
                     class="md:w-10 md:h-10 h-8 w-8">
-                <p class="text-2xl md:text-3xl font-medium font-headings">Tunofy</p>
+                <p class="text-2xl md:text-3xl font-medium font-headings header-font-middle-alignment">Tunofy</p>
             </a>
 
             <div class="hidden lg:flex flex-row items-center gap-4 text-xl">
