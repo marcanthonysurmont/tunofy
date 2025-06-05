@@ -14,7 +14,7 @@
 
         <!-- Loading states - Prioritize showing one at a time -->
         <div v-if="isLoading" class="text-center text-zinc-400 min-h-[48px]">
-            <div class="flex items-center justify-center">
+            <div class="flex items-center justify-center gap-2">
                 <SpinningCircle />
                 <p>Updating state...</p>
             </div>
@@ -25,7 +25,7 @@
             v-else-if="isSyncingWithSpotify"
             class="text-center text-zinc-400 min-h-[48px]"
         >
-            <div class="flex items-center justify-center">
+            <div class="flex items-center justify-center gap-2">
                 <SpinningCircle />
                 <p>Syncing with Spotify...</p>
             </div>
