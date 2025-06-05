@@ -26,6 +26,7 @@
             :is-playing="isPlaying"
             :card-transform="cardTransform(index)"
             :card-opacity="cardOpacity(index)"
+            :has-preview="audioPreviewCache[song.spotify_id] !== null"
             @toggle-audio="toggleAudio"
             @start-drag="startDrag"
             @on-drag="onDrag"
@@ -470,6 +471,7 @@ async function processLoadingQueue() {
         }
     } catch (error) {
         console.error(`Error loading preview for track ${trackId}:`, error);
+        audioPreviewCache.value[trackId] = null;
     } finally {
         //process next item in queue, this is done recursively.
         processLoadingQueue();

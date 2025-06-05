@@ -33,8 +33,14 @@
                 v-if="swipeLengthX >= -15 && swipeLengthX <= 15"
             >
                 <button
+                    :class="
+                        hasPreview
+                            ? 'opacity-100 bg-primary cursor-pointer'
+                            : 'opacity-75 cursor-not-allowed bg-zinc-500'
+                    "
+                    :disabled="!hasPreview"
                     @click.stop="() => emits('toggle-audio', song.spotify_id)"
-                    class="w-12 h-12 bg-primary bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all cursor-pointer"
+                    class="w-12 h-12 bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all"
                 >
                     <PlayIcon
                         v-if="
@@ -114,6 +120,7 @@ const props = defineProps({
     isPlaying: Boolean,
     cardTransform: String,
     cardOpacity: Number,
+    hasPreview: Boolean,
 });
 
 const emits = defineEmits([
