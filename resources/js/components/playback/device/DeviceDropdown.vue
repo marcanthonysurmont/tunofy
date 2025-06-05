@@ -5,7 +5,10 @@
             @update:modelValue="handleSelect"
         >
             <div class="mt-1">
-                <ListboxButton v-tippy="{ content: 'Change playback device' }">
+                <ListboxButton
+                    v-tippy="{ content: 'Change playback device' }"
+                    aria-label="Change playback device"
+                >
                     <DeviceSelectorStatus
                         :selected-device="selectedDevice"
                         :devices="devices"

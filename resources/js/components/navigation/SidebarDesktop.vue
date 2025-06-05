@@ -78,13 +78,24 @@
                             }}</span>
                         </a>
                         <div class="flex items-center gap-x-2">
-                            <Link :href="route('settings')">
+                            <Link
+                                :href="route('settings')"
+                                aria-label="Settings"
+                                title="Settings"
+                            >
                                 <Cog8ToothIcon
+                                    aria-hidden="true"
                                     class="size-6 stroke-2 text-white font-bold cursor-pointer custom-item-hover"
                                 />
                             </Link>
-                            <Link :href="route('logout')" method="POST">
+                            <Link
+                                :href="route('logout')"
+                                method="POST"
+                                aria-label="Log out"
+                                title="Log out"
+                            >
                                 <ArrowLeftEndOnRectangleIcon
+                                    aria-hidden="true"
                                     class="size-6 stroke-2 text-white font-bold cursor-pointer custom-item-hover"
                                 />
                             </Link>

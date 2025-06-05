@@ -1,6 +1,8 @@
 <template>
     <transition name="fade-with-slide">
         <button
+            type="button"
+            aria-label="Scroll to top"
             v-if="showButton"
             @click="scrollToTop"
             class="fixed top-3 right-3 py-2 px-4 bg-primary text-white rounded flex items-center gap-x-1 cursor-pointer z-[9998]"
@@ -140,11 +142,15 @@
                     >
                         <div class="flex items-center justify-end">
                             <button
+                                type="button"
                                 v-tippy="{ content: 'Delete song' }"
                                 @click="deleteSong(item.id)"
                                 class="pl-1 sm:px-2 cursor-pointer"
+                                aria-label="Delete song from the mix"
+                                title="Delete song"
                             >
                                 <TrashIcon
+                                    aria-hidden="true"
                                     class="size-5 sm:size-6 text-zinc-400 hover:text-zinc-500"
                                 />
                             </button>
