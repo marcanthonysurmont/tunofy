@@ -14,10 +14,11 @@
                         class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">Go
                         to App</a>
                 @else
-                    <a href="{{ route('login') }}"
-                        class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">
-                        <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">Sign
-                        In</a>
+                    <a class="flex flex-row justify-center custom-item-hover items-center space-x-3 bg-primary rounded-md px-4 py-2"
+                        href="{{ route('login') }}">
+                        <img src="{{ asset('images/logos/spotify-logo-white.png') }}" alt="Tunofy Logo" class="size-6 mr-2">
+                        <p class="font-medium font-headings header-font-middle-alignment">Sign in</p>
+                    </a>
                 @endauth
             </div>
 
@@ -51,10 +52,11 @@
                     class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">Go
                     to App</a>
             @else
-                <a href="{{ route('login') }}"
-                    class="font-headings font-normal bg-primary rounded-md px-4 py-2 flex items-center justify-center custom-item-hover">
-                    <img src="{{ asset('images/logos/spotify-logo-white.png') }}" class="mr-2 size-6">Sign
-                    In</a>
+                <a class="flex flex-row justify-center custom-item-hover items-center space-x-3 bg-primary rounded-md px-4 py-2"
+                    href="{{ route('login') }}">
+                    <img src="{{ asset('images/logos/spotify-logo-white.png') }}" alt="Tunofy Logo" class="size-6 mr-2">
+                    <p class="font-medium font-headings header-font-middle-alignment">Sign in</p>
+                </a>
             @endauth
         </div>
     </nav>
