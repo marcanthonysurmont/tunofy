@@ -21,8 +21,8 @@
                         </span>
                         <h3 class="text-2xl md:text-3xl">Advanced Playlists</h3>
                     </div>
-                    <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
-                        sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+                    <p class="text-xl font-normal">While you can remove and add songs as you like, you can also
+                        customize permissions per user. Not everyone has to be able to add music.</p>
                 </div>
             </div>
             <div class="swiper-slide">
@@ -30,23 +30,42 @@
                     <div class="flex flex-row gap-4 items-stretch mb-6">
                         <span
                             class="font-headings text-3xl xl:text-4xl bg-primary rounded-md w-16 h-auto flex items-center justify-center text-white">
-
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="size-12">
                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                    d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
                             </svg>
-
                         </span>
                         <div class="flex flex-col gap-2 flex-grow">
-                            <h3 class="text-2xl md:text-3xl">Earning money</h3>
+                            <h3 class="text-2xl md:text-3xl">World Map</h3>
                             <span
                                 class="bg-label-background text-label-text w-fit px-4 py-1 rounded-xl text-sm font-bold">Coming
                                 soon</span>
                         </div>
                     </div>
-                    <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
-                        sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+                    <p class="text-xl font-normal">Tune into public playlists happening nearby on Tunofy's
+                        live map. If you're close enough, jump right in and join the mix. You can also browse mixes from
+                        around the
+                        world and see what's happenin'.
+                    </p>
+                </div>
+            </div>
+            <div class="swiper-slide">
+                <div class="p-4 ">
+                    <div class="flex flex-row gap-4 items-center mb-6">
+                        <span
+                            class="font-headings text-2xl md:text-3xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white">
+
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="size-12">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+                            </svg>
+
+                        </span>
+                        <h3 class="text-2xl md:text-3xl">Unique Voting</h3>
+                    </div>
+                    <p class="text-xl font-normal">Swipe, listen, and vote - our one-of-a-kind system blends audio
+                        previews with quick gestures for an immersive way to choose your favorites.</p>
                 </div>
             </div>
             <div class="swiper-slide">
@@ -57,30 +76,15 @@
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor" class="size-12">
                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
+                                    d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
                             </svg>
+
                         </span>
-                        <h3 class="text-2xl md:text-3xl">Advanced Playlists</h3>
+                        <h3 class="text-2xl md:text-3xl">Custom Themes</h3>
                     </div>
-                    <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
-                        sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
-                </div>
-            </div>
-            <div class="swiper-slide">
-                <div class="p-4 ">
-                    <div class="flex flex-row gap-4 items-center mb-6">
-                        <span
-                            class="font-headings text-2xl md:text-3xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                stroke="currentColor" class="size-12">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
-                            </svg>
-                        </span>
-                        <h3 class="text-2xl md:text-3xl">Advanced Playlists</h3>
-                    </div>
-                    <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
-                        sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+                    <p class="text-xl font-normal">Personalize the vibe with custom themes. Whether it's a birthday
+                        party, Halloween, or just a chill night, Tunofy adapts the look and feel to match the moment.
+                    </p>
                 </div>
             </div>
         </div>
@@ -117,8 +121,22 @@
                 </span>
                 <h3 class="text-2xl md:text-3xl">Advanced Playlists</h3>
             </div>
-            <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
-                sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+            <p class="text-xl font-normal">While you can remove and add songs as you like, you can also
+                customize permissions per user. Not everyone has to be able to add music.</p>
+        </div>
+        <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
+            <div class="flex flex-row gap-4 items-center mb-6">
+                <span
+                    class="font-headings text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-12">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+                    </svg>
+                </span>
+                <h3 class="text-2xl md:text-3xl">Unique Voting</h3>
+            </div>
+            <p class="text-xl font-normal">Swipe, listen, and vote - our one-of-a-kind system blends audio
+                previews with quick gestures for an immersive way to choose your favorites.</p>
         </div>
         <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
             <div class="flex flex-row gap-4 items-center mb-6">
@@ -127,28 +145,13 @@
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-12">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
+                            d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
                     </svg>
                 </span>
-                <h3 class="text-2xl md:text-3xl">Advanced Playlists</h3>
+                <h3 class="text-2xl md:text-3xl">Custom Themes</h3>
             </div>
-            <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
-                sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
-        </div>
-        <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
-            <div class="flex flex-row gap-4 items-center mb-6">
-                <span
-                    class="font-headings text-3xl xl:text-4xl bg-primary rounded-md w-16 h-16 flex items-center justify-center text-white"><svg
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="size-12">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
-                    </svg>
-                </span>
-                <h3 class="text-2xl md:text-3xl">Advanced Playlists</h3>
-            </div>
-            <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
-                sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+            <p class="text-xl font-normal">Personalize the vibe with custom themes. Whether it's a birthday
+                party, Halloween, or just a chill night, Tunofy adapts the look and feel to match the moment.</p>
         </div>
         <div class="bg-card-background border-2 border-card-stroke rounded-md p-4">
             <div class="flex flex-row gap-4 items-stretch mb-6">
@@ -158,19 +161,21 @@
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-12">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
                     </svg>
 
                 </span>
                 <div class="flex flex-col gap-2 flex-grow">
-                    <h3 class="text-2xl md:text-3xl">Earning money</h3>
+                    <h3 class="text-2xl md:text-3xl">World Map</h3>
                     <span
                         class="bg-label-background text-label-text w-fit px-4 py-1 rounded-xl text-sm font-bold">Coming
                         soon</span>
                 </div>
             </div>
-            <p class="text-xl font-normal">Non quo aperiam repellendus quas est est. Eos aut dolore aut ut
-                sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.</p>
+            <p class="text-xl font-normal">Tune into public playlists happening nearby on Tunofy's
+                live map. If you're close enough, jump right in and join the mix. You can also browse mixes from
+                around the
+                world and see what's happenin'.</p>
         </div>
     </div>
     <div class="carousel-progress hidden lg:block">

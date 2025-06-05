@@ -8,19 +8,14 @@
     @php
         $faqs = [
             [
-                'question' => 'How does the playback work?',
+                'question' => 'How does playback work?',
                 'answer' =>
-                    'Playback works by using the Spotify API to control the playback of your spotify device. You can play, pause, skip, and seek through the track using the playback controls on the web app. You can also see what track is currently playing and who is currently playing it!',
+                    'Add songs to your mix and start the queue. Tunofy uses the Spotify API to control playback on your Spotify app. You can play, pause, skip tracks, and see what is currently playing - All directly from the web app.',
             ],
             [
-                'question' => 'Do I need Spotify premium to use this platform?',
+                'question' => 'Do I or my guests need Spotify Premium to use this platform?',
                 'answer' =>
-                    'Technically, no. However, you do need Spotify Premium to use our playback feature. You can always assign another Premium user as the co-DJ to allow playback.',
-            ],
-            [
-                'question' => 'Do my guests need Spotify to use this platform?',
-                'answer' =>
-                    'Yes, guests do need a Spotify account to use this platform. However, they do not need Spotify Premium.',
+                    'Not necessarily. You can join and vote in mix sessions without a Spotify Premium account. However, to use the playback feature or create your own mixes, a Spotify Premium subscription is required.',
             ],
             [
                 'question' => 'Is this web application free?',
@@ -34,7 +29,7 @@
             [
                 'question' => 'Can I customize the look and theme of my mix session?',
                 'answer' =>
-                    'Of course! We have a few themes - birthday party, halloween, .. - to choose from with some customization options. You can also add a custom cover image to your mix session.',
+                    'Of course! We have a few themes - birthday party, halloween, .. - to choose from with some customization options. You can also add a custom cover image to your mix session for that extra customization touch.',
             ],
         ];
     @endphp

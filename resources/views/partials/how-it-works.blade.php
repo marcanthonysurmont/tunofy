@@ -16,7 +16,7 @@
             'step' => '3',
             'title' => 'Listen & enjoy',
             'description' =>
-                'The owner or appointed co-DJ plays the music live. Watch votes in real-time, react with emojis, and discover the best vibes together.',
+                'The owner or appointed co-DJ plays the music live. Watch votes in real-time and discover the best vibes together.',
         ],
     ];
 @endphp

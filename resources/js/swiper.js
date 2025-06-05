@@ -8,7 +8,7 @@ import 'swiper/css/pagination';
 const swiper = new Swiper('.swiper', {
     modules: [Navigation, Pagination],
     direction: 'horizontal',
-    // loop: true,
+    loop: true,
     rewind: true,
 
     grabCursor: true,
