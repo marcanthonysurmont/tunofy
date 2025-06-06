@@ -263,13 +263,6 @@ class SongPlaybackService
                     'played_at' => Carbon::now()
                 ]);
 
-            // Broadcast a queue completed event
-            event(new MixStatusChangedEvent(
-                $mix,
-                true,  // Keep mix active but indicate queue completion
-                'queue_completed'
-            ));
-
             // Mark the active session as inactive since the queue is complete
             if ($activeSession) {
                 $activeSession->update([
@@ -291,14 +284,6 @@ class SongPlaybackService
             } catch (\Exception $e) {
                 Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
             }
-
-            // IMPORTANT: Add this direct database update for the mix
-            DB::table('mixes')->where('id', $mix->id)->update(['is_active' => false]);
-            Log::info("Marked mix {$mix->id} as inactive in database after queue completion");
-
-            // Also broadcast the event for the frontend
-            event(new MixStatusChangedEvent($mix, false, 'queue_completed'));
-            Log::info("Broadcast MixStatusChangedEvent for mix {$mix->id} deactivation");
 
             // Set the queue completed flag
             $this->playbackStateManager->setQueueCompleted($mix, true);

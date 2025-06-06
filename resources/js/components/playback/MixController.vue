@@ -596,7 +596,7 @@ onMounted(() => {
                 }
 
                 router.reload({
-                    only: ["your_mixes", "joined_mixes", "success", "danger"],
+                    only: ["mix", "your_mixes", "joined_mixes", "success", "danger"],
                 });
 
                 if (e.reason === "other_mix") {

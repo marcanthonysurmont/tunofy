@@ -228,7 +228,7 @@ class PlaybackStateManager
             $this->setState($mix, self::QUEUE_COMPLETED, true);
 
             // Update the model (this is now working)
-            $mix->update(['is_active' => false]);
+            $mix->update(['is_active' => false, 'co_dj_id' => null]);
             Log::info("Marked mix {$mix->id} as inactive in database after queue completion");
 
             // Broadcast the event
