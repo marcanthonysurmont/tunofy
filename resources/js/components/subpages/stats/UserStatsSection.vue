@@ -46,9 +46,9 @@
                                 <QuestionMarkCircleIcon
                                     class="absolute size-12 scale-500 rotate-12 opacity-10 text-zinc-600"
                                 />
-                                <h3 class="text-zinc-100 text-2xl font-medium">
+                                <h2 class="text-zinc-100 text-2xl font-medium">
                                     {{ card.frontTitle }}
-                                </h3>
+                                </h2>
                                 <p class="text-muted text-sm mt-2">
                                     Tap to reveal
                                 </p>
