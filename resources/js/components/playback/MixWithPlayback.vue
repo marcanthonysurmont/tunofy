@@ -39,7 +39,7 @@
                     <img
                         src="/images/default-song.png"
                         class="size-10 rounded-sm"
-                        alt="No Song Playing"
+                        alt="A placeholder song cover featuring a white background with a blue note"
                     />
                     <div class="flex-1 ml-2 truncate">
                         <div class="text-white text-sm mb-1">
@@ -56,16 +56,30 @@
                 <div
                     class="flex flex-row items-center justify-center flex-none gap-2 self-center w-[40%]"
                 >
-                    <!-- Disabled buttons when no song is playing -->
-                    <ChevronDoubleLeftIcon
+                    <button
                         class="size-6 cursor-not-allowed opacity-50"
-                    />
-                    <PlayCircleIcon
+                        aria-label="Previous song"
+                        type="button"
+                        disabled
+                    >
+                        <ChevronDoubleLeftIcon />
+                    </button>
+                    <button
                         class="size-12 cursor-not-allowed opacity-50"
-                    />
-                    <ChevronDoubleRightIcon
+                        aria-label="Play"
+                        type="button"
+                        disabled
+                    >
+                        <PlayCircleIcon />
+                    </button>
+                    <button
                         class="size-6 cursor-not-allowed opacity-50"
-                    />
+                        aria-label="Next song"
+                        type="button"
+                        disabled
+                    >
+                        <ChevronDoubleRightIcon />
+                    </button>
                 </div>
                 <div class="relative w-[30%] justify-end flex">
                     <DeviceDropdown
@@ -92,7 +106,7 @@
                         v-if="currentTrack.album?.images?.length"
                         :src="currentTrack.album.images[0].url"
                         class="size-10 rounded-sm"
-                        alt="Album Art"
+                        alt="The cover art of the current playing track"
                     />
                     <div class="flex-1 ml-2 truncate">
                         <div class="text-white text-sm mb-1">
@@ -115,44 +129,72 @@
                 <div
                     class="flex flex-row items-center justify-center flex-none gap-2 self-center w-[40%]"
                 >
-                    <ChevronDoubleLeftIcon
+                    <button
                         :class="[
                             devices.length === 0 || selectedDevice === null
                                 ? 'opacity-50 !cursor-not-allowed'
                                 : '',
+                            'size-6',
                         ]"
+                        :disabled="
+                            devices.length === 0 || selectedDevice === null
+                        "
+                        aria-label="Previous song"
                         @click="emit('previous-song')"
-                        class="size-6 cursor-pointer"
-                    />
-                    <PauseCircleIcon
-                        :class="[
-                            devices.length === 0 || selectedDevice === null
-                                ? 'opacity-50 !cursor-not-allowed'
-                                : '',
-                        ]"
-                        @click="emit('pause-mix')"
+                        type="button"
+                    >
+                        <ChevronDoubleLeftIcon />
+                    </button>
+                    <button
                         v-if="isPlaying"
-                        class="size-12 cursor-pointer"
-                    />
-                    <PlayCircleIcon
                         :class="[
                             devices.length === 0 || selectedDevice === null
                                 ? 'opacity-50 !cursor-not-allowed'
                                 : '',
+                            'size-12',
                         ]"
-                        @click="emit('resume-mix')"
+                        :disabled="
+                            devices.length === 0 || selectedDevice === null
+                        "
+                        aria-label="Pause"
+                        @click="emit('pause-mix')"
+                        type="button"
+                    >
+                        <PauseCircleIcon />
+                    </button>
+                    <button
                         v-if="!isPlaying"
-                        class="size-12 cursor-pointer"
-                    />
-                    <ChevronDoubleRightIcon
                         :class="[
                             devices.length === 0 || selectedDevice === null
                                 ? 'opacity-50 !cursor-not-allowed'
                                 : '',
+                            'size-12',
                         ]"
-                        class="size-6 cursor-pointer"
+                        :disabled="
+                            devices.length === 0 || selectedDevice === null
+                        "
+                        aria-label="Play"
+                        @click="emit('resume-mix')"
+                        type="button"
+                    >
+                        <PlayCircleIcon />
+                    </button>
+                    <button
+                        :class="[
+                            devices.length === 0 || selectedDevice === null
+                                ? 'opacity-50 !cursor-not-allowed'
+                                : '',
+                            'size-6',
+                        ]"
+                        :disabled="
+                            devices.length === 0 || selectedDevice === null
+                        "
+                        aria-label="Next song"
                         @click="emit('skip-song')"
-                    />
+                        type="button"
+                    >
+                        <ChevronDoubleRightIcon />
+                    </button>
                 </div>
                 <div class="relative w-[30%] justify-end items-center flex">
                     <CoDJSelector

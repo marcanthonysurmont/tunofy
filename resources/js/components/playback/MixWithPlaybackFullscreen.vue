@@ -27,7 +27,7 @@
             <div class="mt-10 w-3/4 max-w-xs" v-if="currentTrack === null">
                 <img
                     src="/images/default-song.png"
-                    alt="Album cover"
+                    alt="A placeholder song cover featuring a white background with a blue note"
                     class="rounded-xl w-full"
                     ref="defaultCoverRef"
                     @load="extractColorsFromDefaultCover"
@@ -44,7 +44,7 @@
             <div class="mt-10 w-3/4 max-w-xs" v-else>
                 <img
                     :src="currentTrack.album.images[0].url"
-                    alt="Album cover"
+                    alt="The cover art of the current playing track"
                     class="rounded-xl w-full"
                     ref="albumCoverRef"
                     @load="extractColors"

@@ -77,7 +77,7 @@
                 >
                     <img
                         class="size-32 rounded-lg"
-                        alt="dancing gif"
+                        alt="Gif of a dancing black male"
                         src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExZTRrcHJ5cG04MXJ0bjBkMHBpd24wNzF4cW4zaWxhNDRveXF0cnh3cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/cklPOHnHepdwBLRnQp/giphy.gif"
                     />
                 </div>

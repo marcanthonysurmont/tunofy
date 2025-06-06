@@ -95,7 +95,7 @@
                                 error: '/images/default-song.png',
                                 loading: '/images/default-song.png',
                             }"
-                            alt="cover"
+                            alt="Cover image of the song"
                             :class="[
                                 'rounded flex-shrink-0 object-cover',
                                 index === 0 && song.is_killed === 0

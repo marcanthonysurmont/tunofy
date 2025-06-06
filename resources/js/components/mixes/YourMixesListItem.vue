@@ -11,7 +11,11 @@
             class="flex flex-row gap-4 w-full items-center relative z-10 py-2 px-2 cursor-pointer"
         >
             <div class="relative size-14 flex-shrink-0">
-                <img :src="imageUrl" class="size-14 object-cover rounded-sm" />
+                <img
+                    :src="imageUrl"
+                    class="size-14 object-cover rounded-sm"
+                    alt="Cover image of the mix"
+                />
                 <div
                     class="absolute inset-0 bg-black/85 rounded-xs"
                     v-if="mix.is_active === 1"

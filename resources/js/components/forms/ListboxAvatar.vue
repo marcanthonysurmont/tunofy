@@ -17,7 +17,7 @@
                                     ? '/images/default-avatar.jpg'
                                     : selected.avatar
                             "
-                            alt=""
+                            alt="Avatar of a selected user"
                             class="size-5 shrink-0 rounded-full"
                         />
                         <span class="block truncate">{{ selected.name }}</span>
@@ -64,7 +64,7 @@
                                             ? '/images/default-avatar.jpg'
                                             : option.avatar
                                     "
-                                    alt=""
+                                    alt="Avatar of a user"
                                     class="size-5 shrink-0 rounded-full"
                                 />
                                 <span

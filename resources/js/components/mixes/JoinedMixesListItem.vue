@@ -13,6 +13,7 @@
             <div class="relative size-14 flex-shrink-0">
                 <img
                     :src="imageUrl"
+                    alt="Cover image of the mix"
                     class="size-14 object-cover flex-shrink-0 rounded-sm"
                 />
                 <div

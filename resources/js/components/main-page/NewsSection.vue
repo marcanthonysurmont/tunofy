@@ -18,7 +18,7 @@
                 >
                     <img
                         :src="news.img"
-                        alt="News image"
+                        alt="Cover image for the news article"
                         class="rounded-md mb-4 object-cover w-full h-32 sm:h-40"
                     />
                     <h3

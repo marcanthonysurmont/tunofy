@@ -5,6 +5,7 @@
         >
             <img
                 :src="getImageUrl(mix)"
+                alt="Cover image of the mix"
                 class="size-56 sm:size-64 object-cover flex-shrink-0 rounded-md"
             />
 
@@ -24,6 +25,7 @@
                     >
                         <img
                             :src="owner.avatar_url"
+                            alt="Avatar of the mix owner"
                             class="size-5 sm:size-6 rounded-full"
                         />
                         <span class="font-medium text-dark-white">{{
@@ -42,6 +44,7 @@
                     <div class="flex sm:hidden flex-col items-start gap-1">
                         <div class="flex items-center gap-2">
                             <img
+                                alt="Avatar of the mix owner"
                                 :src="owner.avatar_url"
                                 class="size-5 sm:size-6 rounded-full"
                             />
@@ -61,17 +64,26 @@
 
         <div class="flex flex-col sm:flex-row gap-3 mt-4">
             <div class="flex flex-row gap-3 items-center sm:justify-start">
-                <ArrowLeftEndOnRectangleIcon
+                <button
                     v-if="!authorization.isOwner"
                     @click="leaveMix"
-                    class="size-6 sm:size-8 text-dark-white cursor-pointer custom-item-hover"
-                />
-                <SparklesIcon
+                    v-tippy="{ content: 'Leave mix' }"
+                    class="size-6 sm:size-8 text-dark-white cursor-pointer custom-item-hover flex items-center justify-center"
+                    aria-label="Leave mix"
+                    type="button"
+                >
+                    <ArrowLeftEndOnRectangleIcon />
+                </button>
+                <button
                     v-if="authorization.isOwner"
                     @click="showUpdateThemeModal = true"
                     v-tippy="{ content: 'Customize theme' }"
-                    class="size-6 sm:size-8 text-dark-white cursor-pointer custom-item-hover"
-                />
+                    class="size-6 sm:size-8 text-dark-white cursor-pointer custom-item-hover flex items-center justify-center"
+                    aria-label="Customize theme"
+                    type="button"
+                >
+                    <SparklesIcon />
+                </button>
                 <MenuDropdown v-if="showMenuDropdown">
                     <div class="px-1.5 py-1.5" v-if="authorization.isOwner">
                         <MenuItem v-slot="{ active }">

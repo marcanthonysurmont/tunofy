@@ -18,7 +18,7 @@
                         <img
                             v-if="internalSelected.avatar"
                             :src="internalSelected.avatar"
-                            alt=""
+                            alt="Selected user's avatar"
                             class="size-5 shrink-0 rounded-full"
                         />
                         <span class="block truncate">
@@ -64,7 +64,7 @@
                                 <img
                                     v-if="option.avatar"
                                     :src="option.avatar"
-                                    alt=""
+                                    alt="User avatar"
                                     class="size-5 shrink-0 rounded-full"
                                 />
                                 <span

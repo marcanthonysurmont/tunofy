@@ -26,7 +26,7 @@
                                         error: '/images/default-song.png',
                                         loading: '/images/default-song.png',
                                     }"
-                                    alt="Playlist Image"
+                                    alt="Image of a Spotify playlist"
                                     class="size-7 rounded-full"
                                 />
                                 <span
