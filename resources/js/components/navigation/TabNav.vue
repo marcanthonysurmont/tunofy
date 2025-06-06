@@ -17,7 +17,7 @@
                         ></div>
 
                         <!-- tabs -->
-                        <a
+                        <button
                             v-for="(tab, index) in visibleTabs"
                             :key="tab.name"
                             :ref="
@@ -33,15 +33,11 @@
                                 dyslexiaFontEnabled
                                     ? 'pb-2 pt-2'
                                     : 'pb-1.5 pt-2.5',
-                                // tab.votingActive === false && !tab.active
-                                //     ? 'opacity-50 cursor-not-allowed'
-                                //     : 'cursor-pointer',
                             ]"
-                            :aria-current="tab.active ? 'page' : undefined"
+                            :aria-current="tab.active ? tab.name : 'undefined'"
                             @click.prevent="
                                 handleTabClick(tab.name, visibleTabsMap[index])
                             "
-                            :disabled="tab.votingActive === false"
                         >
                             {{ tab.name }}
                             <span
@@ -52,7 +48,7 @@
                                     class="size-6 text-yellow-500"
                                 />
                             </span>
-                        </a>
+                        </button>
                     </nav>
                 </div>
             </div>
@@ -118,9 +114,6 @@ function isActiveTab(index) {
 }
 
 function handleTabClick(tabName, index) {
-    // if (tabName === "Voting" && !props.tabs[index].votingActive) {
-    //     return;
-    // }
     emit("tab-changed", tabName);
     scrollToTab(index);
 

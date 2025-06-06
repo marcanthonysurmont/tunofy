@@ -288,7 +288,7 @@ async function refreshDevices() {
         devices.value = response.data.devices || [];
         console.log("Devices refreshed:", devices.value);
 
-        // Auto-select the active device if one exists
+        //auto-select the active device if one exists
         const activeDevice = devices.value.find((d) => d.is_active);
         if (activeDevice) {
             selectedDevice.value = activeDevice;
