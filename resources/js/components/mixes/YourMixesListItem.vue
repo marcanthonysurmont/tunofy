@@ -6,8 +6,8 @@
         ></div>
 
         <!-- Content layer -->
-        <div
-            @click="routeUser"
+        <Link
+            :href="route('mix.show', mix.slug)"
             class="flex flex-row gap-4 w-full items-center relative z-10 py-2 px-2 cursor-pointer"
         >
             <div class="relative size-14 flex-shrink-0">
@@ -46,7 +46,7 @@
                     Mix • {{ mix.mix_count }} songs
                 </span>
             </div>
-        </div>
+        </Link>
     </div>
 </template>
 
@@ -54,6 +54,7 @@
 import { router } from "@inertiajs/vue3";
 import { computed } from "vue";
 import SoundWave from "@/components/spinners/SoundWave.vue";
+import { Link } from "@inertiajs/vue3";
 
 const props = defineProps({
     mix: {
