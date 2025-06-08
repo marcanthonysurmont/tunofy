@@ -57,8 +57,7 @@
                     <div
                         class="-mx-6 mt-auto flex flex-row items-center justify-between border-t border-regular-stroke px-6 py-3"
                     >
-                        <a
-                            href="#"
+                        <div
                             class="flex items-center gap-x-2 text-md/6 font-bold text-white"
                         >
                             <img
@@ -72,11 +71,8 @@
                                 }"
                                 alt="User avatar of logged in user"
                             />
-                            <span class="sr-only">Your profile</span>
-                            <span aria-hidden="true" class="font-medium">{{
-                                user.name
-                            }}</span>
-                        </a>
+                            <span class="font-medium">{{ user.name }}</span>
+                        </div>
                         <div class="flex items-center gap-x-2">
                             <Link
                                 :href="route('settings')"
