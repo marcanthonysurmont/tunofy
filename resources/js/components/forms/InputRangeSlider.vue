@@ -1,8 +1,9 @@
 <template>
     <div class="w-full" :class="{ 'opacity-40 cursor-not-allowed': disabled }">
         <label
+            :for="sliderId"
             v-if="label"
-            class="block text-sm font-medium text-white mb-4 flex items-center gap-2"
+            class="text-sm font-medium text-white mb-4 flex items-center gap-2"
         >
             {{ label }}
             <InformationCircleIcon
@@ -24,9 +25,15 @@
         </div>
 
         <input
+            :id="sliderId"
             type="range"
-            :class="disabled ? 'cursor-not-allowed' : ''"
-            class="w-full appearance-none bg-zinc-700 h-1 rounded-lg outline-none transition-all duration-200 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:hover:bg-zinc-200 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white"
+            :class="[
+                disabled ? 'cursor-not-allowed' : '',
+                'w-full appearance-none bg-zinc-700 h-1 rounded-lg outline-none transition-all duration-200',
+                '[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:hover:bg-zinc-200',
+                '[&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white',
+                'focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2',
+            ]"
             :min="min"
             :max="max"
             :step="step"
@@ -39,8 +46,9 @@
 
 <script setup>
 import { InformationCircleIcon } from "@heroicons/vue/24/solid";
+import { computed } from "vue";
 
-defineProps({
+const props = defineProps({
     label: {
         type: String,
         default: "Undefined Label",
@@ -70,6 +78,13 @@ defineProps({
         default: "",
     },
 });
+
+const sliderId = computed(
+    () =>
+        `slider-${String(props.label).replace(/\s+/g, "-").toLowerCase()}-${
+            props.min
+        }-${props.max}`
+);
 
 defineEmits(["update:modelValue"]);
 </script>
