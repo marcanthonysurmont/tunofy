@@ -12,7 +12,7 @@
                     :true-value="true"
                     :false-value="false"
                     @change="onChange"
-                    @keydown.enter.prevent="proxyChecked = !proxyChecked"
+                    @keydown.space.prevent="proxyChecked = !proxyChecked"
                     :aria-invalid="hasError ? 'true' : undefined"
                     :aria-describedby="hasError ? `${id}-error` : undefined"
                     class="peer appearance-none h-5 w-5 rounded-md bg-checkbox-background outline-1 -outline-offset-1 outline-checkbox-stroke checked:bg-checkbox-background"
