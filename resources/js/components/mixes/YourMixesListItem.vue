@@ -1,5 +1,5 @@
 <template>
-    <div class="relative w-full group">
+    <li class="relative w-full group">
         <!-- Hover background layer -->
         <div
             class="absolute inset-0 rounded-lg transition-colors group-hover:bg-card-background-lighter z-0"
@@ -47,7 +47,7 @@
                 </span>
             </div>
         </Link>
-    </div>
+    </li>
 </template>
 
 <script setup>

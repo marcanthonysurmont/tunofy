@@ -8,7 +8,7 @@
             <h2 class="text-3xl md:text-4xl font-bold text-dark-white">
                 {{ title }}
             </h2>
-            <p class="text-zinc-200 text-base md:text-lg max-w-xl font-medium">
+            <p class="text-white text-base md:text-lg max-w-xl font-medium">
                 {{ description }}
             </p>
             <button

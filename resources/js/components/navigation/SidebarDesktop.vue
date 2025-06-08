@@ -24,11 +24,19 @@
                             <h1 class="text-2xl font-medium heading-center">
                                 Your Mixes
                             </h1>
-                            <PlusIcon
+                            <button
                                 v-if="user.authorized.hasPremium"
                                 @click="emit('show-add-mix-modal')"
-                                class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
-                            />
+                                class="size-8 bg-primary p-1.5 rounded-lg custom-item-hover flex items-center justify-center cursor-pointer"
+                                aria-label="Add a new mix"
+                                title="Add a new mix"
+                                type="button"
+                            >
+                                <PlusIcon
+                                    class="text-white w-5 h-5"
+                                    aria-hidden="true"
+                                />
+                            </button>
                         </div>
                         <div
                             class="flex-1 flex flex-col gap-y-4 overflow-y-auto custom-scrollbar-hover min-h-0"
@@ -43,10 +51,18 @@
                             <h1 class="text-2xl font-medium heading-center">
                                 Joined Mixes
                             </h1>
-                            <PlusIcon
+                            <button
                                 @click="emit('show-join-mix-modal')"
-                                class="size-8 text-white bg-primary p-1.5 cursor-pointer rounded-lg custom-item-hover"
-                            />
+                                class="size-8 bg-primary p-1.5 rounded-lg custom-item-hover flex items-center justify-center cursor-pointer"
+                                aria-label="Join a mix"
+                                title="Join a mix"
+                                type="button"
+                            >
+                                <PlusIcon
+                                    class="text-white w-5 h-5"
+                                    aria-hidden="true"
+                                />
+                            </button>
                         </div>
                         <div
                             class="flex-1 flex flex-col gap-y-4 overflow-y-auto custom-scrollbar-hover min-h-0"

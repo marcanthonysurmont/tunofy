@@ -21,11 +21,11 @@
                         alt="Cover image for the news article"
                         class="rounded-md mb-4 object-cover w-full h-32 sm:h-40"
                     />
-                    <h3
+                    <h2
                         class="text-zinc-100 text-xl font-semibold mb-2 min-h-[68.8px]"
                     >
                         {{ news.title }}
-                    </h3>
+                    </h2>
                     <p class="text-zinc-300 flex-grow mb-4">
                         {{ news.teaser }}
                     </p>

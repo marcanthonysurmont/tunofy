@@ -11,7 +11,7 @@
         >
             <MenuButton
                 v-tippy="{ content: 'More options' }"
-                class="inline-flex w-full z-10 justify-center rounded-md text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75 cursor-pointer"
+                class="inline-flex w-full z-10 custom-item-hover justify-center rounded-md text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75 cursor-pointer"
                 aria-label="More options"
                 type="button"
             >
