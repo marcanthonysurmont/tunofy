@@ -9,6 +9,7 @@
     >
         <div
             v-if="isVisible"
+            ref="modalContainer"
             class="fixed left-0 top-0 z-[999] flex h-full w-full items-center justify-center gap-8 bg-black/25 backdrop-blur-md shadow-2xl"
             @click.self="closeModal"
         >
@@ -43,22 +44,23 @@
                         >Cancel
                     </RegularButton>
                 </footer>
-                <span
+                <button
                     class="absolute right-2 top-0 cursor-pointer p-4 text-xl"
                     @click="closeModal"
                 >
                     <XMarkIcon class="size-5 text-white" />
-                </span>
+                </button>
             </div>
         </div>
     </transition>
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from "vue";
+import { defineProps, defineEmits, ref, watch, nextTick } from "vue";
 import { XMarkIcon } from "@heroicons/vue/24/outline";
 import RegularButton from "@/components/buttons/RegularButton.vue";
 import { ExclamationTriangleIcon } from "@heroicons/vue/24/solid";
+import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 
 const props = defineProps({
     isVisible: Boolean,
@@ -73,6 +75,21 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["closeModal", "confirm", "submitFromEnter"]);
+
+const modalContainer = ref();
+const { activate, deactivate } = useFocusTrap(modalContainer);
+
+watch(
+    () => props.isVisible,
+    async (visible) => {
+        if (visible) {
+            await nextTick();
+            activate();
+        } else {
+            deactivate();
+        }
+    }
+);
 
 function closeModal() {
     emit("closeModal", false);

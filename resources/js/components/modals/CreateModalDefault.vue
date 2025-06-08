@@ -49,15 +49,16 @@ import {
     nextTick,
 } from "vue";
 import { XMarkIcon } from "@heroicons/vue/24/outline";
+import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 
 const props = defineProps({
     isVisible: Boolean,
 });
 
 const modalRef = ref(null);
+const { activate, deactivate } = useFocusTrap(modalRef);
 
 const emit = defineEmits(["closeModal", "submitFromEnter"]);
-
 const slots = useSlots();
 
 function closeModal() {
@@ -73,7 +74,6 @@ function handleKeyPressActions(event) {
         const isInputFocused =
             activeElement &&
             ["INPUT", "TEXTAREA"].includes(activeElement.tagName);
-
         if (isInputFocused) {
             emit("submitFromEnter");
         }
@@ -83,68 +83,20 @@ function handleKeyPressActions(event) {
 }
 
 let lastFocusedElement = null;
-let focusableElements = [];
-const focusableSelectors =
-    'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex="-1"]), [contenteditable]';
 
-function trapFocus(event) {
-    if (event.key !== "Tab") return;
-
-    const first = focusableElements[0];
-    const last = focusableElements[focusableElements.length - 1];
-
-    if (event.shiftKey) {
-        if (document.activeElement === first) {
-            event.preventDefault();
-            last.focus();
-        }
-    } else {
-        if (document.activeElement === last) {
-            event.preventDefault();
-            first.focus();
-        }
-    }
-}
-
-//not using onmounted here for visibility, im using a watch instead
-//why: because the isVisible prop is reactive and we want to add the event listener when the modal is visible and remove it when it's not
-//i noticed some bugs with onMounted as well, it would not work well.
 watch(
     () => props.isVisible,
     async (newValue) => {
         if (newValue) {
-            //save the currently focused element to return focus later
             lastFocusedElement = document.activeElement;
-
-            //wait for dom changes
             await nextTick();
-
-            const modal = modalRef.value;
-
-            if (!modal) {
-                return;
-            }
-
-            focusableElements = Array.from(
-                modal.querySelectorAll(focusableSelectors)
-            );
-
-            //focus first element
-            focusableElements[0]?.focus();
-
             window.addEventListener("keydown", handleKeyPressActions);
-            window.addEventListener("keydown", trapFocus);
+            activate();
         } else {
             window.removeEventListener("keydown", handleKeyPressActions);
-            window.removeEventListener("keydown", trapFocus);
-
-            //restore focus to previous element
+            deactivate();
             lastFocusedElement?.focus();
         }
     }
 );
-
-onUnmounted(() => {
-    window.removeEventListener("keydown", handleKeyPressActions);
-});
 </script>
