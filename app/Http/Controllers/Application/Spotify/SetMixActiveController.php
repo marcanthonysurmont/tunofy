@@ -226,13 +226,26 @@ class SetMixActiveController extends Controller
 
                 $playbackData = $spotifyService->getCurrentPlayback($mix->user);
 
-                MixStat::updateOrCreate(
-                    ['mix_id' => $mix->id],
-                    [
-                        'songs_played' => DB::raw('songs_played + 1'),
-                        'minutes_played' => DB::raw('minutes_played + ' . $playbackData['progress_ms'] / 60000),
-                    ]
-                );
+                // Only update stats if we have valid playback data
+                if ($playbackData !== null && isset($playbackData['progress_ms'])) {
+                    MixStat::updateOrCreate(
+                        ['mix_id' => $mix->id],
+                        [
+                            'songs_played' => DB::raw('songs_played + 1'),
+                            'minutes_played' => DB::raw('minutes_played + ' . $playbackData['progress_ms'] / 60000),
+                        ]
+                    );
+                } else {
+                    // Just increment songs played without minutes if no playback data
+                    MixStat::updateOrCreate(
+                        ['mix_id' => $mix->id],
+                        [
+                            'songs_played' => DB::raw('songs_played + 1'),
+                        ]
+                    );
+
+                    Log::info("No valid playback data available for mix {$mix->id} during deactivation");
+                }
 
                 StatUpdatedEvent::dispatch($mix);
 

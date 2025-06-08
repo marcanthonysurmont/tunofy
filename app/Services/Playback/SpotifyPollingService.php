@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Log;
 use App\Events\PlaybackDataUpdatedEvent;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Queue\QueueManagementService;
+use App\Services\Playback\SongPlaybackService;
+use App\Services\Playback\PlaybackStateManager;
+use App\Events\DeviceUpdatedEvent;
+use Exception;
 
 class SpotifyPollingService
 {
@@ -51,6 +55,20 @@ class SpotifyPollingService
             // Get current queue state
             $currentQueueSong = $this->songPlaybackService->getCurrentlyPlayingSong($mix);
 
+            if ($playbackData === null) {
+                // Broadcast device inactive event
+                DeviceUpdatedEvent::dispatch($mix);
+
+                // Set a device inactive flag on the playback state
+                $this->playbackState->setState($mix, 'device_inactive', true);
+                
+                return [
+                    'success' => false, 
+                    'action' => 'device_inactive', 
+                    'message' => 'Spotify device is inactive or unavailable'
+                ];
+            }
+
             // Analyze and handle the current state
             $playerState = $this->analyzePlayerState($mix, $currentQueueSong, $playbackData, $previousData);
             $actionResult = $this->handlePlayerState($mix, $playerState, $playbackData, $currentQueueSong, $previousData);
@@ -60,7 +78,7 @@ class SpotifyPollingService
 
             return $actionResult ?? ['success' => true, 'action' => 'continue'];
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Error polling Spotify: " . $e->getMessage(), ['exception' => $e]);
             return ['success' => false, 'action' => 'error', 'message' => $e->getMessage()];
         }
