@@ -6,7 +6,6 @@
             form.reset();
             form.clearErrors();
         "
-        @submit-from-enter="storeMix"
     >
         <template #title>
             <h1 class="text-4xl">Create a mix</h1>

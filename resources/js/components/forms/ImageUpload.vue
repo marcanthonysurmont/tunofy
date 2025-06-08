@@ -43,6 +43,7 @@
                     </button>
                 </div>
                 <input
+                    ref="fileInputRef"
                     :id="`${id}-input`"
                     type="file"
                     :accept="acceptedFileTypes"
@@ -54,7 +55,7 @@
             <div
                 v-else
                 :class="[
-                    'flex justify-center rounded-md px-4 sm:px-6 py-6 sm:py-8 outline-1 -outline-offset-1 ',
+                    'flex justify-center rounded-md px-4 sm:px-6 py-6 sm:py-8 outline-1 -outline-offset-1 transition-colors focus-visible:outline-2 focus-visible:outline-primary focus-visible:-outline-offset-1',
                     isDragging
                         ? 'outline-primary bg-[#1A1A1A]/80'
                         : 'outline-inputfield-stroke bg-inputfield-background',
@@ -75,7 +76,7 @@
                         <button
                             type="button"
                             @click="removeImage"
-                            class="absolute top-2 right-2 rounded-full bg-black/70 p-1 text-white hover:bg-black cursor-pointer"
+                            class="absolute top-2 right-2 rounded-full bg-black/90 p-1 text-white hover:bg-black cursor-pointer focus-visible:outline-4 focus-visible:outline-primary focus-visible:-outline-offset-1"
                         >
                             <XMarkIcon class="size-5" aria-hidden="true" />
                         </button>
@@ -90,17 +91,23 @@
                         class="mt-4 flex flex-col sm:flex-row justify-center items-center text-sm/6 text-zinc-300"
                     >
                         <label
+                            tabindex="0"
+                            role="button"
+                            @keydown.enter.prevent="triggerFileInput"
                             :for="`${id}-input`"
-                            class="relative cursor-pointer rounded-md bg-image-upload-button-background px-2 py-1 font-semibold text-white hover:bg-[#3C3C3C] mb-2 sm:mb-0 border-1 border-image-upload-button-stroke"
+                            class="relative cursor-pointer rounded-md bg-image-upload-button-background px-2 py-1 font-semibold text-white hover:bg-[#3C3C3C] mb-2 sm:mb-0 border-1 border-image-upload-button-stroke focus-visible:outline-2 focus-visible:outline-primary focus-visible:-outline-offset-1"
                         >
-                            <span>Upload a file</span>
                             <input
+                                ref="fileInputRef"
                                 :id="`${id}-input`"
                                 type="file"
                                 :accept="acceptedFileTypes"
                                 @change="handleFileUpload"
                                 class="sr-only"
+                                tabindex="-1"
+                                aria-hidden="true"
                             />
+                            <span>Upload a file</span>
                         </label>
                         <p class="sm:pl-1 self-center hidden sm:inline">
                             or drag and drop
@@ -140,7 +147,7 @@ const props = defineProps({
     },
     acceptedFileTypes: {
         type: String,
-        default: "image/png, image/jpeg, image/gif",
+        default: "image/png, image/jpeg",
     },
     maxSizeInMB: {
         type: Number,
@@ -152,6 +159,14 @@ const props = defineProps({
         default: "",
     },
 });
+
+const fileInputRef = ref(null);
+function triggerFileInput() {
+    console.log("triggerFileInput called", fileInputRef.value);
+    if (fileInputRef.value) {
+        fileInputRef.value.click();
+    }
+}
 
 const emit = defineEmits(["update:modelValue", "error"]);
 
@@ -196,12 +211,16 @@ function onDrop(event) {
     isDragging.value = false;
 
     const file = event.dataTransfer.files[0];
-    if (!file) return;
+    if (!file) {
+        return;
+    }
 
     //clear any existing error when attempting to upload a new file
     clearError();
 
-    if (!validateFile(file)) return;
+    if (!validateFile(file)) {
+        return;
+    }
 
     createPreview(file);
     emit("update:modelValue", file);

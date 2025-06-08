@@ -10,6 +10,7 @@
         >
             <div
                 v-if="isVisible"
+                ref="modalRef"
                 class="fixed left-0 top-0 z-[9999] flex h-full w-full items-center justify-center gap-8 bg-black/25 backdrop-blur-md shadow-2xl"
                 @click.self="closeModal"
             >
@@ -25,11 +26,12 @@
                     <footer>
                         <slot name="footer"></slot>
                     </footer>
-                    <span
+                    <button
                         class="absolute right-2 top-0 cursor-pointer p-4 text-xl"
                         @click="closeModal"
-                        ><XMarkIcon class="size-5"
-                    /></span>
+                    >
+                        <XMarkIcon class="size-5" />
+                    </button>
                 </div>
             </div>
         </transition>
@@ -37,18 +39,28 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, watch, onUnmounted, useSlots } from "vue";
+import {
+    defineProps,
+    defineEmits,
+    watch,
+    onUnmounted,
+    useSlots,
+    ref,
+    nextTick,
+} from "vue";
 import { XMarkIcon } from "@heroicons/vue/24/outline";
 
 const props = defineProps({
     isVisible: Boolean,
 });
 
+const modalRef = ref(null);
+
 const emit = defineEmits(["closeModal", "submitFromEnter"]);
+
 const slots = useSlots();
 
 function closeModal() {
-    console.log("closeModal");
     if (window.getSelection().toString().length > 0) {
         return;
     }
@@ -70,16 +82,64 @@ function handleKeyPressActions(event) {
     }
 }
 
-//not using onmounted here, im using a watch instead
+let lastFocusedElement = null;
+let focusableElements = [];
+const focusableSelectors =
+    'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex="-1"]), [contenteditable]';
+
+function trapFocus(event) {
+    if (event.key !== "Tab") return;
+
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+
+    if (event.shiftKey) {
+        if (document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        }
+    } else {
+        if (document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+}
+
+//not using onmounted here for visibility, im using a watch instead
 //why: because the isVisible prop is reactive and we want to add the event listener when the modal is visible and remove it when it's not
 //i noticed some bugs with onMounted as well, it would not work well.
 watch(
     () => props.isVisible,
-    (newValue) => {
+    async (newValue) => {
         if (newValue) {
+            //save the currently focused element to return focus later
+            lastFocusedElement = document.activeElement;
+
+            //wait for dom changes
+            await nextTick();
+
+            const modal = modalRef.value;
+
+            if (!modal) {
+                return;
+            }
+
+            focusableElements = Array.from(
+                modal.querySelectorAll(focusableSelectors)
+            );
+
+            //focus first element
+            focusableElements[0]?.focus();
+
             window.addEventListener("keydown", handleKeyPressActions);
+            window.addEventListener("keydown", trapFocus);
         } else {
             window.removeEventListener("keydown", handleKeyPressActions);
+            window.removeEventListener("keydown", trapFocus);
+
+            //restore focus to previous element
+            lastFocusedElement?.focus();
         }
     }
 );
