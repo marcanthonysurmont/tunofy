@@ -13,6 +13,12 @@
             v-for="(template, index) in templatesStore.templates"
             :key="index"
             @click="selectTemplate(index, template.id)"
+            @keydown.enter.prevent="selectTemplate(index, template.id)"
+            @keydown.space.prevent="selectTemplate(index, template.id)"
+            tabindex="0"
+            role="button"
+            :aria-pressed="templatesStore.selectedTemplateIndex === index"
+            :aria-label="`Select template: ${template.name}`"
         >
             <CheckCircleIcon
                 v-if="templatesStore.selectedTemplateIndex === index"
