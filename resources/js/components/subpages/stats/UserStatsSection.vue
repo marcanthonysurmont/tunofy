@@ -31,6 +31,16 @@
                         :key="card.uniqueId"
                         class="peeking-item flex-shrink-0 cursor-pointer"
                         @click="toggleFlip(card.uniqueId)"
+                        @keydown.enter.prevent="toggleFlip(card.uniqueId)"
+                        @keydown.space.prevent="toggleFlip(card.uniqueId)"
+                        tabindex="0"
+                        role="button"
+                        :aria-pressed="flippedCards.has(card.uniqueId)"
+                        :aria-label="
+                            flippedCards.has(card.uniqueId)
+                                ? `Hide details for ${card.user.name}`
+                                : `Reveal details for ${card.user.name}`
+                        "
                     >
                         <div
                             class="relative w-full h-96 transition-transform duration-500"
