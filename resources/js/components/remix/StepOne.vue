@@ -6,7 +6,10 @@
             class="flex flex-col items-center justify-center h-full w-full p-6"
         >
             <template v-if="!showStats">
-                <h1 ref="woahText" class="text-5xl text-center font-medium">
+                <h1
+                    ref="woahText"
+                    class="text-5xl text-center font-medium break-fallback"
+                >
                     Hi, {{ user.name.split(" ")[0] }}
                 </h1>
                 <p
@@ -186,6 +189,11 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.break-fallback {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
 .animated-gradient {
     background: linear-gradient(-45deg, #2563eb, #7c3aed, #2563eb);
     background-size: 200% 200%;
