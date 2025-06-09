@@ -2,11 +2,11 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Broadcasting\PrivateChannel;
 use App\Models\Mix;
 
 class DeviceUpdatedEvent implements ShouldBroadcastNow
@@ -19,7 +19,7 @@ class DeviceUpdatedEvent implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new Channel('mix.' . $this->mix->id),
+            new PrivateChannel('mix.' . $this->mix->id),
         ];
     }
 

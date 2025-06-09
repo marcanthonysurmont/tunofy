@@ -533,7 +533,7 @@ onMounted(() => {
         refreshMixState();
 
         //setup WebSocket listeners and listen for events
-        Echo.channel(`mix.${props.mix.id}`)
+        Echo.private(`mix.${props.mix.id}`)
             .listen(".playback-data", (e) => {
                 console.log("Received playback data event:", e);
 

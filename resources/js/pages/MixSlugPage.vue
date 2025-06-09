@@ -366,7 +366,7 @@ onBeforeMount(() => {
     }
 
     emitter.on("song-added", handleSongAddedEvent);
-    Echo.channel(`mix.${props.value.mix.id}`)
+    Echo.private(`mix.${props.value.mix.id}`)
         .listen(".vote-updated", () => {
             router.reload({ only: ["allPendingSongs", "success", "danger"] });
             console.log("Vote updated");
