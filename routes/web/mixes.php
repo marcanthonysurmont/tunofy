@@ -18,7 +18,6 @@ use App\Http\Controllers\Application\Mixes\RemoveUserMixAccessController;
 use App\Http\Controllers\Application\Mixes\ImportSpotifyPlaylistController;
 use App\Http\Controllers\Application\Mixes\UpdateMixThemeController;
 use App\Http\Controllers\Application\Mixes\UpdateMixUserPermissionsController;
-use App\Http\Controllers\Application\Mixes\GetMixSongsController;
 use App\Http\Controllers\Application\Mixes\UpdatePresetController;
 use App\Http\Controllers\Application\Mixes\UpdateSelectedPresetController;
 use App\Http\Controllers\Application\Mixes\DestroyPresetController;
@@ -34,7 +33,6 @@ Route::prefix('/mix')->name('mix.')->group(function () {
     // Songs management
     Route::post('/add-song/{mix}', AddSongToMixController::class)->name('add-song');
     Route::delete('/remove-song/{song}', RemoveSongFromMixController::class)->name('remove-song');
-    Route::post('/get-mix-songs/{mix}', GetMixSongsController::class)->name('get-mix-songs');
     Route::post('/import-spotify-playlist/{mix}', ImportSpotifyPlaylistController::class)->name('import-spotify-playlist');
 
     // Access control

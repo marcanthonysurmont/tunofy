@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Models\User;
+use Exception;
 
 class SpotifyService
 {
@@ -63,7 +64,7 @@ class SpotifyService
             }
 
             return $success;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Error playing song: " . $e->getMessage());
             return false;
         }
@@ -103,7 +104,7 @@ class SpotifyService
             Log::info("Play track response: {$statusCode} for user {$user->id}");
 
             return $response->successful();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Error playing track on device: " . $e->getMessage());
             return false;
         }
@@ -139,7 +140,7 @@ class SpotifyService
                      " for user {$user->id}");
 
             return $response->successful();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Log full error details
             Log::error("Resume playback error for user {$user->id}: " . $e->getMessage() .
                       " - Class: " . get_class($e) .
@@ -168,7 +169,7 @@ class SpotifyService
             );
 
             return $response->successful();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if (!str_contains($e->getMessage(), '404')) {
                 Log::error("Spotify pausePlayback error: " . $e->getMessage());
             }
@@ -216,7 +217,7 @@ class SpotifyService
             Log::info("Received {$dataSize} fields in playback data");
 
             return $data;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Spotify API error: " . $e->getMessage());
             return null;
         }
@@ -262,7 +263,7 @@ class SpotifyService
             }
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Only log real errors, not expected conditions
             if (!str_contains($e->getMessage(), '404')) {
                 Log::error("Error activating device: " . $e->getMessage());
@@ -291,7 +292,7 @@ class SpotifyService
             );
 
             return $response->successful();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if (!str_contains($e->getMessage(), '404')) {
                 Log::error("Error activating device: " . $e->getMessage());
             }
@@ -317,7 +318,7 @@ class SpotifyService
             }
 
             return null;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Error getting current device: " . $e->getMessage());
             return null;
         }
@@ -341,7 +342,7 @@ class SpotifyService
             }
 
             return $response->json()['devices'] ?? [];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Error fetching Spotify devices: " . $e->getMessage());
             return [];
         }
@@ -367,7 +368,7 @@ class SpotifyService
             );
 
             return $response->successful();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Spotify setVolume error: " . $e->getMessage());
             return false;
         }
@@ -397,7 +398,7 @@ class SpotifyService
 
             Log::warning("No preview URL found for track {$trackId}");
             return '';
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Error fetching track preview URL for {$trackId}: " . $e->getMessage());
             return '';
         }
@@ -455,7 +456,7 @@ class SpotifyService
             }
 
             return $response->json()['items'] ?? [];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Error fetching Spotify playlists: " . $e->getMessage());
             return [];
         }
@@ -475,12 +476,7 @@ class SpotifyService
                 Log::info("Fetching playlist tracks page {$pageCount}, URL: {$nextUrl}");
 
                 if ($pageCount === 1) {
-                    $response = $this->spotifyRequest(
-                        $user,
-                        'GET',
-                        $nextUrl,
-                        [],
-                    );
+                    $response = $this->spotifyRequest($user, 'GET', $nextUrl, []);
                 } else {
                     // For pagination URLs, use direct HTTP request
                     $accessToken = $this->getAccessToken($user);
@@ -504,7 +500,7 @@ class SpotifyService
 
                  if (!$response->successful()) {
                     Log::error("Failed to get Spotify playlist tracks: " . $response->status());
-                    return $allTracks;
+                    break;
                 }
 
                 $responseData = $response->json();
@@ -532,7 +528,7 @@ class SpotifyService
 
             Log::info("Fetched " . count($allTracks) . " tracks from playlist {$playlistId} in {$pageCount} pages");
             return $allTracks;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Error fetching Spotify playlist tracks: " . $e->getMessage());
             return [];
         }
