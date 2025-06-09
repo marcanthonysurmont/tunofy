@@ -142,10 +142,7 @@
                             </button>
                         </MenuItem>
                     </div>
-                    <div
-                        class="px-1.5 py-1.5"
-                        v-if="authorization.isOwner && mix.is_public"
-                    >
+                    <div class="px-1.5 py-1.5" v-if="authorization.isOwner">
                         <MenuItem
                             v-slot="{ active }"
                             v-if="authorization.isOwner && mix.is_public"
@@ -170,7 +167,7 @@
                             </button>
                         </MenuItem>
                         <MenuItem
-                            v-else-if="authorization.isOwner"
+                            v-else-if="authorization.isOwner && !mix.is_public"
                             v-slot="{ active }"
                         >
                             <button
