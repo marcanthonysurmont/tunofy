@@ -47,21 +47,27 @@
         :isMixActive="isMixActive"
         :currentTrack="currentTrack"
         :isPlaying="isPlaying"
-        :queueActivationDisabled="queueActivationDisabled"
         v-else
+    />
+    <InformationModal
+        :is-visible="showQueueCompletedModal"
+        :title="'Queue completed'"
+        :text="'The queue has been completed, and it has been automatically deactivated as a result.'"
+        @close-modal="showQueueCompletedModal = false"
     />
 </template>
 
 <script setup>
-import MixWithoutPlayback from "./MixWithoutPlayback.vue";
-import MixWithPlayback from "./MixWithPlayback.vue";
-import MixWithPlaybackMobile from "./MixWithPlaybackMobile.vue";
+import MixWithoutPlayback from "@/components/playback/MixWithoutPlayback.vue";
+import MixWithPlayback from "@/components/playback/MixWithPlayback.vue";
+import MixWithPlaybackMobile from "@/components/playback/MixWithPlaybackMobile.vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { usePage, router } from "@inertiajs/vue3";
 import toast from "@/stores/StoreToast.js";
 import { useBattery } from "@vueuse/core";
 import { StoreInformationModal } from "@/stores/StoreInformationModal";
 import emitter from "@/eventBus.js";
+import InformationModal from "@/components/modals/InformationModal.vue";
 
 const page = usePage();
 const windowSize = ref(window.innerWidth);
@@ -70,11 +76,8 @@ const props = defineProps({
         type: Object,
         required: true,
     },
-    // songs: {
-    //     type: Object,
-    //     required: true,
-    // },
 });
+
 //state variables
 const songs = computed(() => page.props.songs);
 const user = page.props.user;
@@ -85,9 +88,6 @@ const currentTrack = ref(null);
 const isPlaying = ref(false);
 const isSyncingWithSpotify = ref(false);
 const queueCompleted = ref(false);
-const isQueueComplicated = computed(
-    () => queueCompleted.value && isMixActive.value
-);
 const showQueueCompletedModal = ref(false);
 
 const lastEventTime = ref(0);
@@ -102,17 +102,21 @@ const authorization = computed(() => page.props.mix.authorized);
 
 //check if queue is completed. if so, show the modal
 watch(
-    () => isQueueComplicated.value,
+    () => queueCompleted.value,
     (newValue) => {
         if (newValue) {
             showQueueCompletedModal.value = true;
+            console.log(
+                "Queue completed, showing modal",
+                showQueueCompletedModal.value
+            );
         } else {
             showQueueCompletedModal.value = false;
         }
     }
 );
 
-// Find initially active device from the devices array
+//find initially active device from the devices array
 const selectedDevice = ref(devices.value.find((d) => d.is_active) || null);
 
 const hasActiveConflictingMixes = computed(() => {
@@ -123,7 +127,7 @@ const hasActiveConflictingMixes = computed(() => {
 });
 
 const queueActivationDisabled = computed(() => {
-    // Disable the button if there are conflicting mixes and the mix isn't active already
+    //disable the button if there are conflicting mixes and the mix isn't active already
     return (
         (hasActiveConflictingMixes.value && !isMixActive.value) ||
         isLoading.value ||
@@ -172,7 +176,7 @@ function skipSong() {
     axios
         .post(`/api/spotify/skip-song/${props.mix.id}`)
         .then((response) => {
-            // Check for queue completion explicitly
+            //check for queue completion
             if (response.data.queue_completed) {
                 console.log("Queue completed after skipping last song");
                 queueCompleted.value = true;
@@ -181,29 +185,27 @@ function skipSong() {
             }
 
             if (response.data.success && response.data.song) {
-                // Transform the data to match the expected structure
+                //transform the data to match the expected structure for the vue template
                 currentTrack.value = {
                     name: response.data.song.name,
                     album: {
                         images: [{ url: response.data.song.image_url }],
                     },
                     artists: [{ name: response.data.song.artist }],
-                    // Add any other required properties
                     id: response.data.song.spotify_id,
                     duration_ms: response.data.song.duration_ms,
                 };
 
-                // Update playing state if available
+                //update playing state if available
                 if (response.data.is_playing !== undefined) {
                     isPlaying.value = response.data.is_playing;
                 }
-
                 console.log("Song skipped successfully");
             }
         })
         .catch((error) => {
             console.error("Failed to skip song:", error);
-            clearSyncingState(); // Always clear syncing state on error
+            clearSyncingState();
         });
 }
 
@@ -284,7 +286,7 @@ async function resumeMix() {
 async function refreshDevices() {
     try {
         isLoadingDevices.value = true;
-        const response = await axios.get("/api/spotify/devices");
+        const response = await axios.get(route("api.spotify.devices"));
         devices.value = response.data.devices || [];
         console.log("Devices refreshed:", devices.value);
 
@@ -321,14 +323,13 @@ function selectDevice(device) {
 
 async function transferPlayback(deviceId) {
     try {
-        // Only proceed if the mix is active and a different device is selected
+        //only proceed with transfer if the mix is active
         if (!isMixActive.value) {
             console.log("Mix is not active, skipping device transfer");
             return;
         }
 
-        // Check if we're selecting a different device than the current one
-        const currentDevice = devices.value.find((d) => d.is_active);
+        //only proceed with transfer of device if current device is different from the selected one
         if (currentDevice && currentDevice.id === deviceId) {
             console.log("Same device selected, skipping transfer");
             return;
@@ -336,14 +337,10 @@ async function transferPlayback(deviceId) {
 
         console.log(`Transferring playback to device: ${deviceId}`);
 
-        // Show loading state
+        //show loading state
         // isLoadingDevices.value = true;
         isTransferingDevice.value = true;
 
-        // Call the API to transfer playback
-        console.log(
-            route("api.spotify.transfer-playback", { mix: props.mix.id })
-        );
         const response = await axios.post(
             route("api.spotify.transfer-playback", { mix: props.mix.id }),
             { deviceId }
@@ -352,10 +349,10 @@ async function transferPlayback(deviceId) {
         if (response.data.success) {
             console.log("Playback transferred successfully");
 
-            // Update the selected device in the UI
+            //update the selected device in the UI
             selectedDevice.value = devices.value.find((d) => d.id === deviceId);
 
-            // Update devices list to reflect the active state
+            //update devices list to reflect the active state
             await refreshDevices();
         }
     } catch (error) {
@@ -380,10 +377,10 @@ async function refreshMixState() {
             params: { mix_id: props.mix.id },
         });
 
-        // Update state from server
+        //update state from server
         isMixActive.value = response.data.is_active;
 
-        // Handle playback data
+        //handle playback data
         if (response.data.playback_data) {
             updatePlayerState(response.data.playback_data);
         } else if (isMixActive.value) {
@@ -398,7 +395,6 @@ async function refreshMixState() {
     }
 }
 
-// Update toggleMixActive to use selected device
 async function toggleMixActive() {
     try {
         if (queueActivationDisabled.value) {
@@ -433,53 +429,56 @@ async function toggleMixActive() {
             return;
         }
 
-        // Prevent rapid toggling
-        if (Date.now() - lastToggleTime.value < 1000) return;
+        //prevent rapid toggling --> 1 second cooldown
+        if (Date.now() - lastToggleTime.value < 1000) {
+            return;
+        }
+
+        //update last toggle time to keep track of cooldown for next request
         lastToggleTime.value = Date.now();
 
-        // Set loading state
+        //set loading state
         isLoading.value = true;
 
-        // Optimistically update UI
-        const targetActive = !isMixActive.value;
+        //update UI --> newActiveState is opposite of current state
+        const newActiveState = !isMixActive.value;
 
-        // Always clear queue completed state when toggling, especially when deactivating
-        if (!targetActive || queueCompleted.value) {
+        //always clear queue completed state when toggling, especially when deactivating
+        if (!newActiveState || queueCompleted.value) {
             queueCompleted.value = false;
         }
 
-        // Prepare the device ID to send
+        //prepare the device ID to send
         const deviceIdToUse = selectedDevice.value
             ? selectedDevice.value.id
             : null;
         console.log("Using device ID for toggle:", deviceIdToUse);
 
-        // Make API call with device ID
+        //make API call with device ID
         const response = await axios.post(
             `/api/spotify/set-mix-active/${props.mix.id}`,
             {
-                active: targetActive,
+                active: newActiveState,
                 deviceId: deviceIdToUse,
                 reset_queue: true,
             }
         );
 
-        // Handle response as usual
+        //handle response as usual
         console.log("Toggle response:", response.data);
 
         if (response.data.activation && response.data.activation.success) {
             // IMPORTANT: Update the mix active state with the target value
-            isMixActive.value = targetActive;
+            isMixActive.value = newActiveState;
 
-            if (targetActive) {
-                // Mix was activated
+            //if mix was actived, then do...
+            if (newActiveState) {
                 setSyncingState();
-                // Clear queue completed flag when activating
                 queueCompleted.value = false;
-            } else {
-                // Mix was deactivated
+            }
+            //if mix was deactivated, then do...
+            else {
                 clearSyncingState();
-                // Also clear the current track
                 currentTrack.value = null;
                 isPlaying.value = false;
             }
@@ -494,8 +493,10 @@ async function toggleMixActive() {
 
 function setSyncingState() {
     isSyncingWithSpotify.value = true;
-    if (syncTimeoutId) clearTimeout(syncTimeoutId);
-    // Auto-clear after 10s to prevent getting stuck
+    if (syncTimeoutId) {
+        clearTimeout(syncTimeoutId);
+    }
+    //auto-clear after 10s to prevent getting stuck
     syncTimeoutId = setTimeout(
         () => (isSyncingWithSpotify.value = false),
         10000
@@ -505,14 +506,16 @@ function setSyncingState() {
 function updatePlayerState(playbackData) {
     console.log("Updating player state with:", playbackData);
 
-    if (!playbackData) return;
+    if (!playbackData) {
+        return;
+    }
 
-    // Update playing state if specified
+    //update playing state if specified
     if (playbackData.is_playing !== undefined) {
         isPlaying.value = playbackData.is_playing;
     }
 
-    // Only update track info if we have actual track data with an ID
+    //only update track info if we have actual track data with an ID
     if (playbackData.item && playbackData.item.id) {
         currentTrack.value = playbackData.item;
         clearSyncingState();
@@ -525,11 +528,11 @@ onMounted(() => {
         windowSize.value = window.innerWidth;
     });
     if (props.mix) {
-        // Initialize state
+        //initialize state
         isMixActive.value = !!props.mix.is_active;
         if (isMixActive.value) setSyncingState();
 
-        // Initial data load
+        //initial data load
         refreshMixState();
 
         //setup WebSocket listeners and listen for events
@@ -537,7 +540,7 @@ onMounted(() => {
             .listen(".playback-data", (e) => {
                 console.log("Received playback data event:", e);
 
-                // Check for real track data and handle it specially
+                //check for real track data and handle it specially
                 if (e.playback_data?.item?.id) {
                     console.log(
                         "Real track data received via WebSocket",
@@ -552,15 +555,14 @@ onMounted(() => {
                     return;
                 }
 
-                // Handle initial activation placeholder data
+                //handle initial activation placeholder data
                 if (e.playback_data?.is_initial_activation) {
                     console.log("Initial activation data received");
                     isMixActive.value = true;
                     isPlaying.value = true;
-                    // Don't clear syncing yet - wait for real track data
                 }
 
-                // Process normal events with timestamp check
+                //process normal events with timestamp check
                 const eventTime = e.timestamp || Date.now();
                 if (eventTime < lastEventTime.value) {
                     console.log("Ignoring out-of-sequence event");
@@ -568,7 +570,7 @@ onMounted(() => {
                 }
                 lastEventTime.value = eventTime;
 
-                // Update player state for other events
+                //update player state for other events
                 updatePlayerState(e.playback_data);
             })
             .listen(".mix-status-changed", (e) => {
@@ -580,23 +582,21 @@ onMounted(() => {
                 //update active state
                 isMixActive.value = e.isActive;
 
-                //handle state changes
-                if (!e.isActive) {
+                if (!e.isActive && e.reason === "queue_completed") {
                     clearSyncingState();
                     currentTrack.value = null;
                     isPlaying.value = false;
-                } else if (e.reason === "queue_completed") {
-                    // Handle queue completion while keeping mix active
-                    clearSyncingState();
                     queueCompleted.value = true;
-                    isPlaying.value = false;
-
-                    // Show queue completed modal
-                    showQueueCompletedModal.value = true;
                 }
 
                 router.reload({
-                    only: ["mix", "your_mixes", "joined_mixes", "success", "danger"],
+                    only: [
+                        "mix",
+                        "your_mixes",
+                        "joined_mixes",
+                        "success",
+                        "danger",
+                    ],
                 });
 
                 if (e.reason === "other_mix") {

@@ -27,7 +27,7 @@
                 </header>
                 <main class="mb-4">
                     <p
-                        class="text-white flex items-center gap-1 mt-2 text-base"
+                        class="text-dark-white flex items-center gap-1 mt-2 text-base"
                     >
                         {{ text }}
                     </p>
