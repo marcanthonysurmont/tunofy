@@ -134,7 +134,7 @@ class SetMixActiveController extends Controller
                                 event(new PlaybackDataUpdatedEvent($mix, $loadingData));
 
                                 // Start playback (this is the slow operation)
-                                $queueManagementService->startPlayback($mix->id, $deviceId);
+                                $queueManagementService->startPlayback($mix, $deviceId);
 
                                 // AFTER playback has started, send the actual playback data
                                 $playbackData = [

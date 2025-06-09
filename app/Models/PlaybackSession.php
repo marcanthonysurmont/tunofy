@@ -39,6 +39,13 @@ class PlaybackSession extends Model
     /*              Scopes                */
     /**************************************/
 
+    public function scopeActiveSession($query, Mix $mix): ?PlaybackSession
+    {
+        return $query->where('mix_id', $mix->id)
+            ->where('is_active', true)
+            ->first();
+    }
+
     /**************************************/
     /*              Helpers               */
     /**************************************/

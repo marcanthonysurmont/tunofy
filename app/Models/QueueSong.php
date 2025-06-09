@@ -51,7 +51,37 @@ class QueueSong extends Model
     /*              Scopes                */
     /**************************************/
 
+    public function scopePendingForMixCount($query, Mix $mix): int
+    {
+        return $query->where('mix_id', $mix->id)
+            ->where('status', 'pending')
+            ->count();
+    }
+
     /**************************************/
     /*              Helpers               */
     /**************************************/
+
+    public static function playingRound(Mix $mix) 
+    {
+        return self::where('mix_id', $mix->id)
+            ->where('status', 'playing')
+            ->value('round_number');
+    }
+
+    public static function currentlyPlayingForMix(Mix $mix): ?self
+    {
+        return self::where('mix_id', $mix->id)
+            ->where('status', 'playing')
+            ->with('song')
+            ->first();
+    }
+
+    public static function hasPendingSongs(Mix $mix): bool
+    {
+        return self::where('mix_id', $mix->id)
+            ->where('status', 'pending')
+            ->where('is_killed', false)
+            ->exists();
+    }
 }

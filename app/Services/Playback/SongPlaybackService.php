@@ -11,12 +11,13 @@ use App\Models\PlaybackSession;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use App\Events\MixStatusChangedEvent;
 use App\Events\DeviceUpdatedEvent;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Queue\QueueManagementService;
 use App\Models\MixStat;
 use App\Events\StatUpdatedEvent;
+use App\Services\Playback\PlaybackStateManager;
+use Exception;
 
 class SongPlaybackService
 {
@@ -57,7 +58,7 @@ class SongPlaybackService
     /**
      * Start playback of the next song in the queue
      */
-    public function startPlayback(Mix $mix, ?string $deviceId = null, ?string $spotifyTrackId = null): array
+    public function startPlayback(Mix $mix, ?string $deviceId = null): array
     {
         $mixId = $mix->id;
 
@@ -77,9 +78,7 @@ class SongPlaybackService
         $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
         // Get the active session for this mix
-        $activeSession = PlaybackSession::where('mix_id', $mixId)
-            ->where('is_active', true)
-            ->first();
+        $activeSession = PlaybackSession::ActiveSession($mix);
 
         if (!$activeSession) {
             // Create a new session if none exists
@@ -207,10 +206,7 @@ class SongPlaybackService
         }
 
         // Get the active session
-        $activeSession = PlaybackSession::where('mix_id', $mix->id)
-            ->where('is_active', true)
-            ->first();
-
+        $activeSession = PlaybackSession::ActiveSession($mix);
         if (!$activeSession) {
             return [
                 'success' => false,
@@ -234,9 +230,7 @@ class SongPlaybackService
 
             // CRITICAL: Always check queue extension when skipping, not just every 3 songs
             // This ensures that rapidly skipping triggers extensions
-            $pendingSongCount = QueueSong::where('mix_id', $mix->id)
-                ->where('status', 'pending')
-                ->count();
+            $pendingSongCount = QueueSong::PendingForMixCount($mix);
 
             // If we're getting low on songs, extend the queue BEFORE trying to get the next song
             if ($pendingSongCount <= 5) {
@@ -277,13 +271,7 @@ class SongPlaybackService
             Log::info("Queue completed for mix {$mix->id}, all songs marked as finished");
 
             // Try to pause Spotify playback - WITH THE CORRECT USER
-            try {
-                // Use the previously defined $user variable
-                $this->spotifyService->pausePlayback($user);
-                Log::info("Paused playback after queue completion");
-            } catch (\Exception $e) {
-                Log::error("Failed to pause playback after queue completion: " . $e->getMessage());
-            }
+            $this->spotifyService->pausePlayback($user);
 
             // Set the queue completed flag
             $this->playbackStateManager->setQueueCompleted($mix, true);
@@ -321,9 +309,7 @@ class SongPlaybackService
         }
 
         // Find the active session for this mix
-        $activeSession = PlaybackSession::where('mix_id', $mix->id)
-            ->where('is_active', true)
-            ->first();
+        $activeSession = PlaybackSession::ActiveSession($mix);
 
         if (!$activeSession) {
             return [
@@ -392,28 +378,6 @@ class SongPlaybackService
     }
 
     /**
-     * Get the currently playing song for a mix
-     */
-    public function getCurrentlyPlayingSong(Mix $mix): ?QueueSong
-    {
-        return QueueSong::where('mix_id', $mix->id)
-            ->where('status', 'playing')
-            ->with('song')
-            ->first();
-    }
-
-    /**
-     * Check if a mix has pending songs
-     */
-    public function hasPendingSongs(Mix $mix): bool
-    {
-        return QueueSong::where('mix_id', $mix->id)
-            ->where('status', 'pending')
-            ->where('is_killed', false)
-            ->exists();
-    }
-
-    /**
      * Play a specific song on Spotify
      */
     private function playSongOnSpotify(User $user, QueueSong $queueSong): array
@@ -431,7 +395,7 @@ class SongPlaybackService
             }
 
             return ['success' => true];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Error playing song on Spotify: " . $e->getMessage());
             return [
                 'success' => false,

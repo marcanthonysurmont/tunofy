@@ -21,14 +21,13 @@ class PlayPreviousSongController extends Controller
 {
     public function __invoke(
         Mix $mix,
-        SongPlaybackService $songPlaybackService,
         SpotifyService $spotifyService,
         PlaybackStateManager $playbackStateManager
     ): JsonResponse {
         $this->authorize('controlPlayback', $mix);
 
         // Get the current song that's playing
-        $currentSong = $songPlaybackService->getCurrentlyPlayingSong($mix);
+        $currentSong = QueueSong::currentlyPlayingForMix($mix);
         if (!$currentSong) {
             return response()->json([
                 'success' => false,

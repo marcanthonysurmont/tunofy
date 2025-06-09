@@ -66,7 +66,7 @@ class PlayNextSongController extends Controller
 
         // 1. Get the next song data and mark current song as finished
         $nextSong = $songPlaybackService->getNextSongToPlay($mix->id);
-        $currentSong = $songPlaybackService->getCurrentlyPlayingSong($mix);
+        $currentSong = QueueSong::currentlyPlayingForMix($mix);
 
         // Track song history for proper "previous song" navigation
         if ($currentSong) {
