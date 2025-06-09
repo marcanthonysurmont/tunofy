@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\StoreMixRequest;
 use App\Models\GlobalUserStat;
 use Illuminate\Support\Facades\DB;
+use Exception;
 
 class StoreMixController extends Controller
 {
@@ -57,8 +58,9 @@ class StoreMixController extends Controller
                 ],
             );
 
-            return redirect()->back()->with('success', 'Mix created successfully!');
-        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('success', 'Mix created successfully!');
+        } catch (Exception $e) {
             return redirect()->back()
                 ->with('danger', 'Failed to create mix');
         }
