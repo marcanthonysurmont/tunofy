@@ -38,6 +38,7 @@ import RegularButton from "@/components/buttons/RegularButton.vue";
 import InputField from "@/components/forms/InputField.vue";
 import { computed, ref, watch } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
+import axios from 'axios';
 
 defineProps({
     isVisible: Boolean,
@@ -72,21 +73,42 @@ function joinMix() {
         return;
     }
     isLoading.value = true;
-    router.get(
-        route("mix.join", inputCode.value),
-        {},
-        {
-            onFinish: () => {
-                isLoading.value = false;
-            },
-            onSuccess: () => {
+    
+    // Use Axios directly instead of Inertia router for better error handling
+    axios.get(route("mix.join", inputCode.value))
+        .then(response => {
+            // For success responses with clean Inertia navigation
+            if (response.data.success && response.data.redirect) {
+                // Use Inertia router instead of direct page navigation
+                router.visit(response.data.redirect);
+            } else {
                 resetAndCloseModal();
-            },
-            onError: (errors) => {
-                errorMessage.value = errors.code;
-            },
-        }
-    );
+            }
+        })
+        .catch(error => {
+            if (error.response) {
+                console.log("Error status:", error.response.status);
+                console.log("Error data:", error.response.data);
+                
+                // Handle 422 validation errors
+                if (error.response.status === 422 && error.response.data.errors) {
+                    errorMessage.value = error.response.data.errors.code || "Validation error";
+                } 
+                // Handle 409 conflict errors
+                else if (error.response.status === 409) {
+                    errorMessage.value = error.response.data.message || "Conflict error";
+                } 
+                // Handle other errors
+                else {
+                    errorMessage.value = "An unexpected error occurred. Please try again.";
+                }
+            } else {
+                errorMessage.value = "Network error. Please check your connection.";
+            }
+        })
+        .finally(() => {
+            isLoading.value = false;
+        });
 }
 
 function resetAndCloseModal() {
