@@ -35,9 +35,18 @@
                                     {{ playlist.name }}
                                 </span>
                             </div>
-                            <div
+                            <button
                                 @click="togglePlaylistSelection(playlist.id)"
                                 class="cursor-pointer flex-shrink-0"
+                                :aria-pressed="
+                                    selectedPlaylists.includes(playlist.id)
+                                "
+                                :aria-label="
+                                    selectedPlaylists.includes(playlist.id)
+                                        ? 'Deselect playlist ' + playlist.name
+                                        : 'Select playlist ' + playlist.name
+                                "
+                                type="button"
                             >
                                 <div
                                     v-if="
@@ -51,7 +60,7 @@
                                     v-else
                                     class="size-5 rounded-full border border-zinc-300"
                                 ></div>
-                            </div>
+                            </button>
                         </div>
                     </template>
                 </div>
@@ -69,7 +78,13 @@
                         Importing playlists... ({{ processedCount }} of
                         {{ selectedPlaylists.length }})
                     </p>
-                    <div class="w-full bg-zinc-700 rounded-full h-2 mt-4">
+                    <div
+                        class="w-full bg-zinc-700 rounded-full h-2 mt-4"
+                        :aria-valuenow="processedCount"
+                        aria-valuemin="0"
+                        :aria-valuemax="selectedPlaylists.length"
+                        role="progressbar"
+                    >
                         <div
                             class="bg-primary h-2 rounded-full transition-all duration-500 ease-in-out"
                             :style="`width: ${
