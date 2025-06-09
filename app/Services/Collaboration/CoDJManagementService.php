@@ -23,13 +23,9 @@ class CoDJManagementService
     public function assignCoDJ(Mix $mix, User $user): void
     {
         // Capture current playing track before switch
-        $currentlyPlaying = QueueSong::where('mix_id', $mix->id)
-                            ->where('status', 'playing')
-                            ->with('song')
-                            ->first();
+        $currentlyPlaying = QueueSong::currentlyPlayingForMix($mix);
 
         if ($currentlyPlaying) {
-            // REFACTORED: Use PlaybackStateManager instead of direct Cache call
             $this->playbackStateManager->set(
                 $mix,
                 'transition_track',
@@ -39,10 +35,6 @@ class CoDJManagementService
 
         // Update the database with co-DJ
         $mix->update(['co_dj_id' => $user->id]);
-
-        // THIS IS THE PROBLEM: DON'T CLEAR THE DEVICE ID
-        // Instead of clearing it, leave it, the co-DJ should select their device
-        // $this->playbackStateManager->forget($mix, 'device_id');
 
         // Dispatch events
         CoDJUpdatedEvent::dispatch($user, [
@@ -62,10 +54,7 @@ class CoDJManagementService
         $coDJ = $mix->coDJ;
 
         // Capture current song before switch
-        $currentlyPlaying = QueueSong::where('mix_id', $mix->id)
-                            ->where('status', 'playing')
-                            ->with('song')
-                            ->first();
+        $currentlyPlaying = QueueSong::currentlyPlayingForMix($mix);
 
         // Update the mix
         $mix->update(['co_dj_id' => null]);

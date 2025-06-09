@@ -5,14 +5,15 @@ namespace App\Http\Controllers\Application\Mixes;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use App\Models\MixAccess;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use App\Events\UserAccessUpdatedEvent;
 use Illuminate\Support\Facades\Log;
+use Exception;
 
 class JoinMixController extends Controller
 {
-    public function __invoke(Request $request, string $sessionCode)
+    public function __invoke(string $sessionCode): JsonResponse
     {
         $mix = Mix::validSessionCode($sessionCode)->first();
         $user = Auth::user();
@@ -56,7 +57,7 @@ class JoinMixController extends Controller
                 'redirect' => route('mix.show', $mix->slug)
             ]);
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Error joining mix: ' . $e->getMessage());
 
             return response()->json([

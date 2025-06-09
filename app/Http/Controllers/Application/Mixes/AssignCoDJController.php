@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use App\Services\Collaboration\CoDJManagementService;
 use App\Events\MixStatusChangedEvent;
+use Exception;
 
 class AssignCoDJController extends Controller
 {
@@ -31,11 +32,10 @@ class AssignCoDJController extends Controller
             }
             return redirect()->back()
                 ->with('success', 'Co-DJ assigned successfully.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Error assigning co-DJ: " . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'Error assigning co-DJ.');
         }
-
     }
 }

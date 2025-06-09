@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Application\Mixes;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use Illuminate\Http\RedirectResponse;
+use Exception;
 
 class RemoveSessionCodeController extends Controller
 {
     public function __invoke(Mix $mix): RedirectResponse
     {
+        $this->authorize('delete', $mix);
+
         try {
             $mix->update([
                 'session_code' => null,
@@ -19,7 +22,7 @@ class RemoveSessionCodeController extends Controller
 
             return redirect()->back()
                 ->with('success', 'Session code removed successfully.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return redirect()->back()
                 ->with('error', 'Failed to remove session code. Please try again.');
         }
