@@ -11,7 +11,7 @@
             v-if="votableSongs.length > 0"
             color="blue"
             @click="isVisible = true"
-            external-class="hidden lg:inline-flex mb-2 ml-6"
+            external-class="hidden lg:inline-flex mb-2.5 ml-6"
         >
             Vote Now
         </RegularButton>
