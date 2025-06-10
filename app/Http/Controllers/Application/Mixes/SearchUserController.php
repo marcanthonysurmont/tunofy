@@ -14,7 +14,6 @@ class SearchUserController extends Controller
     public function __invoke(SearchUserRequest $request, Mix $mix): JsonResponse
     {
         $validated = $request->validated();
-
         $query = $validated['q'];
         $premiumOnly = $validated['premium'] ?? false;
 
@@ -25,27 +24,26 @@ class SearchUserController extends Controller
         $searchResults = User::search($query)
             ->whereIn('id', $collaboratorIds);
 
+        // Get search results
+        $searchUsers = $searchResults->take(10)->get();
+
+        // If we have no search results, return an empty collection
+        if ($searchUsers->isEmpty()) {
+            return response()->json([
+                'data' => [],
+            ]);
+        }
+
+        // Use the relationship to get users with pivot data
+        $query = $mix->collaborators()
+            ->whereIn('users.id', $searchUsers->pluck('id'));
+
         // Apply premium filter if requested
         if ($premiumOnly) {
-            $searchResults = $searchResults->where('type', 'premium');
+            $query->where('users.type', 'premium');
         }
 
-        $searchResults = $searchResults->take(10)->get();
-
-        if ($searchResults->isNotEmpty()) {
-            // Use the relationship instead of a join to ensure pivot data is available
-            $query = $mix->collaborators()
-                ->whereIn('users.id', $searchResults->pluck('id'));
-
-            // Apply premium filter if requested
-            if ($premiumOnly) {
-                $query = $query->where('users.type', 'premium');
-            }
-
-            $results = $query->get();
-        } else {
-            $results = collect([]);
-        }
+        $results = $query->get();
 
         return response()->json([
             'data' => UserResource::collection($results),

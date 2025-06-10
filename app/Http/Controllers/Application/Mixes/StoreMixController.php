@@ -16,6 +16,13 @@ class StoreMixController extends Controller
 {
     public function __invoke(StoreMixRequest $request): RedirectResponse
     {
+        $user = Auth::user();
+
+        if($user->type !== 'premium') {
+            return redirect()->back()
+                ->with('danger', 'You must be a premium user to create a mix.');
+        }
+
         $validated = $request->validated();
 
         try {
@@ -23,8 +30,6 @@ class StoreMixController extends Controller
             if ($request->hasFile('image')) {
                 $avatarPath = $request->file('image')->store('mix_avatars', 'public');
             }
-
-            $user = Auth::user();
 
             $mix = Mix::create([
                 'user_id' => $user->id,
