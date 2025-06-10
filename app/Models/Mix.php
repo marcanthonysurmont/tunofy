@@ -169,7 +169,7 @@ class Mix extends Model
             ->where('session_code_expires_at', '>', now());
     }
 
-    public function scopeConflictingActiveMixes($query, $mixIdToExclude = null, $controllingUserId = null)
+    public function scopeConflictingActiveMixes($query, int $mixIdToExclude = null, int $controllingUserId = null): Builder
     {
         // If not provided, try to get the controlling user from this instance
         if ($controllingUserId === null && isset($this->id)) {

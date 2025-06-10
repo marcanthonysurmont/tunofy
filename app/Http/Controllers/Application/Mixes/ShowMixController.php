@@ -10,22 +10,23 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\MixResource;
 use App\Services\Spotify\SpotifyService;
+use App\Services\Stats\MixStatService;
 use Illuminate\Support\Facades\Log;
 
 class ShowMixController extends Controller
 {
-    public function __invoke(Mix $mix, SpotifyService $spotifyService, string $tab = 'overview')
-    {
+    public function __invoke(
+        Mix $mix,
+        SpotifyService $spotifyService,
+        MixStatService $mixStatService,
+        string $tab = 'overview'
+    ) {
         $this->authorize('view', $mix);
+
+        // Core song data
         $songsQuery = $mix->songs()->with('user');
         $songs = (clone $songsQuery)->paginate(15);
-        $totalDuration = (clone $songsQuery)->sum('duration_ms');
-
-        $mixDuration = function () use ($totalDuration) {
-            $hours = floor($totalDuration / 3600000);
-            $minutes = floor(($totalDuration % 3600000) / 60000);
-            return ($hours > 0 ? $hours . 'h ' : '') . $minutes . 'min';
-        };
+        $mixDuration = $mixStatService->calculateMixDuration($songsQuery);
 
         if (request()->wantsJson()) {
             return SongResource::collection($songs);
@@ -33,51 +34,51 @@ class ShowMixController extends Controller
 
         $user = Auth::user();
 
+        // Load relationships
         $mix->load(['presets', 'user', 'collaborators', 'themes']);
         $user->load(['mixes', 'accessibleMixes']);
 
-
-        // Get the controlling user ID first
+        // Get conflicting mixes
         $controllingUserId = $mix->co_dj_id ?: $mix->user_id;
-
-        // Then use it in the scope call
         $activeConflictingMixes = Mix::conflictingActiveMixes($mix->id, $controllingUserId)->get();
 
-        $allPendingSongs = $mix->getAllPendingSongs();
+        // Get pending songs
+        $allPendingSongs = $mixStatService->getSortedPendingSongs($mix);
 
-        Log::debug("ShowMixController: Got " . $allPendingSongs->count() . " pending songs from getAllPendingSongs(): " .
-            $allPendingSongs->pluck('song_id')->implode(', '));
-
-        // Get votable songs after sorting
+        // Get votable songs
         $votableSongs = $mix->filterVotableSongs($allPendingSongs);
 
-        // Sort pending songs by rank (likes minus dislikes) in descending order
-        $allPendingSongs = $allPendingSongs->sortByDesc(function ($song) {
-            return ($song->like_count ?? 0) - ($song->dislike_count ?? 0);
-        })->values();
-
-        // Get Spotify devices for the mix owner
+        // Get Spotify devices and collaborators
         $devices = $spotifyService->getUserDevices($user);
-        $collaborators = $mix->collaborators()->orderBy('created_at', 'desc')->paginate(20);
-        $collaborators->withPath("/{$mix->slug}/manage");
+
+        // Conditionally load collaborators and presets
+        $collaborators = collect();
+        $presets = collect();
+
+        if($user->id === $mix->user_id) {
+            $collaborators = $mix->collaborators()->orderBy('created_at', 'desc')->paginate(20);
+            $collaborators->withPath("/{$mix->slug}/manage");
+
+            $presets = $mix->all_presets;
+        }
 
         return Inertia::render('MixSlugPage', [
-            'mix' => fn() => MixResource::make($mix)->jsonSerialize(),
-            'songs' => fn() => SongResource::collection($songs),
-            'mixDuration' => fn() => $mixDuration,
-            'collaborators' => fn() => CollaboratorResource::collection($collaborators),
-            'activeConflictingMixes' => fn() => $activeConflictingMixes,
-            'allPendingSongs' => fn() => $allPendingSongs,
-            'votableSongs' => fn() => $votableSongs,
-            'themes' => fn() => $mix->getThemeSettings(),
-            'presets' => fn() => $mix->all_presets,
-            'your_mixes' => fn() => $user->mixes,
-            'joined_mixes' => fn() => $user->accessibleMixes,
-            'owner' => fn() => $mix->user,
-            'devices' => fn() => $devices,
-            'activeTab' => fn() => $tab,
-            'mixStats' => fn() => $mix->mixStats,
-            'userStats' => fn() => $mix->mixUserStats
+            'mix' => fn () => MixResource::make($mix)->jsonSerialize(),
+            'songs' => fn () => SongResource::collection($songs),
+            'mixDuration' => fn () => $mixDuration,
+            'collaborators' => fn () => CollaboratorResource::collection($collaborators),
+            'activeConflictingMixes' => fn () => $activeConflictingMixes,
+            'allPendingSongs' => fn () => $allPendingSongs,
+            'votableSongs' => fn () => $votableSongs,
+            'themes' => fn () => $mix->getThemeSettings(),
+            'presets' => fn () => $presets,
+            'your_mixes' => fn () => $user->mixes,
+            'joined_mixes' => fn () => $user->accessibleMixes,
+            'owner' => fn () => $mix->user,
+            'devices' => fn () => $devices,
+            'activeTab' => fn () => $tab,
+            'mixStats' => fn () => $mix->mixStats,
+            'userStats' => fn () => $mix->mixUserStats
         ]);
     }
 }
