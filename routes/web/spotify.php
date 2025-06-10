@@ -22,7 +22,7 @@ Route::prefix('api/spotify')->name('api.spotify.')->group(function () {
     Route::get('/devices', GetDevicesController::class)->name('devices');
 
     // Playback control
-    Route::get('/request-status', RequestSpotifyPlayerStatusController::class)->name('request-status');
+    Route::get('/request-status/{mix}', RequestSpotifyPlayerStatusController::class)->name('request-status');
     Route::post('/set-mix-active/{mix}', SetMixActiveController::class)->name('set-mix-active');
     Route::post('/pause-mix/{mix}', PauseMixPlaybackController::class)->name('pause-mix');
     Route::post('/resume-mix/{mix}', ResumeMixPlaybackController::class)->name('resume-mix');

@@ -6,27 +6,14 @@ use App\Http\Requests\RequestSpotifyPlayerStatusRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use App\Services\Playback\PlaybackService;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\SpotifyPlaybackResource;
 
 class RequestSpotifyPlayerStatusController extends Controller
 {
-    public function __invoke(RequestSpotifyPlayerStatusRequest $request, PlaybackService $playbackService): JsonResponse
+    public function __invoke(Mix $mix, PlaybackService $playbackService): JsonResponse
     {
-
-        $validated = $request->validated();
-
-        $requestId = substr(md5(now()->timestamp . rand()), 0, 6);
-
-        // Get mix and authorize access
-        $mix = Mix::findOrFail($validated['mix_id']);
-
         $this->authorize('view', $mix);
-
-        // Log the request
-        Log::info("[REQ-{$requestId}] Status request for mix {$mix->id}, is_active: " .
-            ($mix->is_active ? 'yes' : 'no'));
 
         // Basic response always includes these fields
         $response = [
@@ -42,7 +29,7 @@ class RequestSpotifyPlayerStatusController extends Controller
         }
 
         // Get playback data since mix is active
-        $playbackData = $playbackService->getPlaybackData($mix, $requestId);
+        $playbackData = $playbackService->getPlaybackData($mix);
 
         // Handle error case
         if (isset($playbackData['error'])) {

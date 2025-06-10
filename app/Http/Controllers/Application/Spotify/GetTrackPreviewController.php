@@ -16,7 +16,9 @@ class GetTrackPreviewController extends Controller
         $previewUrl = $spotifyService->getPreviewUrl($validated['track_id']);
 
         if ($previewUrl) {
-            return response()->json(['preview_url' => $previewUrl]);
+            return response()->json([
+                'preview_url' => $previewUrl
+            ]);
         }
 
         return response()->json(['error' => 'Preview not available'], 404);

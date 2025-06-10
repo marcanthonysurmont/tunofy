@@ -376,9 +376,7 @@ function clearSyncingState() {
 
 async function refreshMixState() {
     try {
-        const response = await axios.get("/api/spotify/request-status", {
-            params: { mix_id: props.mix.id },
-        });
+        const response = await axios.get("/api/spotify/request-status/" + props.mix.id);
 
         // Update state from server
         isMixActive.value = response.data.is_active;

@@ -4,8 +4,9 @@ namespace App\Services\Playback;
 
 use App\Models\Mix;
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
 use App\Services\Spotify\SpotifyService;
+use App\Services\Playback\PlaybackStateManager;
+use Exception;
 
 class PlaybackService
 {
@@ -18,19 +19,14 @@ class PlaybackService
     /**
      * Get playback data for a mix, optimized for server-side polling architecture
      */
-    public function getPlaybackData(Mix $mix, string $requestId = null): array
+    public function getPlaybackData(Mix $mix): array
     {
-        // Generate request ID if not provided
-        $requestId = $requestId ?? substr(md5(now()->timestamp . rand()), 0, 6);
-
         // Get data through PlaybackStateManager
         $cachedData = $this->playbackStateManager->getPlaybackData($mix);
 
         // If we have cached data, use it
         if ($cachedData) {
-            Log::info("[REQ-{$requestId}] Using cached data");
             if (!is_array($cachedData)) {
-                Log::warning("[REQ-{$requestId}] Cached data is not an array, converting");
                 $cachedData = (array)$cachedData;
             }
             return array_merge($cachedData, ['_fromCache' => true]);
@@ -42,9 +38,7 @@ class PlaybackService
             $freshData = $this->spotifyService->getCurrentPlayback($user);
 
             if ($freshData) {
-                Log::info("[REQ-{$requestId}] 🔴 First fetch or no cached data, using fresh data");
                 if (!is_array($freshData)) {
-                    Log::warning("[REQ-{$requestId}] Fresh data is not an array, converting");
                     if (is_string($freshData) && json_validate($freshData)) {
                         $freshData = json_decode($freshData, true);
                     } else {
@@ -69,9 +63,8 @@ class PlaybackService
             $this->playbackStateManager->setPlaybackData($mix, $noPlaybackData);
 
             return array_merge($noPlaybackData, ['_fromCache' => false]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Error and no cached data
-            Log::error("[REQ-{$requestId}] Error: " . $e->getMessage());
             return ['error' => 'Could not fetch playback data: ' . $e->getMessage()];
         }
     }

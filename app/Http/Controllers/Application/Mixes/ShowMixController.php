@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\MixResource;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Stats\MixStatService;
-use Illuminate\Support\Facades\Log;
 
 class ShowMixController extends Controller
 {
