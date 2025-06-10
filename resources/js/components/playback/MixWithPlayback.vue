@@ -9,6 +9,7 @@
                 :disabled="isLoading || queueActivationDisabled"
                 :label="isMixActive ? 'Queue active' : 'Queue inactive'"
                 @click="emit('toggle-mix-active')"
+                @keydown.space.prevent="emit('toggle-mix-active')"
             />
         </div>
 
@@ -133,7 +134,7 @@
                         :class="[
                             devices.length === 0 || selectedDevice === null
                                 ? 'opacity-50 !cursor-not-allowed'
-                                : '',
+                                : 'cursor-pointer',
                             'size-6',
                         ]"
                         :disabled="
@@ -150,7 +151,7 @@
                         :class="[
                             devices.length === 0 || selectedDevice === null
                                 ? 'opacity-50 !cursor-not-allowed'
-                                : '',
+                                : 'cursor-pointer',
                             'size-12',
                         ]"
                         :disabled="
@@ -167,7 +168,7 @@
                         :class="[
                             devices.length === 0 || selectedDevice === null
                                 ? 'opacity-50 !cursor-not-allowed'
-                                : '',
+                                : 'cursor-pointer',
                             'size-12',
                         ]"
                         :disabled="
@@ -183,7 +184,7 @@
                         :class="[
                             devices.length === 0 || selectedDevice === null
                                 ? 'opacity-50 !cursor-not-allowed'
-                                : '',
+                                : 'cursor-pointer',
                             'size-6',
                         ]"
                         :disabled="

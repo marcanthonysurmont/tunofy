@@ -8,7 +8,7 @@
             <button
                 ref="goHomeButton"
                 @click="startRemix"
-                class="self-center bg-zinc-100 text-zinc-900 text-sm md:text-base font-semibold px-5 py-2 rounded-full hover:bg-zinc-300"
+                class="self-center cursor-pointer bg-zinc-100 text-zinc-900 text-sm md:text-base font-semibold px-5 py-2 rounded-full hover:bg-zinc-300"
             >
                 Start your remix
             </button>
