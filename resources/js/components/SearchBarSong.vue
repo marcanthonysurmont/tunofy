@@ -1,6 +1,10 @@
 <template>
     <div>
-        <Combobox v-model="query">
+        <Combobox
+            v-model="selectedSongs"
+            multiple
+            @update:modelValue="handleSongSelection"
+        >
             <div
                 class="relative"
                 @focusin="isFocused = true"
@@ -68,10 +72,22 @@
                             :key="song.id"
                             :value="song"
                             as="template"
+                            v-slot="{ active, selected }"
                         >
                             <li
-                                class="group select-none px-4 py-2 flex items-center justify-between hover:bg-card-background-hover transition duration-200 overflow-hidden"
+                                :class="[
+                                    'group select-none px-4 py-2 flex items-center justify-between transition duration-200 overflow-hidden',
+                                    active
+                                        ? 'bg-card-background-hover'
+                                        : 'hover:bg-card-background-hover',
+                                ]"
                                 @mousedown.prevent
+                                @keydown.enter.prevent="addToPlaylist(song)"
+                                :aria-label="`Add ${song.name} by ${song.artists
+                                    .map((a) => a.name)
+                                    .join(', ')} to playlist`"
+                                role="option"
+                                :aria-selected="selected"
                             >
                                 <div
                                     class="flex items-center space-x-3 flex-1 min-w-0 overflow-hidden"
@@ -110,12 +126,14 @@
                                 </div>
                                 <div class="ml-2 flex-shrink-0">
                                     <button
-                                        class="lg:opacity-0 lg:group-hover:opacity-100 opacity-100 p-1 rounded-full transition-all duration-200 text-zinc-400 hover:text-dark-white hover:bg-zinc-700/30"
+                                        :class="[
+                                            'p-1 rounded-full transition-all duration-200 text-zinc-400 hover:text-dark-white hover:bg-zinc-700/30',
+                                            active
+                                                ? 'bg-zinc-700/30 !text-dark-white'
+                                                : '',
+                                        ]"
                                         @mousedown.prevent
-                                        @click.prevent.stop="
-                                            addToPlaylist(song)
-                                        "
-                                        type="button"
+                                        @click.prevent="addToPlaylist(song)"
                                     >
                                         <PlusIcon
                                             v-if="processingSongId !== song.id"
@@ -173,7 +191,17 @@ const form = useForm({
     image_url: "",
 });
 
+const selectedSongs = ref([]);
+
 const searchCancelled = ref(false);
+
+function handleSongSelection(song) {
+    console.log("Selected song:", song);
+    if (song) {
+        addToPlaylist(song[0]);
+        selectedSongs.value = [];
+    }
+}
 
 //this watch is used to check if the search input field is focused or not
 //if it is not focused, we set the searchCancelled to true in order to cancel the search == performance improvement
@@ -228,6 +256,7 @@ const filteredSongs = computed(() => {
 });
 
 function addToPlaylist(song) {
+    console.log("Adding song to playlist:", song);
     if (form.processing) {
         return;
     }
