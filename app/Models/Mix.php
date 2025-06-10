@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Sluggable\HasSlug;
@@ -192,7 +193,7 @@ class Mix extends Model
         });
     }
 
-    public function scopeOtherMixesForUser($query, $excludeMixId = null)
+    public function scopeOtherMixesForUser($query, int $excludeMixId): Builder
     {
         // Get the controlling user ID (co-DJ if assigned, otherwise owner)
         $controllingUserId = $this->co_dj_id ?: $this->user_id;
