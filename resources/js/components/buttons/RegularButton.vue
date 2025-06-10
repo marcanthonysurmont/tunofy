@@ -3,7 +3,7 @@
         :class="[
             props.externalClass,
             !props.externalClass?.includes('hidden') && 'inline-flex',
-            'relative items-center justify-center font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed',
+            'relative items-center justify-center font-semibold transition disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed',
             type === 'primary'
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                 : '',

@@ -33,14 +33,14 @@
                 </Link>
                 <div class="flex items-center gap-2 flex-row">
                     <PauseIcon
-                        class="size-7 cursor-pointer"
-                        :class="started ? '' : 'opacity-50'"
+                        class="size-7"
+                        :class="started ? 'cursor-pointer' : 'opacity-50'"
                         @click="handlePause"
                         v-if="!paused"
                     />
                     <PlayIcon
-                        class="size-7 cursor-pointer"
-                        :class="started ? '' : 'opacity-50'"
+                        class="size-7"
+                        :class="started ? 'cursor-pointer' : 'opacity-50'"
                         @click="handlePause"
                         v-else
                     />
@@ -73,9 +73,9 @@
                                 :class="
                                     !started || currentStep === 0
                                         ? 'text-zinc-500'
-                                        : 'text-white'
+                                        : 'text-white cursor-pointer'
                                 "
-                                class="w-6 h-6 md:w-8 md:h-8 cursor-pointer"
+                                class="w-6 h-6 md:w-8 md:h-8"
                             />
                         </button>
 
@@ -104,11 +104,11 @@
                             @click="goNext"
                         >
                             <ChevronRightIcon
-                                class="w-6 h-6 md:w-8 md:h-8 cursor-pointer"
+                                class="w-6 h-6 md:w-8 md:h-8"
                                 :class="
                                     !started || currentStep === totalSteps - 1
                                         ? 'text-zinc-500'
-                                        : 'text-white'
+                                        : 'text-white cursor-pointer'
                                 "
                             />
                         </button>
@@ -123,7 +123,7 @@
                         :class="
                             !started || currentStep === 0
                                 ? 'text-zinc-500'
-                                : 'text-white'
+                                : 'text-white cursor-pointer'
                         "
                     />
                 </button>
@@ -133,7 +133,7 @@
                         :class="
                             !started || currentStep === totalSteps - 1
                                 ? 'text-zinc-500'
-                                : 'text-white'
+                                : 'text-white cursor-pointer'
                         "
                     />
                 </button>

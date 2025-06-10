@@ -9,7 +9,7 @@
         </ListboxLabel>
         <div class="relative mt-2">
             <ListboxButton
-                class="grid w-full cursor-default grid-cols-1 rounded-md bg-inputfield-background py-1.5 pr-2 pl-3 text-left text-zinc-100 outline-1 -outline-offset-1 outline-inputfield-stroke focus:outline-2 focus:-outline-offset-2 focus:outline-zinc-700 sm:text-sm/6 transition-colors duration-200"
+                class="grid w-full cursor-pointer grid-cols-1 rounded-md bg-inputfield-background py-1.5 pr-2 pl-3 text-left text-zinc-100 outline-1 -outline-offset-1 outline-inputfield-stroke focus:outline-2 focus:-outline-offset-2 focus:outline-zinc-700 sm:text-sm/6 transition-colors duration-200"
             >
                 <span
                     class="col-start-1 row-start-1 flex items-center gap-3 pr-6"
@@ -57,7 +57,7 @@
                                 active
                                     ? 'bg-zinc-800 text-zinc-100'
                                     : 'text-zinc-300',
-                                'relative cursor-default py-2 pr-9 pl-3 select-none transition-all duration-100',
+                                'relative cursor-pointer py-2 pr-9 pl-3 select-none transition-all duration-100',
                             ]"
                         >
                             <div class="flex items-center">
