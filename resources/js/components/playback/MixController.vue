@@ -329,6 +329,8 @@ async function transferPlayback(deviceId) {
             return;
         }
 
+        const currentDevice = devices.value.find((d) => d.is_active);
+
         //only proceed with transfer of device if current device is different from the selected one
         if (currentDevice && currentDevice.id === deviceId) {
             console.log("Same device selected, skipping transfer");
