@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Application\Spotify;
 
-use App\Http\Requests\RequestSpotifyPlayerStatusRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use App\Services\Playback\PlaybackService;

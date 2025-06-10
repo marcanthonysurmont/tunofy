@@ -10,8 +10,9 @@ class SetMixActiveRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'mix_id' => ['required', Rule::exists('mixes', 'id')],
             'active' => ['required', 'boolean'],
+            'reset_queue' => ['sometimes', 'boolean'],
+            'deviceId' => ['sometimes', 'string', 'nullable',],
         ];
     }
 }
