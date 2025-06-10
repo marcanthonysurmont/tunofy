@@ -6,6 +6,7 @@
         >
             <div class="mt-1">
                 <ListboxButton
+                    class="cursor-pointer"
                     v-tippy="{ content: 'Change playback device' }"
                     aria-label="Change playback device"
                 >

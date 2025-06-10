@@ -134,7 +134,7 @@
                         :class="[
                             devices.length === 0 || selectedDevice === null
                                 ? 'opacity-50 !cursor-not-allowed'
-                                : '',
+                                : 'cursor-pointer',
                             'size-6',
                         ]"
                         :disabled="
@@ -151,7 +151,7 @@
                         :class="[
                             devices.length === 0 || selectedDevice === null
                                 ? 'opacity-50 !cursor-not-allowed'
-                                : '',
+                                : 'cursor-pointer',
                             'size-12',
                         ]"
                         :disabled="
@@ -168,7 +168,7 @@
                         :class="[
                             devices.length === 0 || selectedDevice === null
                                 ? 'opacity-50 !cursor-not-allowed'
-                                : '',
+                                : 'cursor-pointer',
                             'size-12',
                         ]"
                         :disabled="
@@ -184,7 +184,7 @@
                         :class="[
                             devices.length === 0 || selectedDevice === null
                                 ? 'opacity-50 !cursor-not-allowed'
-                                : '',
+                                : 'cursor-pointer',
                             'size-6',
                         ]"
                         :disabled="

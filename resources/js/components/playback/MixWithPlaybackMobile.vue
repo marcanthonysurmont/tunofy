@@ -8,7 +8,7 @@
                 :model-value="isMixActive"
                 :disabled="isLoading || queueActivationDisabled"
                 :label="isMixActive ? 'Queue active' : 'Queue inactive'"
-                @click="emit('toggle-mix-active')"
+                @click.stop="emit('toggle-mix-active')"
                 @keydown.space.prevent="emit('toggle-mix-active')"
             />
         </div>
@@ -59,7 +59,10 @@
                             :devices="devices"
                             :selected-device="selectedDevice"
                         />
-                        <PlayIcon class="size-7 opacity-50" @click.stop />
+                        <PlayIcon
+                            class="size-7 opacity-50 cursor-not-allowed"
+                            @click.stop
+                        />
                     </div>
                 </div>
             </div>
@@ -109,14 +112,22 @@
                         <PlayIcon
                             @click.stop="emit('resume-mix')"
                             v-if="!isPlaying"
-                            class="size-7 cursor-pointer"
-                            :class="selectedDevice === null ? 'opacity-50' : ''"
+                            class="size-7"
+                            :class="
+                                selectedDevice === null
+                                    ? 'opacity-50 cursor-not-allowed'
+                                    : 'cursor-pointer'
+                            "
                         />
                         <PauseIcon
                             @click.stop="emit('pause-mix')"
                             v-if="isPlaying"
-                            class="size-7 cursor-pointer"
-                            :class="selectedDevice === null ? 'opacity-50' : ''"
+                            class="size-7"
+                            :class="
+                                selectedDevice === null
+                                    ? 'opacity-50 cursor-not-allowed'
+                                    : 'cursor-pointer'
+                            "
                         />
                     </div>
                 </div>

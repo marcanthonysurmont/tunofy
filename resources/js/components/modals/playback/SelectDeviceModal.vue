@@ -40,7 +40,7 @@
                                 v-for="device in devices"
                                 :key="device.id"
                                 v-auto-animate
-                                class="pr-4 py-2 rounded-lg flex items-center"
+                                class="pr-4 py-2 rounded-lg flex items-center cursor-pointer"
                                 :class="{
                                     'text-primary':
                                         internalSelectedDevice?.id ===

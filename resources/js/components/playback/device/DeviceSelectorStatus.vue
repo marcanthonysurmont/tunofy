@@ -5,7 +5,7 @@
             role="img"
             aria-hidden="true"
             viewBox="0 0 16 16"
-            class="size-5 text-white"
+            class="size-5 text-white cursor-pointer"
             fill="currentColor"
         >
             <path
