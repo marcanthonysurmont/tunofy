@@ -12,6 +12,8 @@ class UpdateSelectedPresetController extends Controller
 {
     public function __invoke(UpdateSelectedPresetRequest $request, Mix $mix): RedirectResponse
     {
+        $this->authorize('update', $mix);
+        
         $validated = $request->validated();
 
         try {

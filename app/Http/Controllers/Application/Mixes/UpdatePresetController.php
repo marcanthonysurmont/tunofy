@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdatePresetRequest;
 use App\Models\Preset;
 use Illuminate\Http\RedirectResponse;
+use Exception;
 
 class UpdatePresetController extends Controller
 {
     public function __invoke(UpdatePresetRequest $request, Preset $preset): RedirectResponse
     {
-        // $this->authorize('update', $preset);
+        $this->authorize('update', $preset->mix);
 
         $validated = $request->validated();
 
@@ -28,7 +29,7 @@ class UpdatePresetController extends Controller
 
             return redirect()->back()
                 ->with('success', 'Preset updated successfully.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return redirect()->back()
                 ->with('danger', 'Failed to update preset');
         }
