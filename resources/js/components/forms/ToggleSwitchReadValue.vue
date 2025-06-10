@@ -6,6 +6,10 @@
                 'relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-all duration-200 ease-in-out',
                 disabled && 'opacity-50 cursor-not-allowed',
             ]"
+            role="switch"
+            :aria-checked="value"
+            :aria-disabled="disabled"
+            :tabindex="disabled ? -1 : 0"
         >
             <span
                 aria-hidden="true"

@@ -8,7 +8,8 @@
                 :model-value="isMixActive"
                 :disabled="isLoading || queueActivationDisabled"
                 :label="isMixActive ? 'Queue active' : 'Queue inactive'"
-                @click.stop="emit('toggle-mix-active')"
+                @click="emit('toggle-mix-active')"
+                @keydown.space.prevent="emit('toggle-mix-active')"
             />
         </div>
 
