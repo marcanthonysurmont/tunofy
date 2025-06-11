@@ -11,10 +11,8 @@ use Exception;
 
 class PlayNextSongController extends Controller
 {
-    public function __invoke(
-        Mix $mix,
-        PlaybackService $playbackService
-    ): JsonResponse {
+    public function __invoke(Mix $mix, PlaybackService $playbackService): JsonResponse
+    {
         $this->authorize('controlPlayback', $mix);
 
         // Check for throttling
@@ -42,6 +40,9 @@ class PlayNextSongController extends Controller
             // 4. Play on Spotify and update state
             // 5. Broadcast updates and return response
             $result = $playbackService->playNextSong($mix);
+
+            // Cache the response explicitly here too for redundancy
+            $playbackService->cacheCommandResponse($mix, 'next', $result);
 
             return response()->json($result);
         } catch (Exception $e) {

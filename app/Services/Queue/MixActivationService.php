@@ -16,8 +16,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Services\Queue\QueueManagementService;
 use Exception;
+use App\Services\Queue\QueueManagementService;
 
 class MixActivationService
 {
@@ -52,35 +52,150 @@ class MixActivationService
     /**
      * Activate a mix and handle all related operations in one place
      */
-    public function activateMix(Mix $mix, ?string $deviceId = null): array
+    public function activateMix(Mix $mix, ?string $deviceId = null, bool $resetQueue = false): array
     {
-        // Store device ID if provided
-        if ($deviceId) {
-            Log::info("Setting device ID {$deviceId} for mix {$mix->id}");
-            $this->playbackStateManager->setDeviceId($mix, $deviceId);
+        $lock = Cache::lock("mix:{$mix->id}:state_change", 10);
+
+        try {
+            if (!$lock->get()) {
+                return [
+                    'success' => false,
+                    'message' => 'Mix state is currently changing. Please try again.',
+                    'locked' => true
+                ];
+            }
+
+            // Update the mix status
+            $mix->update(['is_active' => true]);
+
+            // Log status change
+            Log::info("Mix {$mix->id} activated");
+
+            // Update device ID if provided
+            if ($deviceId) {
+                $this->playbackStateManager->setDeviceId($mix, $deviceId);
+            }
+
+            // IMPORTANT: Dispatch the polling job for active mixes
+            PollSpotifyMixJob::dispatch($mix)
+                ->delay(now()->addSeconds(2));
+
+            // Initialize queue and start playback in background
+            dispatch(function () use ($mix, $deviceId) {
+                $this->initializeQueueAndStartPlayback($mix, $deviceId);
+            })->afterResponse();
+
+            // Return quickly with success
+            return [
+                'activation' => [
+                    'success' => true
+                ],
+                'status' => 'activating',
+                'message' => 'Playback starting...'
+            ];
+        } finally {
+            // Always release the lock - without checking owned()
+            if (isset($lock)) {
+                $lock->release();
+            }
         }
+    }
 
-        // Update mix status
-        $mix->update(['is_active' => true]);
-        Log::info("Mix {$mix->id} activated");
+    /**
+     * Initialize queue and start playback (called from background job)
+     */
+    protected function initializeQueueAndStartPlayback(Mix $mix, ?string $deviceId = null): void
+    {
+        // Additional locking to prevent concurrent queue initialization
+        $lock = Cache::lock("mix:{$mix->id}:queue_init", 30);
 
-        // Notify other mixes
-        $this->notifyOtherMixes($mix);
+        try {
+            if ($lock->get()) {
+                // Clear key flags
+                $this->playbackStateManager->setPaused($mix, false);
+                $this->playbackStateManager->setQueueCompleted($mix, false);
+                $this->playbackStateManager->setManualChange($mix);
 
-        // Start polling job
-        PollSpotifyMixJob::dispatch($mix)->delay(now()->addSeconds(2));
-        Log::info("Dispatched polling job for mix {$mix->id}");
+                // Initialize queue
+                $this->queueService->initializeQueue($mix);
 
-        // Initialize playback (as background job)
-        $this->initializePlayback($mix, $deviceId);
+                // Get the first song to play
+                $firstSong = $mix->queueSongs()
+                    ->where('status', 'pending')
+                    ->orderBy('order')
+                    ->with('song')
+                    ->first();
 
-        return [
-            'activation' => [
-                'success' => true
-            ],
-            'status' => 'activating',
-            'message' => 'Playback starting...'
-        ];
+                if ($firstSong) {
+                    // Mark the song as playing
+                    $firstSong->update(['status' => 'playing']);
+
+                    // Send loading state
+                    $loadingData = [
+                        'is_playing' => true,
+                        'is_loading' => true,
+                        'item' => [
+                            'id' => $firstSong->song->spotify_id,
+                            'name' => $firstSong->song->name,
+                            'duration_ms' => $firstSong->song->duration_ms,
+                            'artists' => [['name' => $firstSong->song->artist]],
+                            'album' => [
+                                'images' => [['url' => $firstSong->song->image_url]]
+                            ]
+                        ],
+                        '_timestamp' => now()->timestamp,
+                        '_action' => 'activating'
+                    ];
+
+                    $this->playbackStateManager->setPlaybackData($mix, $loadingData);
+                    event(new PlaybackDataUpdatedEvent($mix, $loadingData));
+
+                    // Start playback
+                    $this->queueService->startPlayback($mix, $deviceId);
+
+                    // Send final playback data
+                    $playbackData = [
+                        'is_playing' => true,
+                        'is_loading' => false,
+                        'item' => [
+                            'id' => $firstSong->song->spotify_id,
+                            'name' => $firstSong->song->name,
+                            'duration_ms' => $firstSong->song->duration_ms,
+                            'artists' => [['name' => $firstSong->song->artist]],
+                            'album' => [
+                                'images' => [['url' => $firstSong->song->image_url]]
+                            ]
+                        ],
+                        '_timestamp' => now()->timestamp,
+                        '_action' => 'activate',
+                        'playback_started' => true
+                    ];
+
+                    $this->playbackStateManager->setPlaybackData($mix, $playbackData);
+                    event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+                    event(new MixStatusChangedEvent($mix, true));
+
+                    $this->playbackStateManager->setManualChange($mix);
+                } else {
+                    // No songs in queue
+                    $emptyPlaybackData = [
+                        'is_playing' => false,
+                        '_timestamp' => now()->timestamp,
+                        '_action' => 'activate',
+                        'queue_empty' => true,
+                        'is_initial_activation' => true
+                    ];
+
+                    $this->playbackStateManager->setPlaybackData($mix, $emptyPlaybackData);
+                    event(new PlaybackDataUpdatedEvent($mix, $emptyPlaybackData));
+                }
+            }
+        } finally {
+            // Always release the lock - without checking owned()
+            if (isset($lock)) {
+                $lock->release();
+            }
+        }
     }
 
     /**

@@ -17,6 +17,8 @@ class SetMixActiveController extends Controller
         Mix $mix,
         MixActivationService $activationService
     ): JsonResponse {
+        $this->authorize('controlPlayback', $mix);
+        
         try {
             // Get inputs
             $validated = $request->validated();
