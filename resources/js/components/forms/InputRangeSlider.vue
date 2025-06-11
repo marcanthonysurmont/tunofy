@@ -20,7 +20,10 @@
 
         <div class="flex items-center justify-between text-xs text-zinc-400">
             <span>{{ min }}</span>
-            <span>{{ modelValue }}</span>
+            <span
+                class="inline-flex items-center rounded-md bg-blue-400/10 px-2 py-1 text-xs text-blue-400 ring-1 ring-blue-400/30 ring-inset"
+                >{{ modelValue }}</span
+            >
             <span>{{ max }}</span>
         </div>
 
