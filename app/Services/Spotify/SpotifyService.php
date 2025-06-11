@@ -348,32 +348,6 @@ class SpotifyService
         }
     }
 
-    public function setVolume(User $user, int $volumePercent): bool
-    {
-        try {
-            // Ensure volume is within valid range
-            $volumePercent = max(0, min(100, $volumePercent));
-
-            Log::info("Setting Spotify volume to {$volumePercent}% for user {$user->id}");
-
-            $response = $this->spotifyRequest(
-                $user,
-                'PUT',
-                'https://api.spotify.com/v1/me/player/volume',
-                [
-                    'query' => [
-                        'volume_percent' => $volumePercent
-                    ]
-                ]
-            );
-
-            return $response->successful();
-        } catch (Exception $e) {
-            Log::error("Spotify setVolume error: " . $e->getMessage());
-            return false;
-        }
-    }
-
     public function getPreviewUrl(string $trackId): string
     {
         try {
