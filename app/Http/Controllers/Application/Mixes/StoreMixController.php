@@ -18,7 +18,7 @@ class StoreMixController extends Controller
     {
         $user = Auth::user();
 
-        if($user->type !== 'premium') {
+        if ($user->type !== 'premium') {
             return redirect()->back()
                 ->with('danger', 'You must be a premium user to create a mix.');
         }

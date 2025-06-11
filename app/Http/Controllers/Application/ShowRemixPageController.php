@@ -16,7 +16,7 @@ class ShowRemixPageController extends Controller
 
         $highestAddedSong = UserSongHistory::highestAddedSong($user);
 
-        return Inertia::render('RemixPage',[
+        return Inertia::render('RemixPage', [
             'globalUserStat' => $user->globalUserStat,
             'highestAddedSong' => $highestAddedSong
         ]);

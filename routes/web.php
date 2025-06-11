@@ -13,7 +13,7 @@ Route::domain('app.' . parse_url(config('app.url'), PHP_URL_HOST))->group(functi
 
     // Authenticated routes
     Route::middleware('auth')->group(function () {
-        require __DIR__.'/web/app.php';      
+        require __DIR__.'/web/app.php';
         require __DIR__.'/web/mixes.php';
         require __DIR__.'/web/spotify.php';
     });

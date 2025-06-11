@@ -17,7 +17,8 @@ class PlaybackDataUpdatedEvent implements ShouldBroadcastNow
     use SerializesModels;
 
     public function __construct(public Mix $mix, public array $playbackData)
-    {}
+    {
+    }
 
     public function broadcastOn(): array
     {

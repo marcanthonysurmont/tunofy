@@ -25,7 +25,7 @@ class AppServiceProvider extends ServiceProvider
             $event->extendSocialite('spotify', \SocialiteProviders\Spotify\Provider::class);
         });
 
-        if(app()->isLocal()) {
+        if (app()->isLocal()) {
             Model::preventLazyLoading(!app()->isProduction());
         };
 

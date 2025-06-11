@@ -16,7 +16,7 @@ class GenerateMixCodeController extends Controller
     public function __invoke(GenerateMixCodeRequest $request, Mix $mix): RedirectResponse
     {
         $this->authorize('update', $mix);
-        
+
         $validated = $request->validated();
 
         try {

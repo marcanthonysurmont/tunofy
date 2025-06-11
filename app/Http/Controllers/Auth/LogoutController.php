@@ -17,7 +17,7 @@ class LogoutController extends Controller
         Auth::logout();
 
         $request->session()->regenerateToken();
-        
+
         return Inertia::location(env('APP_URL'));
     }
 }

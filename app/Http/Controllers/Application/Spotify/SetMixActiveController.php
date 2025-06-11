@@ -18,7 +18,7 @@ class SetMixActiveController extends Controller
         MixActivationService $activationService
     ): JsonResponse {
         $this->authorize('controlPlayback', $mix);
-        
+
         try {
             // Get inputs
             $validated = $request->validated();
@@ -42,7 +42,7 @@ class SetMixActiveController extends Controller
             } else {
                 // DEACTIVATION FLOW
                 $result = $activationService->deactivateMix($mix);
-                
+
                 return response()->json($result);
             }
         } catch (Exception $e) {

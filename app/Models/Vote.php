@@ -15,7 +15,7 @@ class Vote extends Model
         'user_id',
         'vote_type',
     ];
-    
+
     /**************************************/
     /*           Relationships            */
     /**************************************/

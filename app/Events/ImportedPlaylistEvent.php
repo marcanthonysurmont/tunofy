@@ -13,10 +13,13 @@ use App\Http\Resources\SongResource;
 
 class ImportedPlaylistEvent implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
-    public function __construct(public Mix $mix, public Collection $songs, public bool $hasMore) 
-    {}
+    public function __construct(public Mix $mix, public Collection $songs, public bool $hasMore)
+    {
+    }
 
     public function broadcastOn(): array
     {

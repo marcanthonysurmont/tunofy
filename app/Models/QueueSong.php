@@ -62,7 +62,7 @@ class QueueSong extends Model
     /*              Helpers               */
     /**************************************/
 
-    public static function playingRound(Mix $mix) 
+    public static function playingRound(Mix $mix)
     {
         return self::where('mix_id', $mix->id)
             ->where('status', 'playing')

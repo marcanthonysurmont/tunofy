@@ -266,8 +266,8 @@ class QueueManagementService
         // If we couldn't find a suitable round, create a new one
         if ($targetRound === null) {
             // Find the highest round number (even if it's not pending)
-             $highestRound = QueueSong::where('mix_id', $mix->id)
-                ->max('round_number') ?? 0;
+            $highestRound = QueueSong::where('mix_id', $mix->id)
+               ->max('round_number') ?? 0;
 
             $targetRound = max($highestRound + 1, $nextRoundAfterPlaying);
             $songsInRound = 0;
@@ -375,7 +375,7 @@ class QueueManagementService
 
             // Dispatch an event to update clients
             event(new QueueStateUpdatedEvent($mix));
-    
+
             return;
         } catch (Exception $e) {
             Log::error("Error adding song {$song->id} to queue: " . $e->getMessage());

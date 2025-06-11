@@ -93,7 +93,7 @@ class VotingService
 
         // Update vote count on the queue song
         $queueSong->increment("{$voteType}_count");
-        
+
         // Update all stats tables
         $this->updateStats($queueSong->mix_id, $userId, $voteType);
     }

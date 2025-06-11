@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\Log;
 use App\Events\PlaybackDataUpdatedEvent;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Queue\QueueManagementService;
-use App\Services\Playback\SongPlaybackService;
-use App\Services\Playback\PlaybackStateManager;
 use App\Events\DeviceUpdatedEvent;
 use Exception;
 
@@ -61,10 +59,10 @@ class SpotifyPollingService
 
                 // Set a device inactive flag on the playback state
                 $this->playbackState->setState($mix, 'device_inactive', true);
-                
+
                 return [
-                    'success' => false, 
-                    'action' => 'device_inactive', 
+                    'success' => false,
+                    'action' => 'device_inactive',
                     'message' => 'Spotify device is inactive or unavailable'
                 ];
             }

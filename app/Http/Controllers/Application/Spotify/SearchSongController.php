@@ -16,9 +16,9 @@ class SearchSongController extends Controller
     {
         try {
             $validated = $request->validated();
-    
+
             $response = $spotifyService->search($validated['query']);
-    
+
             return response()->json([
                 'songs' => SpotifySearchResource::collection($response['tracks']['items']),
             ]);

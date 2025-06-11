@@ -18,9 +18,9 @@ class RemoveUserMixAccessController extends Controller
         $validated = $request->validated();
 
         $user = Auth::user();
-        
+
         $this->authorize('removeUserMixAccess', [$mix, $validated['user_id']]);
-        
+
         MixAccess::where('mix_id', $mix->id)
             ->where('user_id', $validated['user_id'])
             ->delete();
@@ -32,7 +32,7 @@ class RemoveUserMixAccessController extends Controller
             return redirect()->route('app')
                ->with('success', 'You have left the mix successfully.');
         }
-        
+
         RemoveUserAccessEvent::dispatch($mix);
 
         return redirect()->back()

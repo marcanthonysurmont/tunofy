@@ -15,10 +15,10 @@ class RemoveCoDJController extends Controller
     public function __invoke(Mix $mix, CoDJManagementService $coDJService): RedirectResponse
     {
         $this->authorize('assignCoDJ', $mix);
-        
+
         try {
             $coDJService->removeCoDJ($mix);
-            
+
             $otherMixes = Mix::otherMixesForUser($mix->id)->get();
             $changeReason = 'other_mix';
 

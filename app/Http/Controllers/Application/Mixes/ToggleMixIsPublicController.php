@@ -13,7 +13,7 @@ class ToggleMixIsPublicController extends Controller
     public function __invoke(Mix $mix): RedirectResponse
     {
         $this->authorize('update', $mix);
-        
+
         try {
             // Toggle the is_public status
             $mix->update(['is_public' => !$mix->is_public]);

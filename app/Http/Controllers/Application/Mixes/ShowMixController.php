@@ -19,8 +19,7 @@ class ShowMixController extends Controller
         SpotifyService $spotifyService,
         MixStatService $mixStatService,
         string $tab = 'overview'
-    )
-    {
+    ) {
         $this->authorize('view', $mix);
 
         // Core song data
@@ -55,7 +54,7 @@ class ShowMixController extends Controller
         $collaborators = collect();
         $presets = collect();
 
-        if($user->id === $mix->user_id) {
+        if ($user->id === $mix->user_id) {
             $collaborators = $mix->collaborators()->orderBy('created_at', 'desc')->paginate(20);
             $collaborators->withPath("/{$mix->slug}/manage");
 

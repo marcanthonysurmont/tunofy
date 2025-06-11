@@ -23,7 +23,7 @@ class UpdateMixUserPermissionsController extends Controller
             ->where('mix_id', $mix->id)
             ->first();
 
-        if($mixAccess && $mixAccess->permission === $validated['role']) {
+        if ($mixAccess && $mixAccess->permission === $validated['role']) {
             return redirect()->back()
                 ->with('error', 'User already has this permission.');
         }
@@ -35,7 +35,7 @@ class UpdateMixUserPermissionsController extends Controller
 
             return redirect()->back()
                 ->with('success', 'User permissions updated successfully.');
-        } 
+        }
 
         return redirect()->back()
             ->with('error', 'No permissions found for this user.');

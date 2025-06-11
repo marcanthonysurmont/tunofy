@@ -12,7 +12,7 @@ class DestroyPresetController extends Controller
     public function __invoke(Preset $preset): RedirectResponse
     {
         $this->authorize('delete', $preset);
-        
+
         try {
             $preset->delete();
 

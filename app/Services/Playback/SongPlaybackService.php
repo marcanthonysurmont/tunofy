@@ -16,7 +16,6 @@ use App\Services\Spotify\SpotifyService;
 use App\Services\Queue\QueueManagementService;
 use App\Models\MixStat;
 use App\Events\StatUpdatedEvent;
-use App\Services\Playback\PlaybackStateManager;
 use Exception;
 
 class SongPlaybackService

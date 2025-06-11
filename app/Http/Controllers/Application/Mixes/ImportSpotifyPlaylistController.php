@@ -15,12 +15,11 @@ use Illuminate\Support\Facades\Log;
 class ImportSpotifyPlaylistController extends Controller
 {
     public function __invoke(
-        ImportSpotifyPlaylistRequest $request, 
-        Mix $mix, 
+        ImportSpotifyPlaylistRequest $request,
+        Mix $mix,
         SpotifyService $spotifyService,
         SongService $songService
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $this->authorize('addSongs', $mix);
 
         try {
@@ -42,8 +41,8 @@ class ImportSpotifyPlaylistController extends Controller
 
             // Process songs in batch
             $result = $songService->importSpotifySongsBatch(
-                $mix, 
-                $user, 
+                $mix,
+                $user,
                 $playlistSongs
             );
 
@@ -51,16 +50,16 @@ class ImportSpotifyPlaylistController extends Controller
             $successMessage = $result['count'] === 1
                 ? '1 song imported successfully!'
                 : "{$result['count']} songs imported successfully!";
-            
+
             return response()->json([
                 'success' => true,
                 'message' => $successMessage,
                 'imported_songs' => $result['songs']
             ]);
-            
+
         } catch (Exception $e) {
             Log::error("Failed to import Spotify playlist: " . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to import playlist: ' . $e->getMessage()

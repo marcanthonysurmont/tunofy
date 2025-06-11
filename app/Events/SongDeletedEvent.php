@@ -12,7 +12,9 @@ use App\Models\Song;
 
 class SongDeletedEvent implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     public function __construct(public Mix $mix, public Song $song)
     {

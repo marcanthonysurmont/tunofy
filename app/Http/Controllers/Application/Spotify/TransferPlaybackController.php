@@ -29,7 +29,7 @@ class TransferPlaybackController extends Controller
             // 3. Play the current song at current position
             // 4. Update device state and broadcast updates
             $result = $playbackService->transferPlayback($mix, $deviceId);
-            
+
             return response()->json($result);
         } catch (Exception $e) {
             Log::error("Error transferring playback: " . $e->getMessage());

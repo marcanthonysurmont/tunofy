@@ -15,13 +15,13 @@ class SpotifyCallbackController extends Controller
     {
         try {
             $spotifyUser = Socialite::driver('spotify')->user();
-    
+
             $expiresAt = null;
-    
+
             if ($spotifyUser->expiresIn) {
                 $expiresAt = now()->addSeconds($spotifyUser->expiresIn);
             }
-    
+
             $user = User::updateOrCreate(
                 ['spotify_id' => $spotifyUser->getId()],
                 [
@@ -34,9 +34,9 @@ class SpotifyCallbackController extends Controller
                     'token_expires_at' => $expiresAt,
                 ]
             );
-    
+
             Auth::login($user);
-    
+
             $appUrl = 'https://app.' . parse_url(config('app.url'), PHP_URL_HOST);
             return redirect()->away($appUrl)->with('success', 'Logged in successfully!');
         } catch (Exception $e) {
