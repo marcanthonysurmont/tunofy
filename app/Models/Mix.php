@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
@@ -216,7 +217,7 @@ class Mix extends Model
     /*              Helpers               */
     /**************************************/
 
-    public function hasUserJoined($userId)
+    public function hasUserJoined($userId): bool
     {
         return $this->mixAcceses()
             ->where('user_id', $userId)
@@ -230,14 +231,14 @@ class Mix extends Model
             ->saveSlugsTo('slug');
     }
 
-    public function getThemeSettings()
+    public function getThemeSettings(): Collection
     {
         $definitions = ThemeSettingDefinition::all();
-        $customThemes = $this->themes()->get()->keyBy(function ($theme) {
+        $customThemes = $this->themes()->get()->keyBy(function (Theme $theme) {
             return (string) $theme->theme_setting_definition_id;
         });
 
-        return $definitions->map(function ($definition) use ($customThemes) {
+        return $definitions->map(function (ThemeSettingDefinition $definition) use ($customThemes) {
             $definitionId = (string) $definition->id;
             $defaultSettings = $definition->settings ?? [];
             $mergedSettings = $defaultSettings;
@@ -264,7 +265,7 @@ class Mix extends Model
         });
     }
 
-    public function filterVotableSongs($pendingSongs)
+    public function filterVotableSongs(Collection $pendingSongs): Collection
     {
         if ($pendingSongs->isEmpty()) {
             return collect();
