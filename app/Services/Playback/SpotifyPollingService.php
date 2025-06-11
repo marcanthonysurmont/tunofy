@@ -18,8 +18,8 @@ class SpotifyPollingService
         protected SongPlaybackService $songPlaybackService,
         protected QueueManagementService $queueManagementService,
         protected PlaybackStateManager $playbackState
-    ) {
-    }
+    ) 
+    {}
 
     /**
      * Poll Spotify for the current playback state
@@ -181,7 +181,7 @@ class SpotifyPollingService
     /**
      * Handle the player state based on analysis
      */
-    private function handlePlayerState(Mix $mix, string $playerState, ?array $playbackData = null, ?QueueSong $currentQueueSong = null, ?array $previousData = null)
+    private function handlePlayerState(Mix $mix, string $playerState, ?array $playbackData = null, ?QueueSong $currentQueueSong = null, ?array $previousData = null): ?array
     {
         // Don't handle player state for inactive mixes
         if (!$mix->is_active && $playerState !== PlaybackStateManager::QUEUE_COMPLETED) {

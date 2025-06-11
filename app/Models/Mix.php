@@ -164,7 +164,7 @@ class Mix extends Model
     /*              Scopes                */
     /**************************************/
 
-    public function scopeValidSessionCode($query, $sessionCode)
+    public function scopeValidSessionCode($query, string $sessionCode): Builder
     {
         return $query->where('session_code', $sessionCode)
             ->where('session_code_expires_at', '>', now());
@@ -286,7 +286,7 @@ class Mix extends Model
         return $pendingSongs->whereNotIn('id', $votedSongIds);
     }
 
-    public function getAllPendingSongs()
+    public function getAllPendingSongs(): Collection
     {
         // First, get the currently playing song (if any)
         $currentlyPlayingSong = $this->queueSongs()

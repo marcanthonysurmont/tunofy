@@ -22,8 +22,8 @@ class PlaybackService
     public function __construct(
         protected SpotifyService $spotifyService,
         protected PlaybackStateManager $playbackStateManager
-    ) {
-    }
+    ) 
+    {}
 
     /**
      * Get playback data for a mix, optimized for server-side polling architecture

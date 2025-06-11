@@ -54,8 +54,6 @@ class QueueBuilderService
         return $result;
     }
 
-
-
     protected function randomizeSongsWithBias(Collection $songs): Collection
     {
         // Re-seed random number generator for better entropy
@@ -112,7 +110,6 @@ class QueueBuilderService
             ->pluck('song')
             ->values();
     }
-
 
 
     /**

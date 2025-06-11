@@ -134,7 +134,7 @@ class PlaybackStateManager
     /**
      * Get a playback state value
      */
-    public function getState(Mix $mix, string $state, $default = null)
+    public function getState(Mix $mix, string $state, $default = null): ?string
     {
         return Cache::get($this->formatKey($mix->id, $state), $default);
     }

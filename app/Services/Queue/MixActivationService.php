@@ -51,7 +51,7 @@ class MixActivationService
     /**
      * Activate a mix and handle all related operations in one place
      */
-    public function activateMix(Mix $mix, ?string $deviceId = null, bool $resetQueue = false): array
+    public function activateMix(Mix $mix, ?string $deviceId = null): array
     {
         $lock = Cache::lock("mix:{$mix->id}:state_change", 10);
 
