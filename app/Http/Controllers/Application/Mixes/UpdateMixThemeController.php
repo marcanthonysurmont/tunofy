@@ -8,11 +8,14 @@ use App\Models\Mix;
 use App\Models\Theme;
 use Illuminate\Http\RedirectResponse;
 use App\Events\ThemeUpdatedEvent;
+use Exception;
 
 class UpdateMixThemeController extends Controller
 {
     public function __invoke(Mix $mix, UpdateMixThemeRequest $request): RedirectResponse
     {
+        $this->authorize('update', $mix);
+
         $validated = $request->validated();
 
         try {
@@ -20,6 +23,7 @@ class UpdateMixThemeController extends Controller
 
             if ($validated['theme_setting_definition_id'] === 1) {
                 ThemeUpdatedEvent::dispatch($mix);
+
                 return redirect()->back()
                     ->with('success', 'Theme updated successfully');
             }
@@ -38,7 +42,7 @@ class UpdateMixThemeController extends Controller
 
             return redirect()->back()
                 ->with('success', 'Theme updated successfully');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return redirect()->back()
                 ->with('error', 'Failed to update theme');
         }

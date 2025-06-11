@@ -8,13 +8,16 @@ use App\Models\Mix;
 use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class GenerateMixCodeController extends Controller
 {
     public function __invoke(GenerateMixCodeRequest $request, Mix $mix): RedirectResponse
     {
-        $validated = $request->validated();
+        $this->authorize('update', $mix);
 
+        $validated = $request->validated();
 
         try {
             $normalCode = Str::random(5);
@@ -38,8 +41,8 @@ class GenerateMixCodeController extends Controller
                     'session_code' => $mix->session_code,
                     'qr_code' => $qrCodeBase64,
                 ]);
-        } catch (\Exception $e) {
-            \Log::error("Failed to generate mix code: " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error("Failed to generate mix code: " . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'Failed to generate mix code');
         }

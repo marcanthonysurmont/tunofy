@@ -2,8 +2,6 @@
 
 namespace App\Helpers;
 
-use Illuminate\Support\Facades\Storage;
-
 class AvatarHelper
 {
     public static function generateAvatarUrl(object $object, string $attribute, string $defaultImage = 'images/default-avatar.jpg'): string

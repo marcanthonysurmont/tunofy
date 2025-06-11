@@ -3,7 +3,7 @@
 namespace App\Events;
 
 use App\Models\Mix;
-use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -17,12 +17,13 @@ class PlaybackDataUpdatedEvent implements ShouldBroadcastNow
     use SerializesModels;
 
     public function __construct(public Mix $mix, public array $playbackData)
-    {}
+    {
+    }
 
     public function broadcastOn(): array
     {
         return [
-            new Channel('mix.' . $this->mix->id),
+            new PrivateChannel('mix.' . $this->mix->id),
         ];
     }
 

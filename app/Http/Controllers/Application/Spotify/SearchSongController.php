@@ -7,6 +7,8 @@ use App\Http\Requests\SearchSongRequest;
 use App\Http\Resources\SpotifySearchResource;
 use App\Services\Spotify\SpotifyService;
 use Illuminate\Http\JsonResponse;
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 class SearchSongController extends Controller
 {
@@ -14,15 +16,15 @@ class SearchSongController extends Controller
     {
         try {
             $validated = $request->validated();
-    
+
             $response = $spotifyService->search($validated['query']);
-    
+
             return response()->json([
                 'songs' => SpotifySearchResource::collection($response['tracks']['items']),
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Handle the exception, log it, or return an error response
-            \Log::error('Spotify API request failed: ' . $e->getMessage());
+            Log::error('Spotify API request failed: ' . $e->getMessage());
 
             return response()->json([
                 'error' => 'Spotify API request failed',

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateMixRequest;
 use App\Models\Mix;
 use Illuminate\Http\RedirectResponse;
+use Exception;
 
 class UpdateMixController extends Controller
 {
@@ -24,14 +25,12 @@ class UpdateMixController extends Controller
             $mix->update([
                 'name' => $validated['name'],
                 // 'is_public' => $validated['is_public'],
-                // 'preset_id' => $validated['preset_id'],
                 'avatar' => $avatarPath ?? $mix->avatar,
             ]);
 
-            return redirect()
-                ->route('mix.show', $mix)
+            return redirect()->route('mix.show', $mix)
                 ->with('success', 'Mix updated successfully.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return redirect()->back()
                 ->with('danger', 'Failed to update mix. Please try again later.');
         }

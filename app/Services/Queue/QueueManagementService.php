@@ -14,6 +14,8 @@ use App\Services\Playback\PlaybackStateManager;
 use App\Services\Playback\SongPlaybackService;
 use App\Events\QueueStateUpdatedEvent;
 use Illuminate\Support\Facades\DB;
+use Exception;
+use App\Models\Song;
 
 /**
  * Central service for all queue operations
@@ -55,7 +57,7 @@ class QueueManagementService
             $session = is_array($rawSession) ? $rawSession : $rawSession->toArray();
 
             if (empty($session['id'])) {
-                throw new \Exception("Failed to create session with valid ID");
+                throw new Exception("Failed to create session with valid ID");
             }
 
             $sessionId = $session['id'];
@@ -109,7 +111,7 @@ class QueueManagementService
                 'message' => 'Queue initialized successfully',
                 'session_id' => $sessionId
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Failed to initialize queue: " . $e->getMessage() . "\n" . $e->getTraceAsString());
             return [
                 'success' => false,
@@ -121,18 +123,13 @@ class QueueManagementService
     /**
      * Start or resume queue playback
      */
-    public function startPlayback(int $mixId, ?string $deviceId = null): bool
+    public function startPlayback(Mix $mix, ?string $deviceId = null): bool
     {
-        $mix = Mix::findOrFail($mixId);
-
         // Get the current playing song directly - minimal query
-        $currentSong = QueueSong::where('mix_id', $mixId)
-            ->where('status', 'playing')
-            ->with('song')
-            ->first();
+        $currentSong = QueueSong::currentlyPlayingForMix($mix);
 
         if (!$currentSong) {
-            Log::error("No playing song found for mix $mixId during startPlayback");
+            Log::error("No playing song found for mix $mix->id during startPlayback");
             return false;
         }
 
@@ -152,48 +149,10 @@ class QueueManagementService
 
             return $playTrackOnDevice;
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Error in QueueManagementService::startPlayback: " . $e->getMessage());
             return false;
         }
-    }
-
-    /**
-     * Stop playback and clear the queue
-     */
-    public function stopPlayback(int $mixId): array
-    {
-        $mix = Mix::findOrFail($mixId);
-
-        // Determine which user to use for playback
-        $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
-
-        Log::info("Stopping playback for mix {$mixId}");
-
-        // First, try to pause Spotify playback
-        try {
-            $this->spotifyService->pausePlayback($user);
-            Log::info("Paused Spotify playback for mix {$mixId}");
-        } catch (\Exception $e) {
-            Log::error("Failed to pause Spotify playback: " . $e->getMessage());
-            // Continue with queue cleanup even if pause fails
-        }
-
-        // Clear the queue
-        $this->clearQueue($mixId);
-
-        // End active sessions
-        PlaybackSession::where('mix_id', $mixId)
-            ->where('is_active', true)
-            ->update([
-                'is_active' => false,
-                'ended_at' => now()
-            ]);
-
-        return [
-            'success' => true,
-            'message' => 'Playback stopped and queue cleared'
-        ];
     }
 
     /**
@@ -209,37 +168,6 @@ class QueueManagementService
             ]);
 
         Log::info("Cleared queue for mix {$mixId}");
-    }
-
-    /**
-     * Activate Spotify device
-     */
-    public function activateSpotifyDevice(int $userId)
-    {
-        try {
-            // Get the user
-            $user = User::findOrFail($userId);
-
-            // URI for a very short track (could be any short track)
-            $silentTrackUri = "spotify:track:4pgUMboZpbJBWE5ep2O77p"; // Replace with actual track URI
-
-            // Play at very low volume
-            $this->spotifyService->setVolume($user, 1);
-
-            // Play the activation track
-            $result = $this->spotifyService->playSong($user, $silentTrackUri);
-
-            // Wait a moment
-            sleep(1);
-
-            // Restore volume
-            $this->spotifyService->setVolume($user, 50);
-
-            return $result;
-        } catch (\Exception $e) {
-            Log::error("Failed to activate Spotify device: " . $e->getMessage());
-            return false;
-        }
     }
 
     public function appendRoundsToQueue(Mix $mix, int $numRounds = 1): array
@@ -272,9 +200,7 @@ class QueueManagementService
         Log::info("Queue extension for mix {$mix->id}: Found " . count($songIdsToQueue) . " songs not yet queued out of " . count($shuffledIds) . " total shuffled songs");
 
         // Get current playing round with a direct query that guarantees accuracy
-        $playingRound = QueueSong::where('mix_id', $mix->id)
-            ->where('status', 'playing')
-            ->value('round_number');
+        $playingRound = QueueSong::PlayingRound($mix);
 
         // If no song is currently playing, check recently played songs to determine the active round
         if (!$playingRound) {
@@ -309,8 +235,7 @@ class QueueManagementService
         Log::info("Queue extension: Final determined playing round for mix {$mix->id} is {$playingRound}");
 
         // Get all pending rounds with their song counts
-        $pendingRounds = DB::table('queue_songs')
-            ->select('round_number', DB::raw('COUNT(*) as song_count'))
+        $pendingRounds = QueueSong::select('round_number', DB::raw('COUNT(*) as song_count'))
             ->where('mix_id', $mix->id)
             ->where('status', 'pending')
             ->groupBy('round_number')
@@ -341,9 +266,8 @@ class QueueManagementService
         // If we couldn't find a suitable round, create a new one
         if ($targetRound === null) {
             // Find the highest round number (even if it's not pending)
-            $highestRound = DB::table('queue_songs')
-                ->where('mix_id', $mix->id)
-                ->max('round_number') ?? 0;
+            $highestRound = QueueSong::where('mix_id', $mix->id)
+               ->max('round_number') ?? 0;
 
             $targetRound = max($highestRound + 1, $nextRoundAfterPlaying);
             $songsInRound = 0;
@@ -351,7 +275,7 @@ class QueueManagementService
         }
 
         $session = $mix->playbackSession;
-        Log::info("Queue extension: Using session ID {$session->id} for mix {$mix->id}");
+
         if (!$session) {
             Log::error("Queue extension failed: No active session for mix {$mix->id}");
             return ['success' => false, 'message' => 'No active session'];
@@ -398,6 +322,122 @@ class QueueManagementService
             'added' => $added,
             'message' => "Added {$added} songs to queue"
         ];
+    }
+
+    /**
+     * Add a song directly to the queue if the pending count is below threshold
+     */
+    public function addSongToQueueIfBelowThreshold(Mix $mix, Song $song, Playbacksession $session): void
+    {
+        $batchSize = $mix->preset->batch_size ?? 5;
+        $pendingSongCount = QueueSong::PendingForMixCount($mix);
+        $directAdditionThreshold = max(5, $batchSize);
+
+        // Only add directly if we're under the threshold
+        if ($pendingSongCount > $directAdditionThreshold) {
+            return;
+        }
+
+        // Get current playing round
+        $playingRound = QueueSong::PlayingRound($mix);
+
+        // Get latest round number
+        $latestRound = QueueSong::where('mix_id', $mix->id)
+            ->max('round_number') ?? 0;
+
+        // Find a suitable round
+        $targetRound = $this->findSuitableRound($mix, $playingRound, $batchSize);
+
+        if ($targetRound === null) {
+            $targetRound = $playingRound ? ($playingRound + 1) : ($latestRound + 1);
+            Log::info("Creating new round {$targetRound} for song {$song->id}");
+        }
+
+        // Get order in round
+        $songsInTargetRound = QueueSong::where('mix_id', $mix->id)
+            ->where('round_number', $targetRound)
+            ->count();
+        $nextOrder = $songsInTargetRound + 1;
+
+        try {
+            // Add directly to queue
+            QueueSong::create([
+                'mix_id' => $mix->id,
+                'song_id' => $song->id,
+                'playback_session_id' => $session->id,
+                'round_number' => $targetRound,
+                'order' => $nextOrder,
+                'status' => 'pending',
+                'is_killed' => false,
+            ]);
+
+            Log::info("Added song {$song->id} directly to queue for mix {$mix->id} in round {$targetRound} (position {$nextOrder}/{$batchSize})");
+
+            // Dispatch an event to update clients
+            event(new QueueStateUpdatedEvent($mix));
+
+            return;
+        } catch (Exception $e) {
+            Log::error("Error adding song {$song->id} to queue: " . $e->getMessage());
+            return;
+        }
+    }
+
+    /**
+     * Find suitable round for direct song addition
+     */
+    private function findSuitableRound(Mix $mix, ?int $playingRound, int $batchSize): ?int
+    {
+        // Get all pending rounds ordered by round_number
+        $pendingRounds = QueueSong::where('mix_id', $mix->id)
+            ->where('status', 'pending')
+            ->groupBy('round_number')
+            ->pluck('round_number')
+            ->sort()
+            ->values();
+
+        foreach ($pendingRounds as $round) {
+            if ($round <= $playingRound) {
+                continue;
+            }
+
+            $songsInRound = QueueSong::where('mix_id', $mix->id)
+                ->where('round_number', $round)
+                ->count();
+
+            if ($songsInRound < $batchSize) {
+                Log::info("Using existing pending round {$round} for direct song addition");
+                return $round;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if queue needs extending and extend if necessary
+     */
+    public function extendQueueIfNeeded(Mix $mix): bool
+    {
+        $batchSize = $mix->preset->batch_size ?? 5;
+        $pendingSongCount = QueueSong::where('mix_id', $mix->id)
+            ->where('status', 'pending')
+            ->count();
+
+        $threshold = max(3, $batchSize * 0.5);
+
+        if ($pendingSongCount <= $threshold) {
+            try {
+                $this->appendRoundsToQueue($mix, 1);
+                Log::info("Extended queue after adding new song to mix {$mix->id}");
+                return true;
+            } catch (Exception $e) {
+                Log::error("Error extending queue: " . $e->getMessage());
+                return false;
+            }
+        }
+
+        return false;
     }
 
     protected function getActiveSessionId(Mix $mix): ?int

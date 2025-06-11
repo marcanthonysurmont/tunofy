@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\Log;
 use App\Events\PlaybackDataUpdatedEvent;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Queue\QueueManagementService;
-use App\Services\Playback\SongPlaybackService;
-use App\Services\Playback\PlaybackStateManager;
 use App\Events\DeviceUpdatedEvent;
 use Exception;
 
@@ -20,8 +18,8 @@ class SpotifyPollingService
         protected SongPlaybackService $songPlaybackService,
         protected QueueManagementService $queueManagementService,
         protected PlaybackStateManager $playbackState
-    ) {
-    }
+    ) 
+    {}
 
     /**
      * Poll Spotify for the current playback state
@@ -53,7 +51,7 @@ class SpotifyPollingService
             $this->playbackState->setPlaybackData($mix, $playbackData ?: ['status' => 'no_playback', 'timestamp' => time()]);
 
             // Get current queue state
-            $currentQueueSong = $this->songPlaybackService->getCurrentlyPlayingSong($mix);
+            $currentQueueSong = QueueSong::currentlyPlayingForMix($mix);
 
             if ($playbackData === null) {
                 // Broadcast device inactive event
@@ -61,10 +59,10 @@ class SpotifyPollingService
 
                 // Set a device inactive flag on the playback state
                 $this->playbackState->setState($mix, 'device_inactive', true);
-                
+
                 return [
-                    'success' => false, 
-                    'action' => 'device_inactive', 
+                    'success' => false,
+                    'action' => 'device_inactive',
                     'message' => 'Spotify device is inactive or unavailable'
                 ];
             }
@@ -183,7 +181,7 @@ class SpotifyPollingService
     /**
      * Handle the player state based on analysis
      */
-    private function handlePlayerState(Mix $mix, string $playerState, ?array $playbackData = null, ?QueueSong $currentQueueSong = null, ?array $previousData = null)
+    private function handlePlayerState(Mix $mix, string $playerState, ?array $playbackData = null, ?QueueSong $currentQueueSong = null, ?array $previousData = null): ?array
     {
         // Don't handle player state for inactive mixes
         if (!$mix->is_active && $playerState !== PlaybackStateManager::QUEUE_COMPLETED) {
@@ -238,7 +236,7 @@ class SpotifyPollingService
     private function handleTrackMismatch(Mix $mix): ?array
     {
         // Get current queue song
-        $currentQueueSong = $this->songPlaybackService->getCurrentlyPlayingSong($mix);
+        $currentQueueSong = QueueSong::currentlyPlayingForMix($mix);
 
         // Get playback data
         $playbackData = $this->playbackState->getPlaybackData($mix);
@@ -272,7 +270,7 @@ class SpotifyPollingService
     private function handleNoPlayback(Mix $mix): ?array
     {
         // If we know a song should be playing but nothing is playing
-        if ($this->songPlaybackService->getCurrentlyPlayingSong($mix)) {
+        if (QueueSong::currentlyPlayingForMix($mix)) {
             Log::info("No playback detected but song should be playing for mix {$mix->id}, resuming playback");
             return $this->songPlaybackService->resumeIntendedTrack($mix);
         }

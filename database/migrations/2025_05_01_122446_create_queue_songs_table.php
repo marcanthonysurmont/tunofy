@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -17,7 +16,7 @@ return new class extends Migration
             $table->foreignId('song_id')->constrained()->onDelete('cascade');
             $table->foreignId('playback_session_id')->nullable()->constrained()->onDelete('cascade');
             $table->enum('status', ['pending', 'playing', 'finished', 'interrupted'])->default('pending');
-            $table->boolean('is_killed')->default(false);  
+            $table->boolean('is_killed')->default(false);
             $table->integer('round_number');
             $table->integer('order');
             $table->integer('like_count')->default(0);

@@ -3,8 +3,8 @@
 namespace App\Events;
 
 use App\Http\Resources\SongResource;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -13,7 +13,9 @@ use App\Models\Song;
 
 class SongAddedEvent implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     public function __construct(public Mix $mix, public Song $song)
     {
@@ -23,7 +25,7 @@ class SongAddedEvent implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new Channel('mix.' . $this->mix->id),
+            new PrivateChannel('mix.' . $this->mix->id),
         ];
     }
 

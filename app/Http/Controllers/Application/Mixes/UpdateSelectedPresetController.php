@@ -12,10 +12,12 @@ class UpdateSelectedPresetController extends Controller
 {
     public function __invoke(UpdateSelectedPresetRequest $request, Mix $mix): RedirectResponse
     {
+        $this->authorize('update', $mix);
+
         $validated = $request->validated();
 
         try {
-            if($mix->is_active) {
+            if ($mix->is_active) {
                 return redirect()->back()
                     ->with('error', 'You cannot change the preset while the mix is active');
             }

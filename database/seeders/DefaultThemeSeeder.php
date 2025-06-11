@@ -22,5 +22,5 @@ class DefaultThemeSeeder extends Seeder
             ]),
         ]);
     }
-      
+
 }

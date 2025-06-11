@@ -5,35 +5,36 @@ namespace App\Http\Controllers\Application\Mixes;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use App\Models\MixAccess;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 use App\Events\UserAccessUpdatedEvent;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class JoinMixController extends Controller
 {
-    public function __invoke(string $sessionCode): RedirectResponse
+    public function __invoke(string $sessionCode): JsonResponse
     {
         $mix = Mix::validSessionCode($sessionCode)->first();
-
         $user = Auth::user();
 
+        // Check conditions and return error responses
         if (!$mix) {
-            throw ValidationException::withMessages([
-                'code' => 'Invalid or expired mix code.',
-            ]);
+            return response()->json([
+                'errors' => ['code' => 'Invalid or expired mix code.']
+            ], 422);
         }
 
         if ($mix->hasUserJoined($user->id)) {
-            throw ValidationException::withMessages([
-                'code' => 'You have already joined this mix.',
-            ]);
+            return response()->json([
+                'errors' => ['code' => 'You have already joined this mix.']
+            ], 422);
         }
 
-        if($mix->user_id === $user->id) {
-            throw ValidationException::withMessages([
-                'code' => 'You cannot join your own mix.',
-            ]);
+        if ($mix->user_id === $user->id) {
+            return response()->json([
+                'errors' => ['code' => 'You cannot join your own mix.']
+            ], 422);
         }
 
         try {
@@ -49,11 +50,19 @@ class JoinMixController extends Controller
 
             UserAccessUpdatedEvent::dispatch($mix);
 
-            return redirect()->route('mix.show', $mix->slug)
-                ->with('success', 'You have joined the mix successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('danger', 'Failed to join the mix');
+            // Return success with redirect URL
+            return response()->json([
+                'success' => true,
+                'message' => 'Successfully joined mix!',
+                'redirect' => route('mix.show', $mix->slug)
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Error joining mix: ' . $e->getMessage());
+
+            return response()->json([
+                'errors' => ['code' => 'Failed to join the mix']
+            ], 422);
         }
     }
 }

@@ -27,6 +27,11 @@ class Preset extends Model
     /*           Relationships            */
     /**************************************/
 
+    public function mix()
+    {
+        return $this->belongsTo(Mix::class);
+    }
+
     /**************************************/
     /*       Accessors / Mutators         */
     /**************************************/

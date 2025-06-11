@@ -11,11 +11,14 @@ use App\Models\User;
 
 class CoDJUpdatedEvent implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     public function __construct(public User $user)
-    {}
-    
+    {
+    }
+
     public function broadcastOn(): array
     {
         return [

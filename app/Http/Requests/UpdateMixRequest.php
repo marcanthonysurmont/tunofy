@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateMixRequest extends FormRequest
 {
@@ -12,7 +11,6 @@ class UpdateMixRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:50'],
             // 'is_public' => ['required', 'boolean'],
-            // 'preset_id' => ['nullable', Rule::exists('presets', 'id')],
             'avatar' => ['nullable', 'image', 'max:2048'],
         ];
     }

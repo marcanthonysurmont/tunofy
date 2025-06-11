@@ -12,10 +12,10 @@ class ShowAppPageController extends Controller
     public function __invoke(): Response
     {
         $user = Auth::user();
-        
+
         return Inertia::render('MainAppPage', [
-            'your_mixes' => fn() => $user->mixes,
-            'joined_mixes' => fn() => $user->accessibleMixes
+            'your_mixes' => fn () => $user->mixes,
+            'joined_mixes' => fn () => $user->accessibleMixes
         ]);
     }
 }

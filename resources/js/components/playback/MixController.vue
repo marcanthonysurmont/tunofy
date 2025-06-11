@@ -375,9 +375,7 @@ function clearSyncingState() {
 
 async function refreshMixState() {
     try {
-        const response = await axios.get("/api/spotify/request-status", {
-            params: { mix_id: props.mix.id },
-        });
+        const response = await axios.get("/api/spotify/request-status/" + props.mix.id);
 
         //update state from server
         isMixActive.value = response.data.is_active;
@@ -538,7 +536,7 @@ onMounted(() => {
         refreshMixState();
 
         //setup WebSocket listeners and listen for events
-        Echo.channel(`mix.${props.mix.id}`)
+        Echo.private(`mix.${props.mix.id}`)
             .listen(".playback-data", (e) => {
                 console.log("Received playback data event:", e);
 

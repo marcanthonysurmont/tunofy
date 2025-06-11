@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
@@ -162,13 +164,13 @@ class Mix extends Model
     /*              Scopes                */
     /**************************************/
 
-    public function scopeValidSessionCode($query, $sessionCode)
+    public function scopeValidSessionCode($query, string $sessionCode): Builder
     {
         return $query->where('session_code', $sessionCode)
             ->where('session_code_expires_at', '>', now());
     }
 
-    public function scopeConflictingActiveMixes($query, $mixIdToExclude = null, $controllingUserId = null)
+    public function scopeConflictingActiveMixes($query, int $mixIdToExclude = null, int $controllingUserId = null): Builder
     {
         // If not provided, try to get the controlling user from this instance
         if ($controllingUserId === null && isset($this->id)) {
@@ -192,7 +194,7 @@ class Mix extends Model
         });
     }
 
-    public function scopeOtherMixesForUser($query, $excludeMixId = null)
+    public function scopeOtherMixesForUser($query, int $excludeMixId): Builder
     {
         // Get the controlling user ID (co-DJ if assigned, otherwise owner)
         $controllingUserId = $this->co_dj_id ?: $this->user_id;
@@ -215,7 +217,7 @@ class Mix extends Model
     /*              Helpers               */
     /**************************************/
 
-    public function hasUserJoined($userId)
+    public function hasUserJoined($userId): bool
     {
         return $this->mixAcceses()
             ->where('user_id', $userId)
@@ -229,14 +231,14 @@ class Mix extends Model
             ->saveSlugsTo('slug');
     }
 
-    public function getThemeSettings()
+    public function getThemeSettings(): Collection
     {
         $definitions = ThemeSettingDefinition::all();
-        $customThemes = $this->themes()->get()->keyBy(function ($theme) {
+        $customThemes = $this->themes()->get()->keyBy(function (Theme $theme) {
             return (string) $theme->theme_setting_definition_id;
         });
 
-        return $definitions->map(function ($definition) use ($customThemes) {
+        return $definitions->map(function (ThemeSettingDefinition $definition) use ($customThemes) {
             $definitionId = (string) $definition->id;
             $defaultSettings = $definition->settings ?? [];
             $mergedSettings = $defaultSettings;
@@ -263,7 +265,7 @@ class Mix extends Model
         });
     }
 
-    public function filterVotableSongs($pendingSongs)
+    public function filterVotableSongs(Collection $pendingSongs): Collection
     {
         if ($pendingSongs->isEmpty()) {
             return collect();
@@ -284,7 +286,7 @@ class Mix extends Model
         return $pendingSongs->whereNotIn('id', $votedSongIds);
     }
 
-    public function getAllPendingSongs()
+    public function getAllPendingSongs(): Collection
     {
         // First, get the currently playing song (if any)
         $currentlyPlayingSong = $this->queueSongs()

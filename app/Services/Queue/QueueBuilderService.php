@@ -3,8 +3,11 @@
 namespace App\Services\Queue;
 
 use App\Models\Mix;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use App\Models\QueueSong;
+use App\Models\Song;
 
 class QueueBuilderService
 {
@@ -51,9 +54,7 @@ class QueueBuilderService
         return $result;
     }
 
-
-
-    protected function randomizeSongsWithBias($songs)
+    protected function randomizeSongsWithBias(Collection $songs): Collection
     {
         // Re-seed random number generator for better entropy
         mt_srand((int)(microtime(true) * 10000));
@@ -84,7 +85,7 @@ class QueueBuilderService
             ->values();
     }
 
-    protected function randomizeSongsFlat($songs)
+    protected function randomizeSongsFlat(Collection $songs): Collection
     {
         // First, re-seed the random number generator with a high-precision timestamp
         mt_srand((int)(microtime(true) * 10000));
@@ -111,11 +112,10 @@ class QueueBuilderService
     }
 
 
-
     /**
      * Assign songs to rounds
      */
-    private function assignRounds($songs, int $batchSize): array
+    private function assignRounds(array $songs, int $batchSize): array
     {
         // Make sure we're working with a Collection
         $songsCollection = is_array($songs) ? collect($songs) : $songs;
@@ -167,35 +167,33 @@ class QueueBuilderService
     }
 
     /**
-     * Build a queue using a specific set of song IDs
-     * This allows us to include newly added songs in queue extensions
+     * Update the shuffled IDs cache to include a new song
+     *
      */
-    public function buildQueueFromIds(Mix $mix, array $songIds, int $rounds): array
+    public function updateShuffledIdsCache(Mix $mix, Song $song): void
     {
-        $batchSize = $mix->preset->batch_size;
-
-        if (empty($songIds)) {
-            Log::warning("No song IDs provided to build queue for mix {$mix->id}");
-            return [];
+        $shuffledIds = Cache::get("mix_{$mix->id}_shuffled_ids", []);
+        if (empty($shuffledIds)) {
+            return;
         }
 
-        $songs = $mix->songs()->whereIn('id', $songIds)->get()->keyBy('id');
+        // Add the new song ID to the cache
+        $shuffledIds[] = $song->id;
 
-        $ordered = [];
-        foreach ($songIds as $id) {
-            if (isset($songs[$id])) {
-                $ordered[] = $songs[$id];
+        // Add at a semi-random position (in the first half of non-queued songs)
+        if (count($shuffledIds) > 1) {
+            $queuedSongIds = QueueSong::where('mix_id', $mix->id)->pluck('song_id')->toArray();
+            $nonQueuedSongIds = array_diff($shuffledIds, $queuedSongIds);
+
+            if (count($nonQueuedSongIds) > 1) {
+                array_pop($shuffledIds);
+                $insertPosition = count($queuedSongIds) + rand(0, floor(count($nonQueuedSongIds) / 2));
+                array_splice($shuffledIds, $insertPosition, 0, [$song->id]);
+                Log::info("Added song ID {$song->id} at position {$insertPosition} in the shuffled IDs cache for mix {$mix->id}");
             }
         }
 
-        if (empty($ordered)) {
-            Log::warning("No songs found for mix {$mix->id} with the provided IDs");
-            return [];
-        }
-
-        Log::debug("Building queue from specific IDs for mix {$mix->id}: Found " . count($ordered) . " songs");
-
-        // Assign rounds just like in the original method
-        return $this->assignRounds($ordered, $batchSize);
+        // Save the updated shuffled IDs
+        Cache::put("mix_{$mix->id}_shuffled_ids", $shuffledIds);
     }
 }

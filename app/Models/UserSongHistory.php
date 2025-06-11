@@ -34,4 +34,11 @@ class UserSongHistory extends Model
     /**************************************/
     /*              Helpers               */
     /**************************************/
+
+    public static function highestAddedSong(User $user): ?UserSongHistory
+    {
+        return UserSongHistory::where('user_id', $user->id)
+            ->orderBy('times_added', 'desc')
+            ->first();
+    }
 }
