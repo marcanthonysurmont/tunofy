@@ -11,10 +11,8 @@ use Illuminate\Support\Facades\Log;
 
 class PauseMixPlaybackController extends Controller
 {
-    public function __invoke(
-        Mix $mix,
-        PlaybackService $playbackService
-    ): JsonResponse {
+    public function __invoke(Mix $mix, PlaybackService $playbackService): JsonResponse 
+    {
         $this->authorize('controlPlayback', $mix);
 
         // First check for throttling conditions

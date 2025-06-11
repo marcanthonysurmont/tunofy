@@ -19,7 +19,8 @@ class ShowMixController extends Controller
         SpotifyService $spotifyService,
         MixStatService $mixStatService,
         string $tab = 'overview'
-    ) {
+    )
+    {
         $this->authorize('view', $mix);
 
         // Core song data
