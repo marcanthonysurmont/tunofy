@@ -1,5 +1,5 @@
 <template>
-    <h1 class="text-3xl sm:text-4xl font-medium mb-6">Users</h1>
+    <h1 class="text-3xl sm:text-4xl font-medium mb-4">Users</h1>
     <SearchBarUsers
         @clear-search="searchResult = {}"
         @search-updated="searchResult = $event"

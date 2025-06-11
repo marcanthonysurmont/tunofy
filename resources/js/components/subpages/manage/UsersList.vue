@@ -102,18 +102,12 @@
     </ul>
 
     <!-- When there are no users -->
-    <p
-        class="text-zinc-300 mb-4"
-        v-else-if="!isSearching && users.length === 0"
-    >
+    <p class="text-muted mb-4" v-else-if="!isSearching && users.length === 0">
         No users found.
     </p>
 
     <!-- When searching and there are no results -->
-    <p
-        class="text-zinc-300"
-        v-else-if="isSearching && searchResult.length === 0"
-    >
+    <p class="text-muted" v-else-if="isSearching && searchResult.length === 0">
         The search returned no results.
     </p>
 
