@@ -19,8 +19,8 @@ class MixStatusChangedEvent implements ShouldBroadcastNow
         public Mix $mix,
         public bool $isActive,
         public ?string $reason = null
-    ) {
-    }
+    ) 
+    {}
 
     public function broadcastOn(): array
     {

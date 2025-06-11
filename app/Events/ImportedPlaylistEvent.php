@@ -10,7 +10,6 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Mix;
 use App\Http\Resources\SongResource;
-use App\Models\Song;
 
 class ImportedPlaylistEvent implements ShouldBroadcastNow
 {

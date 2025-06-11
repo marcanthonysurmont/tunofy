@@ -13,7 +13,8 @@ class MixDeletedEvent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public Mix $mix) {}
+    public function __construct(public Mix $mix) 
+    {}
 
     public function broadcastOn(): array
     {
