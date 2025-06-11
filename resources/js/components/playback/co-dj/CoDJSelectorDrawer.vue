@@ -180,8 +180,9 @@
                                             <p
                                                 class="text-zinc-300 text-sm mt-2 mb-6"
                                             >
-                                                Currently, Gilles Serrien is the
-                                                Co-DJ of this mix.
+                                                You'll regain playback access.
+                                                The current co-dj will lose
+                                                theirs.
                                             </p>
                                             <RegularButton
                                                 @click="takeBackControl"
