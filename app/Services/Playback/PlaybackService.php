@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Log;
 use App\Events\PlaybackDataUpdatedEvent;
 use App\Events\DeviceUpdatedEvent;
 use App\Models\QueueSong;
-use App\Events\MixStatusChangedEvent;
 use App\Events\StatUpdatedEvent;
 use App\Models\MixStat;
 use Illuminate\Support\Facades\DB;
@@ -21,9 +20,10 @@ class PlaybackService
 {
     public function __construct(
         protected SpotifyService $spotifyService,
-        protected PlaybackStateManager $playbackStateManager
-    ) 
-    {}
+        protected PlaybackStateManager $playbackStateManager,
+        protected SongPlaybackService $songPlaybackService
+    ) {
+    }
 
     /**
      * Get playback data for a mix, optimized for server-side polling architecture
@@ -241,6 +241,26 @@ class PlaybackService
             if ($currentSong) {
                 Log::info("Found the specific pre-switch song (ID: {$currentSong->id}) to resume");
                 $currentSong->update(['status' => 'playing']);
+            } else {
+                // ADDED: Important fallback - if we can't find the specific track as pending
+                // Try to find it with ANY status, since statuses might have changed
+                Log::info("Couldn't find specific track {$specificTrackId} as pending, trying any status");
+                $currentSong = QueueSong::where('mix_id', $mix->id)
+                    ->whereHas('song', function ($query) use ($specificTrackId) {
+                        $query->where('spotify_id', $specificTrackId);
+                    })
+                    ->with('song')
+                    ->first();
+
+                if ($currentSong) {
+                    Log::info("Found the specific pre-switch song with alternate status (ID: {$currentSong->id}) to resume");
+                    // Reset all playing songs to pending first
+                    QueueSong::where('mix_id', $mix->id)
+                        ->where('status', 'playing')
+                        ->update(['status' => 'pending']);
+                    // Set our found song to playing
+                    $currentSong->update(['status' => 'playing']);
+                }
             }
         }
 
@@ -335,61 +355,26 @@ class PlaybackService
      */
     public function playNextSong(Mix $mix): array
     {
-        // Get the user to use for playback
-        $user = $this->getControllingUser($mix);
-
-        // Get current playback data for statistics
-        $playbackData = $this->spotifyService->getCurrentPlayback($user);
-
-        // Get the current playing song
-        $songPlaybackService = app(SongPlaybackService::class);
+        // Get the current song that's playing
         $currentSong = QueueSong::currentlyPlayingForMix($mix);
 
-        // Track song history for "previous song" navigation (BEFORE updating status)
+        // Find the next song to play
+        $nextSong = $this->songPlaybackService->getNextSongToPlay($mix->id);
+        if (!$nextSong) {
+            return ['success' => false, 'queue_completed' => true];
+        }
+
+        // IMPORTANT: Only add current song to history if we have one
         if ($currentSong) {
+            // Add to history first, then update status
             $this->playbackStateManager->addToSongHistory($mix, $currentSong->id);
+            Log::info("Added song ID {$currentSong->id} to history before playing next song");
+
             $currentSong->update(['status' => 'finished', 'played_at' => now()]);
         }
 
-        // Check and extend queue if running low
-        $pendingSongsCount = QueueSong::where('mix_id', $mix->id)
-            ->where('status', 'pending')
-            ->count();
-
-        if ($pendingSongsCount <= 5) {
-            Log::info("Queue running low during skip, extending queue for mix {$mix->id}");
-            $songPlaybackService->extendQueueIfNeeded($mix);
-        }
-
-        // Update stats
-        MixStat::updateOrCreate(
-            ['mix_id' => $mix->id],
-            [
-                'songs_played' => DB::raw('songs_played + 1'),
-                'minutes_played' => DB::raw('minutes_played + ' . ($playbackData['progress_ms'] ?? 0) / 60000),
-            ]
-        );
-        StatUpdatedEvent::dispatch($mix);
-
-        // Get the next song to play
-        $nextSong = $songPlaybackService->getNextSongToPlay($mix->id);
-
-        // Handle queue completion
-        if (!$nextSong) {
-            $this->spotifyService->pausePlayback($user);
-            $mix->update(['is_active' => false]);
-            event(new MixStatusChangedEvent($mix, false, 'queue_completed'));
-            Cache::put("mix:{$mix->id}:queue_completed", true, now()->addHours(1));
-
-            return [
-                'success' => false,
-                'queue_completed' => true,
-                'message' => 'Queue completed'
-            ];
-        }
-
-        // Mark the song as playing BEFORE Spotify API call
-        $nextSong->update(['status' => 'playing']);
+        // Update the next song status
+        $nextSong->update(['status' => 'playing', 'played_at' => now()]);
 
         // 2. Prepare the playback data but DON'T broadcast yet
         $playbackData = [
@@ -414,6 +399,8 @@ class PlaybackService
         // OPTIMIZATION: Skip device activation if it was recently activated
         $recentlyActivated = $this->playbackStateManager->isDeviceRecentlyActivated($mix);
         $activationSuccess = $recentlyActivated;
+
+        $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
 
         if (!$recentlyActivated) {
             $activationSuccess = $this->spotifyService->activateDevice($user, $deviceId);
@@ -786,6 +773,7 @@ class PlaybackService
                     ->first();
 
                 if ($specificSong) {
+                    Log::info("Found the specific pre-switch song (ID: {$specificSong->id}) to resume after co-DJ removal");
                     $specificSong->update(['status' => 'playing']);
                     return $specificSong;
                 }
@@ -910,5 +898,39 @@ class PlaybackService
             'success' => true,
             'device_id' => $deviceId
         ];
+    }
+
+    private function findAppropriateTrackForResumption(Mix $mix, string $specificTrackId = null): ?QueueSong
+    {
+        if ($specificTrackId) {
+            // Try to find the track that was playing when the co-DJ was removed
+            $queueSong = QueueSong::where('mix_id', $mix->id)
+                ->whereIn('status', ['pending']) // Important: look at pending tracks
+                ->whereHas('song', function ($query) use ($specificTrackId) {
+                    $query->where('spotify_id', $specificTrackId);
+                })
+                ->with('song')
+                ->first();
+
+            if ($queueSong) {
+                Log::info("Found the specific pre-switch song (ID: {$queueSong->id}) to resume after co-DJ removal");
+                $queueSong->update(['status' => 'playing']);
+                return $queueSong;
+            }
+        }
+
+        // If no specific track found, get first pending song
+        $queueSong = QueueSong::where('mix_id', $mix->id)
+            ->where('status', 'pending')
+            ->orderBy('order')
+            ->with('song')
+            ->first();
+
+        if ($queueSong) {
+            $queueSong->update(['status' => 'playing']);
+            Log::info("Using first pending song {$queueSong->id} after co-DJ removal");
+        }
+
+        return $queueSong;
     }
 }

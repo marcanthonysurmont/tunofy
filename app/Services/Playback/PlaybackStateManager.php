@@ -616,46 +616,71 @@ class PlaybackStateManager
      */
     public function getSongHistory(Mix $mix): array
     {
-        return Cache::get("mix:{$mix->id}:song_history", []);
+        $cacheKey = "mix:{$mix->id}:song_history";
+        return Cache::get($cacheKey, []);
     }
 
     /**
-     * Update song history by adding a song to history
+     * Add a song to the history
      */
     public function addToSongHistory(Mix $mix, int $songId): void
     {
-        $historyKey = "mix:{$mix->id}:song_history";
-        $songHistory = $this->getSongHistory($mix);
+        $cacheKey = "mix:{$mix->id}:song_history";
+        $history = Cache::get($cacheKey, []);
 
-        // Add song to history (limit to last 10 songs)
-        array_push($songHistory, $songId);
-        if (count($songHistory) > 10) {
-            array_shift($songHistory);
+        Log::debug("BEFORE adding: History for mix {$mix->id}: " . json_encode($history));
+
+        // IMPORTANT: Don't add if this exact song ID is the most recent entry
+        if (!empty($history) && end($history) === $songId) {
+            Log::debug("Skipping duplicate consecutive history entry for song ID {$songId}");
+            return;
         }
 
-        Cache::put($historyKey, $songHistory, now()->addHours(1));
-        Log::info("Added song {$songId} to history for mix {$mix->id}");
+        // Add to history
+        $history[] = $songId;
+
+        // Keep only the last 10 songs
+        if (count($history) > 10) {
+            $history = array_slice($history, -10);
+        }
+
+        // Use a longer TTL for this cache
+        Cache::put($cacheKey, $history, now()->addDays(1));
+
+        Log::debug("AFTER adding: History for mix {$mix->id}: " . json_encode($history));
+        Log::info("Added song ID {$songId} to history for mix {$mix->id}. History now has " . count($history) . " songs");
     }
 
     /**
-     * Get a song from history and remove it
+     * Get the previous song from history and adjust history state
      */
     public function getPreviousSongFromHistory(Mix $mix): ?int
     {
-        $historyKey = "mix:{$mix->id}:song_history";
-        $songHistory = $this->getSongHistory($mix);
+        $cacheKey = "mix:{$mix->id}:song_history";
+        $history = Cache::get($cacheKey, []);
 
-        if (empty($songHistory)) {
+        Log::debug("Getting previous song from history for mix {$mix->id}. Full history: " . json_encode($history));
+
+        if (empty($history)) {
+            Log::debug("No song history for mix {$mix->id}");
             return null;
         }
 
-        // Get the last played song ID from history
-        $previousSongId = array_pop($songHistory);
+        // The first song in the queue doesn't have a "previous" song
+        // So we need at least one song in history
+        if (count($history) >= 1) {
+            // Get the most recent song from history
+            $previousSongId = array_pop($history);
 
-        // Store updated history back in cache
-        Cache::put($historyKey, $songHistory, now()->addHours(1));
+            // Update history in cache
+            Cache::put($cacheKey, $history, now()->addDays(1));
 
-        return $previousSongId;
+            Log::debug("Retrieved previous song ID {$previousSongId} from history for mix {$mix->id}");
+            return $previousSongId;
+        }
+
+        Log::debug("Not enough songs in history for mix {$mix->id}");
+        return null;
     }
 
     /**

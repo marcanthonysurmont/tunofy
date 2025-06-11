@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Facades\Redis;
+use App\Services\Queue\QueueManagementService;
 
 class MixActivationService
 {
@@ -218,6 +220,33 @@ class MixActivationService
 
         // Update stats
         $this->updateDeactivationStats($mix);
+
+        // Get the state you want to preserve
+        $deviceId = $this->playbackStateManager->getDeviceId($mix);
+        $songHistory = $this->playbackStateManager->getSongHistory($mix);
+
+        // Clear cache entries
+        Log::info("Preserved device ID {$deviceId} for mix {$mix->id} during cache clearing");
+
+        // Clear all cache entries for this mix
+        $cacheKeys = Redis::keys("mix:{$mix->id}:*");
+        foreach ($cacheKeys as $key) {
+            if (strpos($key, ':device_id') === false && strpos($key, ':song_history') === false) {
+                Redis::del($key);
+            }
+        }
+
+        // Reset the device ID
+        $this->playbackStateManager->setDeviceId($mix, $deviceId);
+        Log::info("Set device ID {$deviceId} for mix {$mix->id}");
+
+        // Reset song history
+        if (!empty($songHistory)) {
+            Cache::put("mix:{$mix->id}:song_history", $songHistory, now()->addHours(1));
+            Log::info("Preserved song history with " . count($songHistory) . " entries for mix {$mix->id}");
+        }
+
+        Log::info("Cleared cache entries for mix {$mix->id} while preserving device selection");
 
         return [
             'success' => true,

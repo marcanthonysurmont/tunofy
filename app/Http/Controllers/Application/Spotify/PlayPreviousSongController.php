@@ -8,11 +8,15 @@ use App\Services\Playback\PlaybackService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use App\Services\Playback\PlaybackStateManager;
 
 class PlayPreviousSongController extends Controller
 {
-    public function __invoke(Mix $mix, PlaybackService $playbackService): JsonResponse
-    {
+    public function __invoke(
+        Mix $mix,
+        PlaybackService $playbackService,
+        PlaybackStateManager $playbackStateManager
+    ): JsonResponse {
         $this->authorize('controlPlayback', $mix);
 
         // Check for throttling
@@ -38,6 +42,11 @@ class PlayPreviousSongController extends Controller
             // 2. Update database states (current->pending, previous->playing)
             // 3. Play the previous song on Spotify
             // 4. Update playback state and broadcast changes
+
+            // Add DEBUG logging
+            $history = $playbackStateManager->getSongHistory($mix);
+            Log::debug("Song history content for mix {$mix->id}: " . json_encode($history));
+
             $result = $playbackService->playPreviousSong($mix);
 
             return response()->json($result);

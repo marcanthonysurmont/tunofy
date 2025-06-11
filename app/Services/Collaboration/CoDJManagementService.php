@@ -10,6 +10,7 @@ use App\Models\QueueSong;
 use App\Services\Playback\PlaybackStateManager;
 use App\Services\Spotify\SpotifyService;
 use App\Services\Playback\SongPlaybackService;
+use Illuminate\Support\Facades\Log;
 
 class CoDJManagementService
 {
@@ -53,30 +54,70 @@ class CoDJManagementService
         // Store co-DJ before removing relationship
         $coDJ = $mix->coDJ;
 
-        // Capture current song before switch
+        // Capture current playing track before switch
         $currentlyPlaying = QueueSong::currentlyPlayingForMix($mix);
 
-        // Update the mix
+        // Store the track ID that was playing for later resumption
+        if ($currentlyPlaying) {
+            $this->playbackStateManager->set($mix, 'switch_track_id', $currentlyPlaying->song->spotify_id);
+            Log::info("Marked song {$currentlyPlaying->song->spotify_id} as the pre-switch active song for mix {$mix->id}");
+        }
+
+        // Update the mix relationship FIRST
         $mix->update(['co_dj_id' => null]);
 
-        // Prepare queue for user switch
-        $this->songPlaybackService->prepareQueueForUserSwitch($mix);
+        // Reset queue state for user switch - change playing to pending
+        QueueSong::where('mix_id', $mix->id)
+            ->where('status', 'playing')
+            ->update(['status' => 'pending']);
+        Log::info("Reset queue state for user switch on mix {$mix->id} - changed 'playing' to 'pending'");
 
-        // Notify the removed co-DJ
+        // CRITICAL: Set owner takeback flag for proper resumption flow
+        $this->playbackStateManager->setRecentOwnerTakeback($mix, true);
+        Log::info("Set recent owner takeback flag for mix {$mix->id}");
+
+        // Reset position to start from beginning after takeback
+        $this->playbackStateManager->setPausedPosition($mix, 0);
+        Log::info("Saved position 0ms before pausing mix {$mix->id}");
+
+        // Notify the removed co-DJ if available
         if ($coDJ) {
             CoDJUpdatedEvent::dispatch($coDJ, [
                 'playing_track' => $currentlyPlaying ? $currentlyPlaying->song->spotify_id : null,
             ]);
         }
 
-        // CRITICAL: Reset saved position to 0 to avoid position-based errors
-        $this->playbackStateManager->setPausedPosition($mix, 0);
+        // Pause the co-DJ's playback
+        if ($coDJ) {
+            $this->spotifyService->pausePlayback($coDJ);
+        }
 
-        // CRITICAL: Remove device ID from previous user
-        $this->playbackStateManager->forget($mix, 'device_id');
+        // IMPORTANT: Get owner's device ID for proper resumption
+        $owner = $mix->user;
+        $devices = $this->spotifyService->getUserDevices($owner);
 
-        // Handle playback state
-        $this->pauseAndUpdatePlaybackState($mix, $coDJ ?? $mix->user);
+        if (!empty($devices)) {
+            $deviceId = null;
+
+            // Try to find active device first
+            foreach ($devices as $device) {
+                if ($device['is_active']) {
+                    $deviceId = $device['id'];
+                    break;
+                }
+            }
+
+            // If no active device, use first available
+            if (!$deviceId && !empty($devices[0]['id'])) {
+                $deviceId = $devices[0]['id'];
+            }
+
+            // Set device ID for resumption
+            if ($deviceId) {
+                $this->playbackStateManager->setDeviceId($mix, $deviceId);
+                Log::info("Retrieved and set owner's device ID {$deviceId} for mix {$mix->id}");
+            }
+        }
     }
 
     /**
