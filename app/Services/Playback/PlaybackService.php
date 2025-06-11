@@ -12,14 +12,20 @@ use App\Events\PlaybackDataUpdatedEvent;
 use App\Events\DeviceUpdatedEvent;
 use App\Models\QueueSong;
 use App\Services\Playback\PlaybackStateManager;
+use App\Events\MixStatusChangedEvent;
+use App\Events\StatUpdatedEvent;
+use App\Models\MixStat;
+use App\Services\Playback\SongPlaybackService;
+use Illuminate\Support\Facades\DB;
+use App\Events\QueueStateUpdatedEvent;
 
 class PlaybackService
 {
     public function __construct(
         protected SpotifyService $spotifyService,
         protected PlaybackStateManager $playbackStateManager
-    ) {
-    }
+    ) 
+    {}
 
     /**
      * Get playback data for a mix, optimized for server-side polling architecture
@@ -235,6 +241,153 @@ class PlaybackService
                 'message' => 'Failed to resume playback on Spotify'
             ];
         }
+    }
+
+    /**
+     * Play the next song in the mix
+     */
+    public function playNextSong(Mix $mix): array
+    {
+        // Get the user to use for playback
+        $user = $mix->co_dj_id ? $mix->coDj : $mix->user;
+
+        // Get current playback data for statistics
+        $playbackData = $this->spotifyService->getCurrentPlayback($user);
+
+        // Get the next song and handle current song
+        $songPlaybackService = app(SongPlaybackService::class);
+        $currentSong = QueueSong::currentlyPlayingForMix($mix);
+
+        // Track song history for "previous song" navigation
+        if ($currentSong) {
+            $this->playbackStateManager->addToSongHistory($mix, $currentSong->id);
+            $currentSong->update(['status' => 'finished', 'played_at' => now()]);
+        }
+
+        // Check and extend queue if running low
+        $pendingSongsCount = QueueSong::where('mix_id', $mix->id)
+            ->where('status', 'pending')
+            ->count();
+
+        if ($pendingSongsCount <= 5) {
+            Log::info("Queue running low during skip, extending queue for mix {$mix->id}");
+            $songPlaybackService->extendQueueIfNeeded($mix);
+        }
+
+        // Update stats
+        MixStat::updateOrCreate(
+            ['mix_id' => $mix->id],
+            [
+                'songs_played' => DB::raw('songs_played + 1'),
+                'minutes_played' => DB::raw('minutes_played + ' . ($playbackData['progress_ms'] ?? 0) / 60000),
+            ]
+        );
+        StatUpdatedEvent::dispatch($mix);
+
+        // Get the next song
+        $nextSong = $songPlaybackService->getNextSongToPlay($mix->id);
+
+        // Handle queue completion
+        if (!$nextSong) {
+            $this->spotifyService->pausePlayback($user);
+            $mix->update(['is_active' => false]);
+            event(new MixStatusChangedEvent($mix, false, 'queue_completed'));
+            Cache::put("mix:{$mix->id}:queue_completed", true, now()->addHours(1));
+
+            return [
+                'success' => false,
+                'queue_completed' => true,
+                'message' => 'Queue completed'
+            ];
+        }
+
+        // Prepare playback data
+        $playbackData = [
+            'is_playing' => true,
+            'progress_ms' => 0,
+            'item' => [
+                'id' => $nextSong->song->spotify_id,
+                'name' => $nextSong->song->name,
+                'duration_ms' => $nextSong->song->duration_ms,
+                'artists' => [['name' => $nextSong->song->artist]],
+                'album' => [
+                    'images' => [['url' => $nextSong->song->image_url]]
+                ]
+            ],
+            '_timestamp' => now()->timestamp,
+            '_action' => 'next'
+        ];
+
+        // Play on Spotify
+        $deviceId = $this->playbackStateManager->getDeviceId($mix);
+        $success = $this->playTrackWithOptimizedActivation($user, $nextSong->song->spotify_id, $mix, $deviceId);
+
+        if ($success) {
+            // Update status and state
+            $nextSong->update(['status' => 'playing', 'played_at' => now()]);
+            $this->playbackStateManager->setManualChange($mix);
+            $this->playbackStateManager->setPlaybackData($mix, $playbackData);
+
+            // Broadcast updates
+            event(new PlaybackDataUpdatedEvent($mix, $playbackData));
+            QueueStateUpdatedEvent::dispatch($mix);
+
+            // Cache the response for throttling
+            $response = [
+                'success' => true,
+                'song' => $nextSong->song
+            ];
+            Cache::put("mix:{$mix->id}:last_next_response", $response, now()->addMinutes(1));
+
+            return $response;
+        } else {
+            return ['success' => false];
+        }
+    }
+
+    /**
+     * Helper to play a track with optimized device activation
+     */
+    private function playTrackWithOptimizedActivation(User $user, string $trackId, Mix $mix, ?string $deviceId): bool
+    {
+        if (!$deviceId) {
+            return false;
+        }
+
+        // Skip device activation if recently activated
+        $recentlyActivated = $this->playbackStateManager->isDeviceRecentlyActivated($mix);
+        $activationSuccess = $recentlyActivated;
+
+        if (!$recentlyActivated) {
+            $activationSuccess = $this->spotifyService->activateDevice($user, $deviceId);
+            if ($activationSuccess) {
+                $this->playbackStateManager->setDeviceActivated($mix, true, 30);
+            }
+        }
+
+        if (!$activationSuccess) {
+            return false;
+        }
+
+        return $this->spotifyService->playTrackOnDevice($user, $trackId, $deviceId);
+    }
+
+    /**
+     * Get last cached response for a throttled command
+     */
+    public function getLastCachedResponse(Mix $mix, string $commandType): ?array
+    {
+        $lastResponseKey = "mix:{$mix->id}:last_{$commandType}_response";
+        $lastResponse = Cache::get($lastResponseKey);
+
+        if ($lastResponse) {
+            return array_merge(
+                $lastResponse,
+                ['throttled' => true]
+            );
+        }
+
+        return null;
     }
 
     // Helper methods
