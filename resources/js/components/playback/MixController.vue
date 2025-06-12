@@ -375,7 +375,9 @@ function clearSyncingState() {
 
 async function refreshMixState() {
     try {
-        const response = await axios.get("/api/spotify/request-status/" + props.mix.id);
+        const response = await axios.get(
+            "/api/spotify/request-status/" + props.mix.id
+        );
 
         //update state from server
         isMixActive.value = response.data.is_active;
@@ -607,11 +609,6 @@ onMounted(() => {
             })
             .listen(".device.updated", async () => {
                 await refreshDevices();
-            })
-            .listen(".user-access-updated", () => {
-                router.reload({
-                    only: ["collaborators", "success", "danger"],
-                });
             });
 
         Echo.private("user." + page.props.user.id).listen(

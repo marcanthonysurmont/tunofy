@@ -420,6 +420,21 @@ onBeforeMount(() => {
                 type: "danger",
             });
         })
+        .listen(".user-access-updated", () => {
+            router.reload({
+                only: ["collaborators", "success", "danger"],
+            });
+        })
+        .listen(".remove-user-access", (e) => {
+            //if the kicked user is the current logged in user, we redirect to the app route with toast
+            if (e.user_id === props.value.user.id) {
+                router.visit(route("app"));
+                toast.add({
+                    message: "You have been removed from the mix.",
+                    type: "danger",
+                });
+            }
+        })
         .listen(".playlist.imported", async (e) => {
             console.log("Playlist imported", e);
             router.reload({
