@@ -15,9 +15,7 @@ class RemoveUserAccessEvent implements ShouldBroadcastNow
     use InteractsWithSockets;
     use SerializesModels;
 
-    public function __construct(public Mix $mix)
-    {
-    }
+    public function __construct(public Mix $mix, public int $user_id) {}
 
     public function broadcastOn(): array
     {
@@ -29,5 +27,12 @@ class RemoveUserAccessEvent implements ShouldBroadcastNow
     public function broadcastAs(): string
     {
         return 'remove-user-access';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'user_id' => $this->user_id,
+        ];
     }
 }

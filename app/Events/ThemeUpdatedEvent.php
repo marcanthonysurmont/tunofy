@@ -15,10 +15,7 @@ class ThemeUpdatedEvent implements ShouldBroadcastNow
     use InteractsWithSockets;
     use SerializesModels;
 
-    public function __construct(public Mix $mix)
-    {
-        $this->dontBroadcastToCurrentUser();
-    }
+    public function __construct(public Mix $mix) {}
 
     public function broadcastOn(): array
     {

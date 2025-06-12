@@ -16,10 +16,7 @@ class SongDeletedEvent implements ShouldBroadcastNow
     use InteractsWithSockets;
     use SerializesModels;
 
-    public function __construct(public Mix $mix, public Song $song)
-    {
-        $this->dontBroadcastToCurrentUser();
-    }
+    public function __construct(public Mix $mix, public Song $song) {}
 
     public function broadcastOn(): array
     {

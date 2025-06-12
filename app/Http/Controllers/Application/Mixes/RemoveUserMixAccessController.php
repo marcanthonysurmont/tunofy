@@ -30,10 +30,10 @@ class RemoveUserMixAccessController extends Controller
             UserAccessUpdatedEvent::dispatch($mix);
 
             return redirect()->route('app')
-               ->with('success', 'You have left the mix successfully.');
+                ->with('success', 'You have left the mix successfully.');
         }
 
-        RemoveUserAccessEvent::dispatch($mix);
+        RemoveUserAccessEvent::dispatch($mix, $validated['user_id']);
 
         return redirect()->back()
             ->with('success', 'User access removed successfully.');
